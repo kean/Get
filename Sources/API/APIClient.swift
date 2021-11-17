@@ -7,49 +7,10 @@ import Foundation
 public protocol APIClientProtocol {
     func send(_ request: URLRequest) async throws -> (Data, URLResponse)
 }
+    
+#warning("TODO: process in background and disptch on main queue (maybe decode on networking OperationQueue?")
 
-extension APIClientProtocol {
-    public func sned<Response: Decodable>(
-        _ url: URL,
-        method: HTTPMethod = .get,
-        parameters: [String: String]? = nil,
-        headers: [String: String]? = nil
-    ) async throws -> Response {
-        fatalError()
-    }
-    
-    public func send(
-        _ url: URL,
-        method: HTTPMethod = .get,
-        parameters: [String: String]? = nil,
-        headers: [String: String]? = nil
-    ) async throws {
-        fatalError()
-    }
-    
-    #warning("TODO: can we simplify how request is created? maybe with Request struct with associated types?")
-    public func send<Request: Encodable, Response: Decodable>(
-        _ url: URL,
-        method: HTTPMethod = .post,
-        request: Request,
-        headers: [String: String]? = nil
-    ) async throws -> Response {
-        fatalError()
-    }
-    
-    public func send<Request: Encodable>(
-        _ url: URL,
-        method: HTTPMethod = .post,
-        request: Request,
-        headers: [String: String]? = nil
-    ) async throws {
-        fatalError()
-    }
-    
-    #warning("TODO: process in background and disptch on main queue (maybe decode on networking OperationQueue?")
-    
-    #warning("TODO: seet Content-Type when posting a JSON")
-}
+#warning("TODO: seet Content-Type when posting a JSON")
 
 #warning("TOOD: implement authentication")
 
@@ -57,6 +18,7 @@ extension APIClientProtocol {
 public enum HTTPMethod {
     case get
     case post
+    case delete
 }
 
 extension URLRequest {
