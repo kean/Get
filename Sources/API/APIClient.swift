@@ -5,7 +5,7 @@
 import Foundation
 
 public protocol APIClientProtocol {
-    func send(_ request: URLRequest) async throws -> Data
+    func send(_ request: URLRequest) async throws -> (Data, URLResponse)
 }
 
 extension APIClientProtocol {
@@ -81,12 +81,11 @@ public final class APIClient {
         self.delegate = TaskDelegate()
     }
     
-    public func send(_ request: URLRequest) async throws -> Data {
+    public func send(_ request: URLRequest) async throws -> (Data, URLResponse) {
         #warning("TODO: implement using URLSession / something like Nuke / new URLSesion async/await APIs with delegate")
         // TODO: Does URLSession async/await cancel in-flight requests? If no, we'll have to implement something else ourselves
         
-        let (data, response) = try await session.data(for: request, delegate: delegate)
-        return data
+        return try await session.data(for: request, delegate: delegate)
     }
     
     private final class TaskDelegate: NSObject, URLSessionTaskDelegate {
