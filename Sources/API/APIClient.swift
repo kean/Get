@@ -34,7 +34,7 @@ extension URLRequest {
     }
 }
 
-public final class APIClient {
+public final class APIClient: APIClientProtocol {
     private let session: URLSession
     private let delegate: URLSessionTaskDelegate
     

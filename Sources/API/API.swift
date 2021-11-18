@@ -9,7 +9,7 @@ protocol PathProtocol {
 }
 
 // This as a protocol?
-struct API<Path: PathProtocol> {
+struct API {
     let client: APIClientProtocol
     let host: String
 
@@ -19,54 +19,54 @@ struct API<Path: PathProtocol> {
     }
 }
 
+// TODO: Add a way to adopt requests?
 extension API {
-    func get<T: Decodable>(_ path: Path, parameters: HTTPParameters? = nil, headers: HTTPHeaders? = nil) async throws -> T {
-        try await send(path, method: .get, parameters: parameters, response: decode, headers: headers)
+    func get<T: Decodable>(_ path: String, query: Query? = nil) async throws -> T {
+        try await send(.get, path, query: query, response: decode)
     }
     
-    func post<T: Decodable, U: Encodable>(_ path: Path, body: U, headers: HTTPHeaders? = nil) async throws -> T {
-        try await send(path, method: .post, body: .encoded(body), response: decode, headers: headers)
+    func post<T: Decodable, U: Encodable>(_ path: String, body: U) async throws -> T {
+        try await send(.post, path, body: .encoded(body), response: decode)
     }
     
-    func post<U: Encodable>(_ path: Path, body: U, headers: HTTPHeaders? = nil) async throws {
-        try await send(path, method: .post, body: .encoded(body), response: { _ in () }, headers: headers)
+    func post<U: Encodable>(_ path: String, body: U) async throws {
+        try await send(.post, path, body: .encoded(body), response: { _ in () })
     }
     
-    func delete<U: Encodable>(_ path: Path, body: U, headers: HTTPHeaders? = nil) async throws {
-        try await send(path, method: .delete, body: .encoded(body), response: { _ in () }, headers: headers)
+    func delete<U: Encodable>(_ path: String, body: U) async throws {
+        try await send(.delete, path , body: .encoded(body), response: { _ in () })
     }
 
-    private func send<Response>(_ path: Path, method: HTTPMethod, parameters: HTTPParameters? = nil, body: RequestBody? = nil, response: @escaping (Data) throws -> Response, headers: HTTPHeaders?) async throws -> Response {
-        fatalError()
-    }
-    
-    private func makeURL(for path: Path) throws -> URL {
-        // TODO: Add a way to pass full URL, overriding default path
-        try URL(host: host, path: path.rawValue)
-    }
-}
-
-struct HTTPParameters: ExpressibleByDictionaryLiteral {
-    init(dictionaryLiteral elements: (String, String)...) {
+    private func send<Response>(_ method: HTTPMethod, _ path: String, query: [String: String]? = nil, body: RequestBody? = nil, response: @escaping (Data) throws -> Response, headers: Headers? = nil) async throws -> Response {
+        guard let inputURL = URL(string: path),
+              var components = URLComponents(url: inputURL, resolvingAgainstBaseURL: false) else {
+            throw URLError(.badURL)
+        }
+        if path.starts(with: "/") { // Relative path
+            components.scheme = "https"
+            components.host = host
+        }
+        if let query = query {
+            components.queryItems = query.map(URLQueryItem.init)
+        }
+        guard let url = components.url else {
+            throw URLError(.badURL)
+        }
         
+        let request = URLRequest(url: url)
+        
+        // TODO: pass body
+        
+        let (data, response) = try client.send(request)
+        
+        // TODO: parse response (see WWDC video for that)
+        
+        fatalError()
     }
 }
 
-/// TODO: https://developer.apple.com/documentation/foundation/nsurlrequest#1776617
-struct HTTPHeaders: ExpressibleByDictionaryLiteral {
-    init(dictionaryLiteral elements: (String, String)...) {
-        
-    }
-    
-    func setValue(_ value: String, forKey key: String) {
-        fatalError()
-    }
-    
-    /// TODO: https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-    func addValue(_ value: String, forKey key: String) {
-        fatalError()
-    }
-}
+typealias Query = [String: String]
+typealias Headers = [String: String]
 
 enum RequestBody {
     case data(() throws -> (Data, String))
@@ -79,8 +79,4 @@ enum RequestBody {
 
 private func decode<T: Decodable>(_ data: Data) throws -> T {
     try JSONDecoder().decode(T.self, from: data)
-}
-
-private func decode(_ data: Data) -> Void {
-    ()
 }

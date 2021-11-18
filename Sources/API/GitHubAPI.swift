@@ -4,53 +4,65 @@
 
 import Foundation
 
+// MARK: - GitHubAPI (Example)
+
 public struct GitHubAPI {
-    let api: API<Path>
+    let api: API
 
     public init(client: APIClientProtocol, host: String) {
-        self.api = API<Path>(client: client, host: host)
+        self.api = API(client: client, host: host)
     }
     
-    // TODO: Is this the best way to represent URLs?
-    public enum Path: String, PathProtocol {
-        case user = "/user"
-        case userEmails = "/user/emails"
-    }
+    public var userEmails: UserEmailsAPI { UserEmailsAPI(api: api) }
+    public var user: UserAPI { UserAPI(api: api) }
 }
 
 // MARK: - /user/emails
 
 extension GitHubAPI {
-    /// List email addresses for the authenticated user.
-    public func getUserEmails() async throws -> [UserEmail] {
-        try await api.get(.userEmails)
-    }
-    
-    /// Add an email address for the authenticated user.
-    public func postUserEmails(emails: [String]) async throws {
-        try await api.post(.userEmails, body: emails)
-    }
-    
-    /// Delete an email address for the authenticated user.
-    public func deleteUserEmails(emails: [String]) async throws {
-        try await api.delete(.userEmails, body: emails)
-    }
-}
+    public struct UserEmailsAPI {
+        let api: API
 
-// TODO: Should it be in a namespace?
-public struct UserEmail: Decodable {
-    public let email: String
-    public let verified: Bool
-    public let primary: Bool
-    public let visibility: String
+        public let path: String = "/user/emails"
+        
+        /// List email addresses for the authenticated user.
+        public func get() async throws -> [UserEmail] {
+            try await api.get(path)
+        }
+        
+        /// Add an email address for the authenticated user.
+        public func post(_ emails: [String]) async throws {
+            try await api.post(path, body: emails)
+        }
+        
+        /// Delete an email address for the authenticated user.
+        public func delete(_ emails: [String]) async throws {
+            try await api.delete(path, body: emails)
+        }
+    }
 }
 
 // MARK: - /user
 
 extension GitHubAPI {
-    public func getUser() async throws -> User {
-        try await api.get(.user)
+    public struct UserAPI {
+        let api: API
+
+        public let path: String = "/user"
+        
+        public func get() async throws -> User {
+            try await api.get(path)
+        }
     }
+}
+
+// MARK: - Entities
+
+public struct UserEmail: Decodable {
+    public let email: String
+    public let verified: Bool
+    public let primary: Bool
+    public let visibility: String
 }
 
 public struct User: Codable {
@@ -60,4 +72,22 @@ public struct User: Codable {
     public let hirable: Bool
     public let location: String
     public let bio: String
+}
+
+// MARK: - Usage
+
+
+func usage() async throws {
+    let client = APIClient()
+    let api = GitHubAPI(client: client, host: "api.github.com")
+    
+    let user = try await api.user.get()
+    let emails = try await api.userEmails.get()
+    
+    try await api.userEmails.delete(["octocat@gmail.com"])
+    
+
+    // Mocking
+//    let mockClient = MockClient()
+//    mockClient.set("path-to-json-file", for: api.userEmails.path, .get)
 }

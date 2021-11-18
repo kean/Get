@@ -1,3 +1,7 @@
+// The MIT License (MIT)
+//
+// Copyright (c) 2021 Alexander Grebenyuk (github.com/kean).
+
 import XCTest
 @testable import API
 
@@ -18,6 +22,6 @@ final class APIClientTests: XCTestCase {
     }
     
     func testParseResponse() async throws {
-        
+
     }
 }
