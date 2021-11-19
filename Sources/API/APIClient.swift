@@ -11,8 +11,31 @@ protocol APIClientDelegate {
     func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error
 }
 
-struct Request {
-    let method: String
+public struct Request<Response> {
+    var method: String
+    var path: String
+    var query: [String: String]?
+    var body: AnyEncodable?
+}
+
+extension Request where Response == Void {
+    static func delete<U: Encodable>(_ path: String, body: U) -> Request {
+        Request(method: "DELETE", path: path, body: AnyEncodable(body))
+    }
+    
+    static func post<U: Encodable>(_ path: String, body: U) -> Request {
+        Request(method: "POST", path: path, body: AnyEncodable(body))
+    }
+}
+
+extension Request where Response: Decodable {
+    static func get(_ path: String, query: [String: String]? = nil) -> Request {
+        Request(method: "GET", path: path, query: query)
+    }
+    
+    static func post<U: Encodable>(_ path: String, body: U) -> Request {
+        Request(method: "POST", path: path, body: AnyEncodable(body))
+    }
 }
 
 /// A set of high-level APIs for defining REST JSON clients.
@@ -31,37 +54,26 @@ actor APIClient {
     }
     
     // MARK: Networking
-    
-    func get<T: Decodable>(_ path: String, query: [String: String]? = nil) async throws -> T {
-        try await send("GET", path, query: query, decode: decode)
-    }
-    
-    func post<T: Decodable, U: Encodable>(_ path: String, body: U) async throws -> T {
-        try await send("POST", path, body: encode(body), decode: decode)
-    }
-    
-    func post<U: Encodable>(_ path: String, body: U) async throws {
-        try await send("POST", path, body: encode(body), decode: empty)
-    }
 
-    func delete<U: Encodable>(_ path: String, body: U) async throws {
-        try await send("DELETE", path , body: encode(body), decode: empty)
+    func send<Response>(_ request: Request<Response>) async throws -> Response where Response: Decodable {
+        try await send(request) { try await self.serializer.decode($0) }
+    }
+    
+    func send(_ request: Request<Void>) async throws -> Void {
+        try await send(request) { _ in () }
     }
     
     private func send<Response>(
-        _ method: String,
-        _ path: String,
-        query: [String: String]? = nil,
-        body: Data? = nil,
-        decode: @escaping (Data) async throws -> Response
+        _ request: Request<Response>,
+        _ decode: @escaping (Data) async throws -> Response
     ) async throws -> Response {
-        let url = try makeURL(path: path, query: query)
-        let request = makeRequest(url: url, method: method, body: body)
+        let url = try makeURL(path: request.path, query: request.query)
+        let request = try await makeRequest(url: url, method: request.method, body: request.body)
         let (data, response) = try await send(request)
         try validate(response: response, data: data)
         return try await decode(data)
     }
-    
+        
     func send(_ request: URLRequest) async throws -> (Data, URLResponse) {
         return try await session.data(for: request, delegate: taskDelegate)
     }
@@ -86,11 +98,11 @@ actor APIClient {
         return url
     }
     
-    private func makeRequest(url: URL, method: String, body: Data?) -> URLRequest {
+    private func makeRequest(url: URL, method: String, body: AnyEncodable?) async throws -> URLRequest {
         var request = URLRequest(url: url)
         request.httpMethod = method
         if let body = body {
-            request.httpBody = body
+            request.httpBody = try await serializer.encode(body)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
         request.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -142,5 +154,17 @@ private actor Serializer {
 private final class TaskDelegate: NSObject, URLSessionTaskDelegate {
     func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
         // TODO: Save metrics for Pulse + integrate Pulse yo
+    }
+}
+
+struct AnyEncodable: Encodable {
+    private let value: Encodable
+
+    init(_ value: Encodable) {
+        self.value = value
+    }
+
+    func encode(to encoder: Encoder) throws {
+        try value.encode(to: encoder)
     }
 }

@@ -7,25 +7,19 @@ import Foundation
 // MARK: - GitHubAPI (Example)
 
 public struct GitHubAPI {
-    let api: APIClient
-
-    public init(host: String) {
-        self.api = APIClient(configuration: .default, host: host, delegate: GitHubAPIClientDelegate())
-    }
+    public init() {}
 }
 
 // MARK: - /user
 
 extension GitHubAPI {
-    public var user: UserAPI { UserAPI(api: api) }
+    public var user: UserAPI { UserAPI() }
     
     public struct UserAPI {
-        let api: APIClient
-
         public let path: String = "/user"
         
-        public func get() async throws -> User {
-            try await api.get(path)
+        public var get: Request<User> {
+            .get("/user")
         }
     }
 }
@@ -33,27 +27,25 @@ extension GitHubAPI {
 // MARK: - /user/emails
 
 extension GitHubAPI.UserAPI {
-    
-    public var emails: EmailsAPI { EmailsAPI(api: api) }
+    public var emails: EmailsAPI { EmailsAPI() }
     
     public struct EmailsAPI {
-        let api: APIClient
-
         public let path: String = "/user/emails"
         
-        /// List email addresses for the authenticated user.
-        public func get() async throws -> [UserEmail] {
-            try await api.get(path)
+        public var get: Request<[UserEmail]> {
+            .get(path)
         }
         
-        /// Add an email address for the authenticated user.
-        public func post(_ emails: [String]) async throws {
-            try await api.post(path, body: emails)
+        public func post(_ emails: [String]) -> Request<Void> {
+            .post(path, body: emails)
         }
         
-        /// Delete an email address for the authenticated user.
-        public func delete(_ emails: [String]) async throws {
-            try await api.delete(path, body: emails)
+        public func patch(_ emails: [String]) -> Request<Void> {
+            .post(path, body: emails)
+        }
+        
+        public func delete(_ emails: [String]) -> Request<Void> {
+            .delete(path, body: emails)
         }
     }
 }
@@ -61,15 +53,13 @@ extension GitHubAPI.UserAPI {
 // MARK: - /users
 
 extension GitHubAPI {
-    public var users: UsersAPI { UsersAPI(api: api) }
+    public var users: UsersAPI { UsersAPI() }
     
     public struct UsersAPI {
-        let api: APIClient
-
         public let path: String = "/users"
         
-        public func get(named name: String) async throws -> User {
-            try await api.get(path + "/\(name)")
+        public func get(named name: String) -> Request<User> {
+            .get(path + "/\(name)")
         }
     }
 }
@@ -117,7 +107,7 @@ private final class GitHubAPIClientDelegate: APIClientDelegate {
         }
     }
     
-    func client(_ client: APIClient, didEncounterInvalidResponse response: HTTPURLResponse, data: Data) -> Error {
+    func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error {
         APIClient.Error.unacceptableStatusCode(response.statusCode)
     }
 }
@@ -125,13 +115,16 @@ private final class GitHubAPIClientDelegate: APIClientDelegate {
 // MARK: - Usage
 
 func usage() async throws {
-    let api = GitHubAPI(host: "api.github.com")
+    let api = GitHubAPI()
+    let client = APIClient(host: "api.github.com", delegate: GitHubAPIClientDelegate())
         
-    let user = try await api.user.get()
-    let emails = try await api.user.emails.get()
+    let user = try await client.send(api.user.get)
+    let user2 = try await client.send(GitHubAPI().user.get)
+    let user2 = try await client.send(.user.get)
+    let emails = try await client.send(api.user.emails.get)
     
-    try await api.user.emails.delete(["octocat@gmail.com"])
-        
+    try await client.send(api.user.emails.delete(["octocat@gmail.com"]))
+
     // Mocking
 //    let mockClient = MockClient()
 //    mockClient.set("path-to-json-file", for: api.userEmails.path, .get)
