@@ -4,16 +4,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "API",
-    platforms: [.iOS(.v15)],
+    name: "APIClient",
+    platforms: [.iOS(.v15), .macCatalyst(.v15)],
     products: [
-        .library(name: "API", targets: ["API"]),
+        .library(name: "APIClient", targets: ["APIClient"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/WeTransfer/Mocker.git", .upToNextMajor(from: "2.3.0"))
+        .package(url: "https://github.com/WeTransfer/Mocker.git", from: "2.3.0"),
+        .package(url: "https://github.com/kean/Pulse", from: "0.20.0")
     ],
     targets: [
-        .target(name: "API", dependencies: []),
-        .testTarget(name: "APITests", dependencies: ["API", "Mocker"], resources: [.process("Resources")]),
+        .target(name: "APIClient", dependencies: [.product(name: "PulseCore", package: "Pulse")]),
+        .testTarget(name: "APIClientTests", dependencies: ["APIClient", "Mocker"], resources: [.process("Resources")]),
     ]
 )

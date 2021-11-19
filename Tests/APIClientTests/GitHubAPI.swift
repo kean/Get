@@ -3,9 +3,10 @@
 // Copyright (c) 2021 Alexander Grebenyuk (github.com/kean).
 
 import Foundation
+import APIClient
 
-// MARK: - GitHubAPI (Example)
-
+// An example of an API definition. Feel free to use any other method for
+// organizing the resources.
 public struct GitHubAPI {
     public init() {}
 }
@@ -19,7 +20,7 @@ extension GitHubAPI {
         public let path: String = "/user"
         
         public var get: Request<User> {
-            .get("/user")
+            .get(path)
         }
     }
 }
@@ -39,30 +40,52 @@ extension GitHubAPI.UserAPI {
         public func post(_ emails: [String]) -> Request<Void> {
             .post(path, body: emails)
         }
-        
-        public func patch(_ emails: [String]) -> Request<Void> {
-            .post(path, body: emails)
-        }
-        
+                
         public func delete(_ emails: [String]) -> Request<Void> {
             .delete(path, body: emails)
         }
     }
 }
 
-// MARK: - /users
+// MARK: - /users/{username}
 
 extension GitHubAPI {
-    public var users: UsersAPI { UsersAPI() }
+    public func users(_ name: String) -> UsersAPI {
+        UsersAPI(name: name)
+    }
     
     public struct UsersAPI {
-        public let path: String = "/users"
+        public let path: String
         
-        public func get(named name: String) -> Request<User> {
-            .get(path + "/\(name)")
+        init(name: String) {
+            self.path = "/users/\(name)"
+        }
+        
+        public var get: Request<User> {
+            .get(path)
         }
     }
 }
+
+// MARK: - /users/{username}/followers
+
+extension GitHubAPI.UsersAPI {
+    public var followers: FollowersAPI { FollowersAPI(path: path) }
+    
+    public struct FollowersAPI {
+        public let path: String
+        
+        init(path: String) {
+            self.path = path + "/followers"
+        }
+        
+        public var get: Request<[User]> {
+            .get(path)
+        }
+    }
+}
+
+
 
 // MARK: - Entities
 
@@ -75,13 +98,23 @@ public struct UserEmail: Decodable {
 
 public struct User: Codable {
     public let id: Int
+    public let login: String
     public let name: String
     public let hireable: Bool
     public let location: String
     public let bio: String
 }
 
+func test() {
+    
+}
+
 // MARK: - APIClientDelegate
+
+#warning("TEMP:")
+enum GitHubError: Error {
+    case unacceptableStatusCode(Int)
+}
 
 private final class GitHubAPIClientDelegate: APIClientDelegate {
     func client(_ client: APIClient, willSendRequest request: inout URLRequest) {
@@ -90,7 +123,7 @@ private final class GitHubAPIClientDelegate: APIClientDelegate {
     
     func shouldClientRetry(_ client: APIClient, withError error: Error) async -> Bool {
         switch error {
-        case let error as APIClient.Error:
+        case let error as GitHubError:
             switch error {
             case .unacceptableStatusCode(let statusCode):
                 if statusCode == 401 {
@@ -108,7 +141,7 @@ private final class GitHubAPIClientDelegate: APIClientDelegate {
     }
     
     func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error {
-        APIClient.Error.unacceptableStatusCode(response.statusCode)
+        GitHubError.unacceptableStatusCode(response.statusCode)
     }
 }
 
@@ -117,21 +150,13 @@ private final class GitHubAPIClientDelegate: APIClientDelegate {
 func usage() async throws {
     let api = GitHubAPI()
     let client = APIClient(host: "api.github.com", delegate: GitHubAPIClientDelegate())
-        
+    
     let user = try await client.send(api.user.get)
-    let user2 = try await client.send(GitHubAPI().user.get)
-    let user2 = try await client.send(.user.get)
     let emails = try await client.send(api.user.emails.get)
     
     try await client.send(api.user.emails.delete(["octocat@gmail.com"]))
-
-    // Mocking
-//    let mockClient = MockClient()
-//    mockClient.set("path-to-json-file", for: api.userEmails.path, .get)
-}
-
-// TOOD: temp
-public protocol AuthorizationProviderProtocol {
-    func getAccessToken() -> String?
-    func refreshAccessToken(_ accessToken: String) async throws
+        
+    let followers = try await client.send(api.users("kean").followers.get)
+    
+    let user2 = try await client.send(.get("/user"))
 }

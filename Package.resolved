@@ -9,6 +9,24 @@
           "revision": "352066f1a29108548386487ae083b4115e94c1fb",
           "version": "2.5.4"
         }
+      },
+      {
+        "package": "Pulse",
+        "repositoryURL": "https://github.com/kean/Pulse",
+        "state": {
+          "branch": null,
+          "revision": "f944ac0095f5a844501015fb5ad45411a41c133d",
+          "version": "0.20.0"
+        }
+      },
+      {
+        "package": "swift-log",
+        "repositoryURL": "https://github.com/apple/swift-log.git",
+        "state": {
+          "branch": null,
+          "revision": "5d66f7ba25daf4f94100e7022febf3c75e37a6c7",
+          "version": "1.4.2"
+        }
       }
     ]
   },

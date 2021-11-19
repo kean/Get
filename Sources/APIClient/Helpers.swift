@@ -4,8 +4,30 @@
 
 import Foundation
 
+actor Serializer {
+    func encode<T: Encodable>(_ entity: T) async throws -> Data {
+        try JSONEncoder().encode(entity)
+    }
+    
+    func decode<T: Decodable>(_ data: Data) async throws -> T {
+        try JSONDecoder().decode(T.self, from: data)
+    }
+}
+
+struct AnyEncodable: Encodable {
+    private let value: Encodable
+
+    init(_ value: Encodable) {
+        self.value = value
+    }
+
+    func encode(to encoder: Encoder) throws {
+        try value.encode(to: encoder)
+    }
+}
+
 extension URLRequest {
-    func cURLDescription() -> String {
+    public func cURLDescription() -> String {
         guard let url = url, let method = httpMethod else {
             return "$ curl command generation failed"
         }
