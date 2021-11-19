@@ -9,20 +9,34 @@ import Foundation
 public struct GitHubAPI {
     let api: APIClient
 
-    public init(configuration: URLSessionConfiguration = .default, host: String) {
-        self.api = APIClient(configuration: configuration, host: host, delegate: GitHubAPIClientDelegate())
+    public init(host: String) {
+        self.api = APIClient(configuration: .default, host: host, delegate: GitHubAPIClientDelegate())
     }
-    
-    public var userEmails: UserEmailsAPI { UserEmailsAPI(api: api) }
+}
+
+// MARK: - /user
+
+extension GitHubAPI {
     public var user: UserAPI { UserAPI(api: api) }
-    public var users: UsersAPI { UsersAPI(api: api) }
+    
+    public struct UserAPI {
+        let api: APIClient
+
+        public let path: String = "/user"
+        
+        public func get() async throws -> User {
+            try await api.get(path)
+        }
+    }
 }
 
 // MARK: - /user/emails
 
-extension GitHubAPI {
-    // TODO: Naming?
-    public struct UserEmailsAPI {
+extension GitHubAPI.UserAPI {
+    
+    public var emails: EmailsAPI { EmailsAPI(api: api) }
+    
+    public struct EmailsAPI {
         let api: APIClient
 
         public let path: String = "/user/emails"
@@ -44,23 +58,11 @@ extension GitHubAPI {
     }
 }
 
-// MARK: - /user
-
-extension GitHubAPI {
-    public struct UserAPI {
-        let api: APIClient
-
-        public let path: String = "/user"
-        
-        public func get() async throws -> User {
-            try await api.get(path)
-        }
-    }
-}
-
 // MARK: - /users
 
 extension GitHubAPI {
+    public var users: UsersAPI { UsersAPI(api: api) }
+    
     public struct UsersAPI {
         let api: APIClient
 
@@ -124,13 +126,12 @@ private final class GitHubAPIClientDelegate: APIClientDelegate {
 
 func usage() async throws {
     let api = GitHubAPI(host: "api.github.com")
-    
+        
     let user = try await api.user.get()
-    let emails = try await api.userEmails.get()
+    let emails = try await api.user.emails.get()
     
-    try await api.userEmails.delete(["octocat@gmail.com"])
-    
-
+    try await api.user.emails.delete(["octocat@gmail.com"])
+        
     // Mocking
 //    let mockClient = MockClient()
 //    mockClient.set("path-to-json-file", for: api.userEmails.path, .get)

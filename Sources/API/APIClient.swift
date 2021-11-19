@@ -8,7 +8,11 @@ import Foundation
 protocol APIClientDelegate {
     func client(_ client: APIClient, willSendRequest request: inout URLRequest)
     // TODO: not should if we need this
-    func client(_ client: APIClient, didEncounterInvalidResponse response: HTTPURLResponse, data: Data) -> Error
+    func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error
+}
+
+struct Request {
+    let method: String
 }
 
 /// A set of high-level APIs for defining REST JSON clients.
@@ -20,7 +24,6 @@ actor APIClient {
     private let taskDelegate = TaskDelegate()
 
     /// - parameter host: The default host to be used for relative paths.
-    /// - parameter error: A closure for parsing API errors.
     init(configuration: URLSessionConfiguration = .default, host: String, delegate: APIClientDelegate) {
         self.session = URLSession(configuration: configuration)
         self.host = host
@@ -29,7 +32,7 @@ actor APIClient {
     
     // MARK: Networking
     
-    func get<T: Decodable>(_ path: String, query: Query? = nil) async throws -> T {
+    func get<T: Decodable>(_ path: String, query: [String: String]? = nil) async throws -> T {
         try await send("GET", path, query: query, decode: decode)
     }
     
@@ -48,7 +51,7 @@ actor APIClient {
     private func send<Response>(
         _ method: String,
         _ path: String,
-        query: Query? = nil,
+        query: [String: String]? = nil,
         body: Data? = nil,
         decode: @escaping (Data) async throws -> Response
     ) async throws -> Response {
@@ -65,7 +68,7 @@ actor APIClient {
     
     // MARK: Request Factory
     
-    private func makeURL(path: String, query: Query?) throws -> URL {
+    private func makeURL(path: String, query: [String: String]?) throws -> URL {
         guard let url = URL(string: path),
               var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             throw URLError(.badURL)
@@ -114,16 +117,13 @@ actor APIClient {
     private func validate(response: URLResponse, data: Data) throws {
         guard let httpResponse = response as? HTTPURLResponse else { return }
         if !(200..<300).contains(httpResponse.statusCode) {
-            // TODO: reimplement this
-            //throw makeError?(data, httpResponse) ?? APIClient.Error.unacceptableStatusCode(httpResponse.statusCode)
+            throw delegate.client(self, didReceiveInvalidResponse: httpResponse, data: data)
         }
     }
     
     // MARK: Misc
-    
-    typealias Query = [String: String]
-    typealias Headers = [String: String]
 
+    #warning("TODO: remove")
     enum Error: Swift.Error {
         case unacceptableStatusCode(Int)
     }

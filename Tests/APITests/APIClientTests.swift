@@ -96,7 +96,7 @@ final class APIClientTests: XCTestCase {
     
     // MARK: Integration Tests
     
-    func _testGitHubUsersApi() async throws {
+    func testGitHubUsersApi() async throws {
         let api = GitHubAPI(host: "api.github.com")
         
         let user = try await api.users.get(named: "kean")
