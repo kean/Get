@@ -15,7 +15,7 @@ final class APIClientTests: XCTestCase {
         let configuration = URLSessionConfiguration.default
         configuration.protocolClasses = [MockingURLProtocol.self]
 
-        client = APIClient(host: "api.github.com", configuration: configuration, delegate: MockAPIClientDelegate())
+        client = APIClient(host: "api.github.com", configuration: configuration)
     }
     
     // You don't need to provide a predefined list of resources in your app.
@@ -88,29 +88,6 @@ final class APIClientTests: XCTestCase {
         let request = Request<Void>.post("/user", body: ["login": "kean"])
         try await client.send(request)
     }
-
-    // MARK: Parameters
-    
-    func testPassingAbsoluteURL() {
-        // Given
-        
-    }
-    
-    func testPassingRelativeURL() {
-        
-    }
-    
-    func testPassingQueryItems() {
-        
-    }
-    
-    func testPassingInvalidPath() {
-        
-    }
-    
-    // MARK: Authorization
-    
-    // TODO: Add Authorization tests
 }
 
 final class APIClientIntegrationTests: XCTestCase {
@@ -119,7 +96,7 @@ final class APIClientIntegrationTests: XCTestCase {
     override func setUp() {
         super.setUp()
         
-        sut = APIClient(host: "api.github.com", configuration: .default, delegate: MockAPIClientDelegate())
+        sut = APIClient(host: "api.github.com")
     }
 
     func _testGitHubUsersApi() async throws {
@@ -128,17 +105,6 @@ final class APIClientIntegrationTests: XCTestCase {
         let user = try await sut.send(api.users("kean").get)
         
         XCTAssertEqual(user.login, "kean")
-    }
-}
-
-private final class MockAPIClientDelegate: APIClientDelegate {
-    func client(_ client: APIClient, willSendRequest request: inout URLRequest) {
-        
-    }
-    
-    func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error {
-        // TODO:
-        URLError(.badServerResponse)
     }
 }
 

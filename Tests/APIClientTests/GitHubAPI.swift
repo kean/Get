@@ -105,13 +105,8 @@ public struct User: Codable {
     public let bio: String
 }
 
-func test() {
-    
-}
-
 // MARK: - APIClientDelegate
 
-#warning("TEMP:")
 enum GitHubError: Error {
     case unacceptableStatusCode(Int)
 }
@@ -120,30 +115,24 @@ private final class GitHubAPIClientDelegate: APIClientDelegate {
     func client(_ client: APIClient, willSendRequest request: inout URLRequest) {
         request.setValue("Bearer: \("your-access-token")", forHTTPHeaderField: "Authorization")
     }
-    
+        
     func shouldClientRetry(_ client: APIClient, withError error: Error) async -> Bool {
-        switch error {
-        case let error as GitHubError:
-            switch error {
-            case .unacceptableStatusCode(let statusCode):
-                if statusCode == 401 {
-                    // TODO: refresh access token and automatically retry.
-                    // If refresh fails, ask for a password. If the user
-                    // decides to logout, logout.
-                    return true
-                } else {
-                    return false
-                }
-            }
-        default:
-            return false
+        if case .unacceptableStatusCode(let status) = (error as? GitHubError), status == 401 {
+            return await refreshAccessToken()
         }
+        return false
+    }
+    
+    private func refreshAccessToken() async -> Bool {
+        // TODO: Refresh (make sure you only refresh once if multiple requests fail)
+        return false
     }
     
     func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error {
         GitHubError.unacceptableStatusCode(response.statusCode)
     }
 }
+
 
 // MARK: - Usage
 
@@ -158,5 +147,5 @@ func usage() async throws {
         
     let followers = try await client.send(api.users("kean").followers.get)
     
-    let user2 = try await client.send(.get("/user"))
+    let user2: User = try await client.send(.get("/user"))
 }

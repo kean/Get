@@ -5,10 +5,9 @@
 import Foundation
 import PulseCore
 
-// TOOD: Add default delegate and default methods
-// TODO: URLError(.badServerResponse) for invalid response (404)?
 public protocol APIClientDelegate {
     func client(_ client: APIClient, willSendRequest request: inout URLRequest)
+    func shouldClientRetry(_ client: APIClient, withError error: Error) async -> Bool
     func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error
 }
 
@@ -18,32 +17,47 @@ public actor APIClient {
     private let serializer = Serializer()
     private let delegate: APIClientDelegate
     
-    public init(host: String, configuration: URLSessionConfiguration = .default, delegate: APIClientDelegate) {
+    public init(host: String, configuration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil) {
         self.host = host
         self.session = URLSession(configuration: configuration)
-        self.delegate = delegate
+        self.delegate = delegate ?? DefaultAPIClientDelegate()
     }
 
-    public func send<Response>(_ request: Request<Response>) async throws -> Response where Response: Decodable {
-        try await send(request) { try await self.serializer.decode($0) }
+    public func send<T: Decodable>(_ request: Request<T>) async throws -> T {
+        try await send(request, serializer.decode)
     }
     
     public func send(_ request: Request<Void>) async throws -> Void {
         try await send(request) { _ in () }
     }
-    
+
     private func send<T>(_ request: Request<T>, _ decode: @escaping (Data) async throws -> T) async throws -> T {
-        let url = try makeURL(path: request.path, query: request.query)
-        let request = try await makeRequest(url: url, method: request.method, body: request.body)
+        let request = try await makeRequest(for: request)
         let (data, response) = try await send(request)
         try validate(response: response, data: data)
         return try await decode(data)
     }
     
-     public func send(_ request: URLRequest) async throws -> (Data, URLResponse) {
-        try await session.data(for: request, delegate: nil)
-     }
-        
+    public func send(_ request: URLRequest) async throws -> (Data, URLResponse) {
+        do {
+            return try await actuallySend(request)
+        } catch {
+            guard await delegate.shouldClientRetry(self, withError: error) else { throw error }
+            return try await actuallySend(request)
+        }
+    }
+     
+    private func actuallySend(_ request: URLRequest) async throws -> (Data, URLResponse) {
+        var request = request
+        delegate.client(self, willSendRequest: &request)
+        return try await session.data(for: request, delegate: nil)
+    }
+    
+    private func makeRequest<T>(for request: Request<T>) async throws -> URLRequest {
+        let url = try makeURL(path: request.path, query: request.query)
+        return try await makeRequest(url: url, method: request.method, body: request.body)
+    }
+    
     private func makeURL(path: String, query: [String: String]?) throws -> URL {
         guard let url = URL(string: path),
               var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
@@ -70,8 +84,6 @@ public actor APIClient {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        // TODO: Move outside of `make`
-        delegate.client(self, willSendRequest: &request)
         return request
     }
         
@@ -82,3 +94,13 @@ public actor APIClient {
         }
     }
 }
+
+public extension APIClientDelegate {
+    func client(_ client: APIClient, willSendRequest request: inout URLRequest) {}
+    func shouldClientRetry(_ client: APIClient, withError error: Error) async -> Bool { false }
+    func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error {
+        URLError(.cannotParseResponse, userInfo: [NSLocalizedDescriptionKey: "Response status code was unacceptable: \(response.statusCode)."])
+    }
+}
+
+private struct DefaultAPIClientDelegate: APIClientDelegate {}
