@@ -13,4 +13,4 @@ try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 let repos = try await client.send(Resources.users("kean").repos.get)
 ```
 
-For more information, read the [Web API Client in Swift](https://kean.blog/post/new-api-client).
+For more information, read [Web API Client in Swift](https://kean.blog/post/new-api-client).
