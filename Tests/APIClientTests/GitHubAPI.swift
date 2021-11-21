@@ -19,9 +19,7 @@ extension GitHubAPI {
     public struct UserAPI {
         public let path: String = "/user"
         
-        public var get: Request<User> {
-            .get(path)
-        }
+        public var get: Request<User> { .get(path) }
     }
 }
 
@@ -33,9 +31,7 @@ extension GitHubAPI.UserAPI {
     public struct EmailsAPI {
         public let path: String = "/user/emails"
         
-        public var get: Request<[UserEmail]> {
-            .get(path)
-        }
+        public var get: Request<[UserEmail]> { .get(path) }
         
         public func post(_ emails: [String]) -> Request<Void> {
             .post(path, body: emails)
@@ -51,41 +47,27 @@ extension GitHubAPI.UserAPI {
 
 extension GitHubAPI {
     public func users(_ name: String) -> UsersAPI {
-        UsersAPI(name: name)
+        UsersAPI(path: "/users/\(name)")
     }
     
     public struct UsersAPI {
         public let path: String
-        
-        init(name: String) {
-            self.path = "/users/\(name)"
-        }
-        
-        public var get: Request<User> {
-            .get(path)
-        }
+                
+        public var get: Request<User> { .get(path) }
     }
 }
 
 // MARK: - /users/{username}/followers
 
 extension GitHubAPI.UsersAPI {
-    public var followers: FollowersAPI { FollowersAPI(path: path) }
+    public var followers: FollowersAPI { FollowersAPI(path: path + "/followers") }
     
     public struct FollowersAPI {
         public let path: String
-        
-        init(path: String) {
-            self.path = path + "/followers"
-        }
-        
-        public var get: Request<[User]> {
-            .get(path)
-        }
+                
+        public var get: Request<[User]> { .get(path) }
     }
 }
-
-
 
 // MARK: - Entities
 
