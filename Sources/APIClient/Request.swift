@@ -64,16 +64,3 @@ extension URLRequest {
         return components.joined(separator: " \\\n\t")
     }
 }
-
-final class YourTaskDelegate: URLSessionTaskDelegate {
-    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge)
-        async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
-        if challenge.protectionSpace.authenticationMethod == NSURLErrorClientCertificateRejected {
-            // You'll probably need to create it somewhere else.
-            let credential = URLCredential(identity: ..., certificates: ..., persistence: ...)
-            return (.useCredential, credential)
-        } else {
-            return (.performDefaultHandling, nil)
-        }
-    }
-}

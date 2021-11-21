@@ -7,16 +7,14 @@ import APIClient
 
 // An example of an API definition. Feel free to use any other method for
 // organizing the resources.
-public struct GitHubAPI {
-    public init() {}
-}
+public enum Resources {}
 
 // MARK: - /user
 
-extension GitHubAPI {
-    public var user: UserAPI { UserAPI() }
+extension Resources {
+    public static var user: UserResource { UserResource() }
     
-    public struct UserAPI {
+    public struct UserResource {
         public let path: String = "/user"
         
         public var get: Request<User> { .get(path) }
@@ -25,10 +23,10 @@ extension GitHubAPI {
 
 // MARK: - /user/emails
 
-extension GitHubAPI.UserAPI {
-    public var emails: EmailsAPI { EmailsAPI() }
+extension Resources.UserResource {
+    public var emails: EmailsResource { EmailsResource() }
     
-    public struct EmailsAPI {
+    public struct EmailsResource {
         public let path: String = "/user/emails"
         
         public var get: Request<[UserEmail]> { .get(path) }
@@ -45,12 +43,12 @@ extension GitHubAPI.UserAPI {
 
 // MARK: - /users/{username}
 
-extension GitHubAPI {
-    public func users(_ name: String) -> UsersAPI {
-        UsersAPI(path: "/users/\(name)")
+extension Resources {
+    public static func users(_ name: String) -> UsersResource {
+        UsersResource(path: "/users/\(name)")
     }
     
-    public struct UsersAPI {
+    public struct UsersResource {
         public let path: String
                 
         public var get: Request<User> { .get(path) }
@@ -59,10 +57,10 @@ extension GitHubAPI {
 
 // MARK: - /users/{username}/followers
 
-extension GitHubAPI.UsersAPI {
-    public var followers: FollowersAPI { FollowersAPI(path: path + "/followers") }
+extension Resources.UsersResource {
+    public var followers: FollowersResource { FollowersResource(path: path + "/followers") }
     
-    public struct FollowersAPI {
+    public struct FollowersResource {
         public let path: String
                 
         public var get: Request<[User]> { .get(path) }
@@ -119,15 +117,14 @@ private final class GitHubAPIClientDelegate: APIClientDelegate {
 // MARK: - Usage
 
 func usage() async throws {
-    let api = GitHubAPI()
     let client = APIClient(host: "api.github.com", delegate: GitHubAPIClientDelegate())
     
-    let user = try await client.send(api.user.get)
-    let emails = try await client.send(api.user.emails.get)
+    let user = try await client.send(Resources.user.get)
+    let emails = try await client.send(Resources.user.emails.get)
     
-    try await client.send(api.user.emails.delete(["octocat@gmail.com"]))
+    try await client.send(Resources.user.emails.delete(["octocat@gmail.com"]))
         
-    let followers = try await client.send(api.users("kean").followers.get)
+    let followers = try await client.send(Resources.users("kean").followers.get)
     
     let user2: User = try await client.send(.get("/user"))
 }

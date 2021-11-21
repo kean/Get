@@ -100,9 +100,7 @@ final class APIClientIntegrationTests: XCTestCase {
     }
 
     func _testGitHubUsersApi() async throws {
-        let api = GitHubAPI()
-        
-        let user = try await sut.send(api.users("kean").get)
+        let user = try await sut.send(Resources.users("kean").get)
         
         XCTAssertEqual(user.login, "kean")
     }
