@@ -4,7 +4,7 @@
 
 import Foundation
 
-public struct Request<T> {
+public struct Request<Response> {
     var method: String
     var path: String
     var query: [String: String]?
@@ -28,5 +28,52 @@ public struct Request<T> {
     
     public static func delete<U: Encodable>(_ path: String, body: U) -> Request {
         Request(method: "DELETE", path: path, body: AnyEncodable(body))
+    }
+}
+
+struct AnyEncodable: Encodable {
+    private let value: Encodable
+
+    init(_ value: Encodable) {
+        self.value = value
+    }
+
+    func encode(to encoder: Encoder) throws {
+        try value.encode(to: encoder)
+    }
+}
+
+extension URLRequest {
+    public func cURLDescription() -> String {
+        guard let url = url, let method = httpMethod else {
+            return "$ curl command generation failed"
+        }
+        var components = ["curl -v"]
+        components.append("-X \(method)")
+        for header in allHTTPHeaderFields ?? [:] {
+            let escapedValue = header.value.replacingOccurrences(of: "\"", with: "\\\"")
+            components.append("-H \"\(header.key): \(escapedValue)\"")
+        }
+        if let httpBodyData = httpBody {
+            let httpBody = String(decoding: httpBodyData, as: UTF8.self)
+            var escapedBody = httpBody.replacingOccurrences(of: "\\\"", with: "\\\\\"")
+            escapedBody = escapedBody.replacingOccurrences(of: "\"", with: "\\\"")
+            components.append("-d \"\(escapedBody)\"")
+        }
+        components.append("\"\(url.absoluteString)\"")
+        return components.joined(separator: " \\\n\t")
+    }
+}
+
+final class YourTaskDelegate: URLSessionTaskDelegate {
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge)
+        async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
+        if challenge.protectionSpace.authenticationMethod == NSURLErrorClientCertificateRejected {
+            // You'll probably need to create it somewhere else.
+            let credential = URLCredential(identity: ..., certificates: ..., persistence: ...)
+            return (.useCredential, credential)
+        } else {
+            return (.performDefaultHandling, nil)
+        }
     }
 }
