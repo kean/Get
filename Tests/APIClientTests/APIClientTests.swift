@@ -78,6 +78,10 @@ final class APIClientTests: XCTestCase {
     }
     
     func testDecodingWithVoidResponse() async throws {
+        #if os(watchOS)
+        throw XCTSkip("Mocker URLProtocol isn't being called for POST requests on watchOS")
+        #endif
+        
         // GIVEN
         let url = URL(string: "https://api.github.com/user")!
         Mock(url: url, dataType: .json, statusCode: 200, data: [
