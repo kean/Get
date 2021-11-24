@@ -10,11 +10,10 @@ let package = Package(
         .library(name: "APIClient", targets: ["APIClient"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/WeTransfer/Mocker.git", from: "2.3.0"),
-        .package(url: "https://github.com/kean/Pulse", from: "0.20.0")
+        .package(url: "https://github.com/WeTransfer/Mocker.git", from: "2.3.0")
     ],
     targets: [
-        .target(name: "APIClient", dependencies: [.product(name: "PulseCore", package: "Pulse")]),
+        .target(name: "APIClient"),
         .testTarget(name: "APIClientTests", dependencies: ["APIClient", "Mocker"], resources: [.process("Resources")]),
     ]
 )
