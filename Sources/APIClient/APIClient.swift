@@ -3,7 +3,6 @@
 // Copyright (c) 2021 Alexander Grebenyuk (github.com/kean).
 
 import Foundation
-import PulseCore
 
 public protocol APIClientDelegate {
     func client(_ client: APIClient, willSendRequest request: inout URLRequest)
