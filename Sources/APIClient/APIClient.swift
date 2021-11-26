@@ -49,7 +49,11 @@ public actor APIClient {
     private func actuallySend(_ request: URLRequest) async throws -> (Data, URLResponse) {
         var request = request
         delegate.client(self, willSendRequest: &request)
-        return try await session.data(for: request, delegate: nil)
+        if #available(macOS 12.0, iOS 15.0, macCatalyst 15.0, watchOS 8.0, tvOS 15.0, *) {
+            return try await session.data(for: request, delegate: nil)
+        } else {
+            return try await session.asyncData(for: request)
+        }
     }
     
     private func makeRequest<T>(for request: Request<T>) async throws -> URLRequest {
