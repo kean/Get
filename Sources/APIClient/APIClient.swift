@@ -13,13 +13,16 @@ public protocol APIClientDelegate {
 public actor APIClient {
     private let session: URLSession
     private let host: String
-    private let serializer = Serializer()
+    private let serializer: Serializer
     private let delegate: APIClientDelegate
     
-    public init(host: String, configuration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil) {
+    /// - parameter decoder: By default, uses decoder with `.iso8601` date decoding strategy.
+    /// - parameter encoder: By default, uses encoder with `.iso8601` date encoding strategy.
+    public init(host: String, configuration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil, decoder: JSONDecoder?, encoder: JSONEncoder? = nil) {
         self.host = host
         self.session = URLSession(configuration: configuration)
         self.delegate = delegate ?? DefaultAPIClientDelegate()
+        self.serializer = Serializer(decoder: decoder, encoder: encoder)
     }
 
     public func send<T: Decodable>(_ request: Request<T>) async throws -> T {
@@ -105,11 +108,29 @@ public extension APIClientDelegate {
 private struct DefaultAPIClientDelegate: APIClientDelegate {}
 
 private actor Serializer {
-    func encode<T: Encodable>(_ entity: T) async throws -> Data {
-        try JSONEncoder().encode(entity)
+    private let decoder: JSONDecoder
+    private let encoder: JSONEncoder
+    
+    init(decoder: JSONDecoder?, encoder: JSONEncoder?) {
+        if let decoder = decoder {
+            self.decoder = decoder
+        } else {
+            self.decoder = JSONDecoder()
+            self.decoder.dateDecodingStrategy = .iso8601
+        }
+        if let encoder = encoder {
+            self.encoder = encoder
+        } else {
+            self.encoder = JSONEncoder()
+            self.encoder.dateEncodingStrategy = .iso8601
+        }
+    }
+        
+    func decode<T: Decodable>(_ data: Data) async throws -> T {
+        try decoder.decode(T.self, from: data)
     }
     
-    func decode<T: Decodable>(_ data: Data) async throws -> T {
-        try JSONDecoder().decode(T.self, from: data)
+    func encode<T: Encodable>(_ entity: T) async throws -> Data {
+        try encoder.encode(entity)
     }
 }
