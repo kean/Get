@@ -18,7 +18,7 @@ public actor APIClient {
     
     /// - parameter decoder: By default, uses decoder with `.iso8601` date decoding strategy.
     /// - parameter encoder: By default, uses encoder with `.iso8601` date encoding strategy.
-    public init(host: String, configuration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil, decoder: JSONDecoder?, encoder: JSONEncoder? = nil) {
+    public init(host: String, configuration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil, decoder: JSONDecoder? = nil, encoder: JSONEncoder? = nil) {
         self.host = host
         self.session = URLSession(configuration: configuration)
         self.delegate = delegate ?? DefaultAPIClientDelegate()
