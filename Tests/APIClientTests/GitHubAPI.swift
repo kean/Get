@@ -73,16 +73,16 @@ public struct UserEmail: Decodable {
     public let email: String
     public let verified: Bool
     public let primary: Bool
-    public let visibility: String
+    public let visibility: String?
 }
 
 public struct User: Codable {
     public let id: Int
     public let login: String
-    public let name: String
-    public let hireable: Bool
-    public let location: String
-    public let bio: String
+    public let name: String?
+    public let hireable: Bool?
+    public let location: String?
+    public let bio: String?
 }
 
 // MARK: - APIClientDelegate
