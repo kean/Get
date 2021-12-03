@@ -13,13 +13,19 @@ public protocol APIClientDelegate {
 public actor APIClient {
     private let session: URLSession
     private let host: String
+    private let port: Int?
+    private let https: Bool
     private let serializer: Serializer
     private let delegate: APIClientDelegate
-    
+
+    /// - parameter port: Set a custom port if needed.
+    /// - parameter https: By default, uses HTTPS, if false, rely on HTTP.
     /// - parameter decoder: By default, uses decoder with `.iso8601` date decoding strategy.
     /// - parameter encoder: By default, uses encoder with `.iso8601` date encoding strategy.
-    public init(host: String, configuration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil, decoder: JSONDecoder? = nil, encoder: JSONEncoder? = nil) {
+    public init(host: String, port: Int? = nil, https: Bool = true, configuration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil, decoder: JSONDecoder? = nil, encoder: JSONEncoder? = nil) {
         self.host = host
+        self.port = port
+        self.https = https
         self.session = URLSession(configuration: configuration)
         self.delegate = delegate ?? DefaultAPIClientDelegate()
         self.serializer = Serializer(decoder: decoder, encoder: encoder)
@@ -28,7 +34,7 @@ public actor APIClient {
     public func send<T: Decodable>(_ request: Request<T>) async throws -> T {
         try await send(request, serializer.decode)
     }
-    
+
     public func send(_ request: Request<Void>) async throws -> Void {
         try await send(request) { _ in () }
     }
@@ -39,7 +45,7 @@ public actor APIClient {
         try validate(response: response, data: data)
         return try await decode(data)
     }
-    
+
     public func send(_ request: URLRequest) async throws -> (Data, URLResponse) {
         do {
             return try await actuallySend(request)
@@ -48,26 +54,29 @@ public actor APIClient {
             return try await actuallySend(request)
         }
     }
-     
+
     private func actuallySend(_ request: URLRequest) async throws -> (Data, URLResponse) {
         var request = request
         delegate.client(self, willSendRequest: &request)
         return try await session.data(for: request, delegate: nil)
     }
-    
+
     private func makeRequest<T>(for request: Request<T>) async throws -> URLRequest {
         let url = try makeURL(path: request.path, query: request.query)
         return try await makeRequest(url: url, method: request.method, body: request.body)
     }
-    
+
     private func makeURL(path: String, query: [String: String]?) throws -> URL {
         guard let url = URL(string: path),
               var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             throw URLError(.badURL)
         }
         if path.starts(with: "/") {
-            components.scheme = "https"
+            components.scheme = https ? "https" : "http"
             components.host = host
+            if let port = port {
+                components.port = port
+            }
         }
         if let query = query {
             components.queryItems = query.map(URLQueryItem.init)
@@ -77,7 +86,7 @@ public actor APIClient {
         }
         return url
     }
-    
+
     private func makeRequest(url: URL, method: String, body: AnyEncodable?) async throws -> URLRequest {
         var request = URLRequest(url: url)
         request.httpMethod = method
@@ -88,7 +97,7 @@ public actor APIClient {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         return request
     }
-        
+
     private func validate(response: URLResponse, data: Data) throws {
         guard let httpResponse = response as? HTTPURLResponse else { return }
         if !(200..<300).contains(httpResponse.statusCode) {
@@ -110,7 +119,7 @@ private struct DefaultAPIClientDelegate: APIClientDelegate {}
 private actor Serializer {
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
-    
+
     init(decoder: JSONDecoder?, encoder: JSONEncoder?) {
         if let decoder = decoder {
             self.decoder = decoder
@@ -125,11 +134,11 @@ private actor Serializer {
             self.encoder.dateEncodingStrategy = .iso8601
         }
     }
-        
+
     func decode<T: Decodable>(_ data: Data) async throws -> T {
         try decoder.decode(T.self, from: data)
     }
-    
+
     func encode<T: Encodable>(_ entity: T) async throws -> Data {
         try encoder.encode(entity)
     }
