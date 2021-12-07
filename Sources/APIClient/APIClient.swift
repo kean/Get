@@ -66,7 +66,7 @@ public actor APIClient {
         return try await makeRequest(url: url, method: request.method, body: request.body)
     }
 
-    private func makeURL(path: String, query: [String: String]?) throws -> URL {
+    private func makeURL(path: String, query: [String: String?]?) throws -> URL {
         guard let url = URL(string: path),
               var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             throw URLError(.badURL)
