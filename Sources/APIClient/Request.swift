@@ -8,7 +8,7 @@ public struct Request<Response> {
     public var method: String
     public var path: String
     public var query: [String: String?]?
-    public var body: AnyEncodable?
+    var body: AnyEncodable?
     public var id: String?
 
     public static func get(_ path: String, query: [String: String?]? = nil) -> Request {
