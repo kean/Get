@@ -2,6 +2,8 @@
 
 ## APIClient 0.0.4
 
+*Dec 8, 2021*
+
 - Add an option to customize the client's port and scheme - [#7](https://github.com/kean/APIClient/pull/7), thanks to [Mathieu Barnachon
 ](https://github.com/mbarnach)
 - Make values in query parameters optional - [#8](https://github.com/kean/APIClient/pull/8), thanks to [Bernhard Loibl](https://github.com/fonkadelic)
