@@ -19,16 +19,28 @@ public struct Request<Response> {
         Request(method: "POST", path: path, body: AnyEncodable(body))
     }
     
-    public static func patch<U: Encodable>(_ path: String, body: U) -> Request {
-        Request(method: "PATCH", path: path, body: AnyEncodable(body))
-    }
-    
     public static func put<U: Encodable>(_ path: String, body: U) -> Request {
         Request(method: "PUT", path: path, body: AnyEncodable(body))
     }
     
+    public static func patch<U: Encodable>(_ path: String, body: U) -> Request {
+        Request(method: "PATCH", path: path, body: AnyEncodable(body))
+    }
+    
     public static func delete<U: Encodable>(_ path: String, body: U) -> Request {
         Request(method: "DELETE", path: path, body: AnyEncodable(body))
+    }
+    
+    public static func options(_ path: String, query: [String: String?]? = nil) -> Request {
+        Request(method: "OPTIONS", path: path, query: query)
+    }
+    
+    public static func head(_ path: String, query: [String: String?]? = nil) -> Request {
+        Request(method: "HEAD", path: path, query: query)
+    }
+    
+    public static func trace(_ path: String, query: [String: String?]? = nil) -> Request {
+        Request(method: "TRACE", path: path, query: query)
     }
 }
 

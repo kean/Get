@@ -1,5 +1,9 @@
 # APIClient 0.x
 
+## APIClient 0.0.5
+
+- Add `options`, `head`, and `trace` HTTP methods
+
 ## APIClient 0.0.4
 
 *Dec 8, 2021*
