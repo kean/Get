@@ -5,10 +5,11 @@
 import Foundation
 
 public struct Request<Response> {
-    var method: String
-    var path: String
-    var query: [String: String?]?
-    var body: AnyEncodable?
+    public var method: String
+    public var path: String
+    public var query: [String: String?]?
+    public var body: AnyEncodable?
+    public var id: String?
 
     public static func get(_ path: String, query: [String: String?]? = nil) -> Request {
         Request(method: "GET", path: path, query: query)

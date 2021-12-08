@@ -11,24 +11,39 @@ public protocol APIClientDelegate {
 }
 
 public actor APIClient {
+    private let conf: Configuration
     private let session: URLSession
-    private let host: String
-    private let port: Int?
-    private let https: Bool
     private let serializer: Serializer
     private let delegate: APIClientDelegate
+    
+    public struct Configuration {
+        public var host: String
+        public var port: Int?
+        /// If `true`, uses `http` instead of `https`.
+        public var isInsecure = false
+        public var sessionConfiguration: URLSessionConfiguration = .default
+        /// By default, uses decoder with `.iso8601` date decoding strategy.
+        public var decoder: JSONDecoder?
+        /// By default, uses encoder with `.iso8601` date encoding strategy.
+        public var encoder: JSONEncoder?
+        public var delegate: APIClientDelegate?
+    }
 
-    /// - parameter port: Set a custom port if needed.
-    /// - parameter https: By default, uses HTTPS, if false, rely on HTTP.
-    /// - parameter decoder: By default, uses decoder with `.iso8601` date decoding strategy.
-    /// - parameter encoder: By default, uses encoder with `.iso8601` date encoding strategy.
-    public init(host: String, port: Int? = nil, https: Bool = true, configuration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil, decoder: JSONDecoder? = nil, encoder: JSONEncoder? = nil) {
-        self.host = host
-        self.port = port
-        self.https = https
-        self.session = URLSession(configuration: configuration)
-        self.delegate = delegate ?? DefaultAPIClientDelegate()
-        self.serializer = Serializer(decoder: decoder, encoder: encoder)
+    /// Initializes the client with the given parameters.
+    ///
+    /// - parameter host: A host to be used for requests with relative paths.
+    /// - parameter configuration: By default, `URLSessionConfiguration.default`.
+    /// - parameter delegate: A delegate to customize various aspects of the client.
+    public convenience init(host: String, configuration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil) {
+        self.init(configuration: Configuration(host: host, sessionConfiguration: configuration, delegate: delegate))
+    }
+    
+    /// Initializes the client with the given configuration.
+    public init(configuration: Configuration) {
+        self.conf = configuration
+        self.session = URLSession(configuration: configuration.sessionConfiguration)
+        self.delegate = configuration.delegate ?? DefaultAPIClientDelegate()
+        self.serializer = Serializer(decoder: configuration.decoder, encoder: configuration.encoder)
     }
 
     public func send<T: Decodable>(_ request: Request<T>) async throws -> T {
@@ -73,9 +88,9 @@ public actor APIClient {
             throw URLError(.badURL)
         }
         if path.starts(with: "/") {
-            components.scheme = https ? "https" : "http"
-            components.host = host
-            if let port = port {
+            components.scheme = conf.isInsecure ? "http" : "https"
+            components.host = conf.host
+            if let port = conf.port {
                 components.port = port
             }
         }
