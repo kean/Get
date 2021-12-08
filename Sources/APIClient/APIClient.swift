@@ -41,12 +41,11 @@ public actor APIClient {
 
     private func send<T>(_ request: Request<T>, _ decode: @escaping (Data) async throws -> T) async throws -> T {
         let request = try await makeRequest(for: request)
-        let (data, response) = try await send(request)
-        try validate(response: response, data: data)
+        let data = try await send(request)
         return try await decode(data)
     }
 
-    public func send(_ request: URLRequest) async throws -> (Data, URLResponse) {
+    public func send(_ request: URLRequest) async throws -> Data {
         do {
             return try await actuallySend(request)
         } catch {
@@ -55,10 +54,12 @@ public actor APIClient {
         }
     }
 
-    private func actuallySend(_ request: URLRequest) async throws -> (Data, URLResponse) {
+    private func actuallySend(_ request: URLRequest) async throws -> Data {
         var request = request
         delegate.client(self, willSendRequest: &request)
-        return try await session.data(for: request, delegate: nil)
+        let (data, response) = try await session.data(for: request, delegate: nil)
+        try validate(response: response, data: data)
+        return data
     }
 
     private func makeRequest<T>(for request: Request<T>) async throws -> URLRequest {
@@ -106,11 +107,22 @@ public actor APIClient {
     }
 }
 
+public enum APIError: Error, LocalizedError {
+    case unacceptableStatusCode(Int)
+    
+    public var errorDescription: String? {
+        switch self {
+        case .unacceptableStatusCode(let statusCode):
+            return "Response status code was unacceptable: \(statusCode)."
+        }
+    }
+}
+
 public extension APIClientDelegate {
     func client(_ client: APIClient, willSendRequest request: inout URLRequest) {}
     func shouldClientRetry(_ client: APIClient, withError error: Error) async -> Bool { false }
     func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error {
-        URLError(.cannotParseResponse, userInfo: [NSLocalizedDescriptionKey: "Response status code was unacceptable: \(response.statusCode)."])
+        APIError.unacceptableStatusCode(response.statusCode)
     }
 }
 
