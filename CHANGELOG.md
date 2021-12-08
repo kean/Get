@@ -3,6 +3,7 @@
 ## APIClient 0.0.5
 
 - Add `options`, `head`, and `trace` HTTP methods
+- Method `delete` to use `query` instead of `body`
 
 ## APIClient 0.0.4
 

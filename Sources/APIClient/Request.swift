@@ -27,8 +27,8 @@ public struct Request<Response> {
         Request(method: "PATCH", path: path, body: AnyEncodable(body))
     }
     
-    public static func delete<U: Encodable>(_ path: String, body: U) -> Request {
-        Request(method: "DELETE", path: path, body: AnyEncodable(body))
+    public static func delete<U: Encodable>(_ path: String, query: [String: String?]? = nil) -> Request {
+        Request(method: "DELETE", path: path, query: query)
     }
     
     public static func options(_ path: String, query: [String: String?]? = nil) -> Request {
