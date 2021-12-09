@@ -35,8 +35,8 @@ extension Resources.UserResource {
             .post(path, body: emails)
         }
                 
-        public func delete(_ emails: [String]) -> Request<Void> {
-            .delete(path, body: emails)
+        public func delete() -> Request<Void> {
+            .delete(path)
         }
     }
 }
@@ -122,7 +122,7 @@ func usage() async throws {
     let user = try await client.send(Resources.user.get)
     let emails = try await client.send(Resources.user.emails.get)
     
-    try await client.send(Resources.user.emails.delete(["octocat@gmail.com"]))
+//    try await client.send(Resources.user.emails.delete(["octocat@gmail.com"]))
         
     let followers = try await client.send(Resources.users("kean").followers.get)
     
