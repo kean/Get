@@ -119,12 +119,12 @@ private final class GitHubAPIClientDelegate: APIClientDelegate {
 func usage() async throws {
     let client = APIClient(host: "api.github.com", delegate: GitHubAPIClientDelegate())
     
-    let user = try await client.send(Resources.user.get)
-    let emails = try await client.send(Resources.user.emails.get)
+    let user = try await client.value(for: Resources.user.get)
+    let emails = try await client.value(for: Resources.user.emails.get)
     
 //    try await client.send(Resources.user.emails.delete(["octocat@gmail.com"]))
         
-    let followers = try await client.send(Resources.users("kean").followers.get)
+    let followers = try await client.value(for: Resources.users("kean").followers.get)
     
-    let user2: User = try await client.send(.get("/user"))
+    let user2: User = try await client.value(for: .get("/user"))
 }

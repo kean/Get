@@ -2,6 +2,9 @@
 
 ## APIClient 0.0.5
 
+- All `send` methods now return a new `Response<T>` struct containing not just the response value, but also data, request, response, and status code.
+- Add `value(for:)` method that returns `T` – a replacement for the old `send` method
+- Add `data(for:)` method returning `Response<Data>`
 - Add `options`, `head`, and `trace` HTTP methods
 - Method `delete` to use `query` instead of `body`
 

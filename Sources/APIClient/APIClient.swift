@@ -45,22 +45,36 @@ public actor APIClient {
         self.delegate = configuration.delegate ?? DefaultAPIClientDelegate()
         self.serializer = Serializer(decoder: configuration.decoder, encoder: configuration.encoder)
     }
+    
+    /// Returns a decoded response value for the given request.
+    public func value<T: Decodable>(for request: Request<T>) async throws -> T {
+        try await send(request).value
+    }
 
-    public func send<T: Decodable>(_ request: Request<T>) async throws -> T {
+    /// Sends the given request and returns a response with a decoded response value.
+    public func send<T: Decodable>(_ request: Request<T>) async throws -> Response<T> {
         try await send(request, serializer.decode)
     }
 
-    public func send(_ request: Request<Void>) async throws -> Void {
+    /// Sends the given request.
+    @discardableResult
+    public func send(_ request: Request<Void>) async throws -> Response<Void> {
         try await send(request) { _ in () }
     }
-
-    private func send<T>(_ request: Request<T>, _ decode: @escaping (Data) async throws -> T) async throws -> T {
+    
+    private func send<T>(_ request: Request<T>, _ decode: @escaping (Data) async throws -> T) async throws -> Response<T> {
+        let response = try await data(for: request)
+        let value = try await decode(response.value)
+        return response.map { _ in value }
+    }
+    
+    /// Returns response data for the given request.
+    public func data<T>(for request: Request<T>) async throws -> Response<Data> {
         let request = try await makeRequest(for: request)
-        let data = try await send(request)
-        return try await decode(data)
+        return try await send(request)
     }
 
-    public func send(_ request: URLRequest) async throws -> Data {
+    private func send(_ request: URLRequest) async throws -> Response<Data> {
         do {
             return try await actuallySend(request)
         } catch {
@@ -69,12 +83,13 @@ public actor APIClient {
         }
     }
 
-    private func actuallySend(_ request: URLRequest) async throws -> Data {
+    private func actuallySend(_ request: URLRequest) async throws -> Response<Data> {
         var request = request
         delegate.client(self, willSendRequest: &request)
         let (data, response) = try await session.data(for: request, delegate: nil)
         try validate(response: response, data: data)
-        return data
+        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 200 // The right side should never be executed
+        return Response(value: data, data: data, request: request, response: response, statusCode: statusCode)
     }
 
     private func makeRequest<T>(for request: Request<T>) async throws -> URLRequest {

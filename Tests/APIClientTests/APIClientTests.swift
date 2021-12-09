@@ -28,7 +28,7 @@ final class APIClientTests: XCTestCase {
         ]).register()
         
         // WHEN
-        let user: User = try await client.send(.get("/user"))
+        let user: User = try await client.value(for: .get("/user"))
                                                
         // THEN
         XCTAssertEqual(user.login, "kean")
@@ -45,7 +45,7 @@ final class APIClientTests: XCTestCase {
         
         // When
         let task = Task {
-            try await client.send(URLRequest(url: url))
+            try await client.send(.get("/users/kean"))
         }
         
         DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(100)) {
@@ -71,7 +71,7 @@ final class APIClientTests: XCTestCase {
         ]).register()
         
         // WHEN
-        let user: User = try await client.send(.get("/user"))
+        let user: User = try await client.value(for: .get("/user"))
                                                
         // THEN
         XCTAssertEqual(user.login, "kean")
@@ -91,6 +91,25 @@ final class APIClientTests: XCTestCase {
         // WHEN
         let request = Request<Void>.post("/user", body: ["login": "kean"])
         try await client.send(request)
+    }
+    
+    // MARK: - Response
+    
+    func testResponse() async throws {
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        Mock(url: url, dataType: .json, statusCode: 200, data: [
+            .get: json(named: "user")
+        ]).register()
+        
+        // WHEN
+        let response = try await client.send(Resources.user.get)
+                                               
+        // THEN
+        XCTAssertEqual(response.value.login, "kean")
+        XCTAssertEqual(response.data.count, 1321)
+        XCTAssertEqual(response.request.url, url)
+        XCTAssertEqual(response.statusCode, 200)
     }
     
     // MARK: - Authorization
@@ -124,7 +143,7 @@ final class APIClientTests: XCTestCase {
         mock.register()
         
         // WHEN
-        let user: User = try await client.send(.get("/user"))
+        let user: User = try await client.value(for: .get("/user"))
                                                
         // THEN
         XCTAssertEqual(user.login, "kean")
@@ -141,7 +160,7 @@ final class APIClientIntegrationTests: XCTestCase {
     }
 
     func _testGitHubUsersApi() async throws {
-        let user = try await sut.send(Resources.users("kean").get)
+        let user = try await sut.value(for: Resources.users("kean").get)
         
         XCTAssertEqual(user.login, "kean")
     }
