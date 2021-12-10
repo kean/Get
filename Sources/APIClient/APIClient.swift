@@ -27,6 +27,16 @@ public actor APIClient {
         /// By default, uses encoder with `.iso8601` date encoding strategy.
         public var encoder: JSONEncoder?
         public var delegate: APIClientDelegate?
+    
+        public init(host: String, port: Int? = nil, isInsecure: Bool = false, sessionConfiguration: URLSessionConfiguration = .default, decoder: JSONDecoder? = nil, encoder: JSONEncoder? = nil, delegate: APIClientDelegate? = nil) {
+            self.host = host
+            self.port = port
+            self.isInsecure = isInsecure
+            self.sessionConfiguration = sessionConfiguration
+            self.decoder = decoder
+            self.encoder = encoder
+            self.delegate = delegate
+        }
     }
 
     /// Initializes the client with the given parameters.
