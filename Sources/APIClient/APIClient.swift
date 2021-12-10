@@ -88,8 +88,8 @@ public actor APIClient {
         delegate.client(self, willSendRequest: &request)
         let (data, response) = try await session.data(for: request, delegate: nil)
         try validate(response: response, data: data)
-        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 200 // The right side should never be executed
-        return Response(value: data, data: data, request: request, response: response, statusCode: statusCode)
+        let httpResponse = (response as? HTTPURLResponse) ?? HTTPURLResponse() // The right side should never be executed
+        return Response(value: data, data: data, request: request, response: httpResponse, statusCode: httpResponse.statusCode)
     }
 
     private func makeRequest<T>(for request: Request<T>) async throws -> URLRequest {

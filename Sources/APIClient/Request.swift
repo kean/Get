@@ -84,7 +84,7 @@ public struct Response<T> {
     public let data: Data
     /// Original request.
     public let request: URLRequest
-    public let response: URLResponse
+    public let response: HTTPURLResponse
     public let statusCode: Int
     
     func map<U>(_ closure: (T) -> U) -> Response<U> {
