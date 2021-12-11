@@ -3,6 +3,7 @@
 ## APIClient 0.0.6
 
 - `send` method now supports fetching `Response<Data>` (returns raw data) and `Response<String>` (returns plain text)
+- Body in `post`, `put`, and `patch` can now be empty
 
 ## APIClient 0.0.5
 
