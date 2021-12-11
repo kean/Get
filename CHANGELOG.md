@@ -1,5 +1,9 @@
 # APIClient 0.x
 
+## APIClient 0.0.6
+
+- `send` method now supports fetching `Response<Data>` (returns raw data) and `Response<String>` (returns plain text)
+
 ## APIClient 0.0.5
 
 *Dec 10, 2021*

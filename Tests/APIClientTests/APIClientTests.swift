@@ -93,6 +93,34 @@ final class APIClientTests: XCTestCase {
         try await client.send(request)
     }
     
+    func testDecodingString() async throws {
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        Mock(url: url, dataType: .json, statusCode: 200, data: [
+            .get: "hello".data(using: .utf8)!
+        ]).register()
+
+        // WHEN
+        let text: String = try await client.value(for: .get("/user"))
+                                               
+        // THEN
+        XCTAssertEqual(text, "hello")
+    }
+    
+    func testLoadingRawData() async throws {
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        Mock(url: url, dataType: .json, statusCode: 200, data: [
+            .get: "hello".data(using: .utf8)!
+        ]).register()
+
+        // WHEN
+        let data: Data = try await client.value(for: .get("/user"))
+                           
+        // THEN
+        XCTAssertEqual(String(data: data, encoding: .utf8), "hello")
+    }
+    
     // MARK: - Response
     
     func testResponse() async throws {

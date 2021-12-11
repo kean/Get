@@ -63,7 +63,16 @@ public actor APIClient {
 
     /// Sends the given request and returns a response with a decoded response value.
     public func send<T: Decodable>(_ request: Request<T>) async throws -> Response<T> {
-        try await send(request, serializer.decode)
+        try await send(request) { data in
+            if T.self == Data.self {
+                return data as! T
+            } else if T.self == String.self {
+                guard let string = String(data: data, encoding: .utf8) else { throw URLError(.badServerResponse) }
+                return string as! T
+            } else {
+                return try await self.serializer.decode(data)
+            }
+        }
     }
 
     /// Sends the given request.
