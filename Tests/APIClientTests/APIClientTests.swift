@@ -121,6 +121,23 @@ final class APIClientTests: XCTestCase {
         XCTAssertEqual(String(data: data, encoding: .utf8), "hello")
     }
     
+    func testPassingNilBody() async throws {
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        var mock = Mock(url: url, dataType: .json, statusCode: 200, data: [
+            .post: json(named: "user")
+        ])
+        mock.onRequest = { request, arguments in
+            XCTAssertNil(request.httpBody)
+        }
+        mock.register()
+        
+        // WHEN
+        let body: User? = nil
+        let request = Request<Void>.post("/user", body: body)
+        try await client.send(request)
+    }
+    
     // MARK: - Response
     
     func testResponse() async throws {

@@ -19,32 +19,32 @@ public struct Request<Response> {
         Request(method: "POST", path: path, query: query)
     }
     
-    public static func post<U: Encodable>(_ path: String, query: [String: String?]? = nil, body: U) -> Request {
-        Request(method: "POST", path: path, query: query, body: AnyEncodable(body))
+    public static func post<U: Encodable>(_ path: String, query: [String: String?]? = nil, body: U?) -> Request {
+        Request(method: "POST", path: path, query: query, body: body.map(AnyEncodable.init))
     }
 
     public static func put(_ path: String, query: [String: String?]? = nil) -> Request {
         Request(method: "PUT", path: path, query: query)
     }
     
-    public static func put<U: Encodable>(_ path: String, query: [String: String?]? = nil, body: U) -> Request {
-        Request(method: "PUT", path: path, query: query, body: AnyEncodable(body))
+    public static func put<U: Encodable>(_ path: String, query: [String: String?]? = nil, body: U?) -> Request {
+        Request(method: "PUT", path: path, query: query, body: body.map(AnyEncodable.init))
     }
     
     public static func patch(_ path: String, query: [String: String?]? = nil) -> Request {
         Request(method: "PATCH", path: path, query: query)
     }
     
-    public static func patch<U: Encodable>(_ path: String, query: [String: String?]? = nil, body: U) -> Request {
-        Request(method: "PATCH", path: path, query: query, body: AnyEncodable(body))
+    public static func patch<U: Encodable>(_ path: String, query: [String: String?]? = nil, body: U?) -> Request {
+        Request(method: "PATCH", path: path, query: query, body: body.map(AnyEncodable.init))
     }
     
     public static func delete(_ path: String, query: [String: String?]? = nil) -> Request {
         Request(method: "DELETE", path: path, query: query)
     }
     
-    public static func delete<U: Encodable>(_ path: String, query: [String: String?]? = nil, body: U) -> Request {
-        Request(method: "DELETE", path: path, query: query, body: AnyEncodable(body))
+    public static func delete<U: Encodable>(_ path: String, query: [String: String?]? = nil, body: U?) -> Request {
+        Request(method: "DELETE", path: path, query: query, body: body.map(AnyEncodable.init))
     }
     
     public static func options(_ path: String, query: [String: String?]? = nil) -> Request {
