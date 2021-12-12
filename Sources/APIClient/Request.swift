@@ -43,6 +43,10 @@ public struct Request<Response> {
         Request(method: "DELETE", path: path, query: query)
     }
     
+    public static func delete<U: Encodable>(_ path: String, query: [String: String?]? = nil, body: U) -> Request {
+        Request(method: "DELETE", path: path, query: query, body: AnyEncodable(body))
+    }
+    
     public static func options(_ path: String, query: [String: String?]? = nil) -> Request {
         Request(method: "OPTIONS", path: path, query: query)
     }
