@@ -15,28 +15,28 @@ public struct Request<Response> {
         Request(method: "GET", path: path, query: query)
     }
 
-    public static func post(_ path: String) -> Request {
-        Request(method: "POST", path: path)
+    public static func post(_ path: String, query: [String: String?]? = nil) -> Request {
+        Request(method: "POST", path: path, query: query)
     }
     
-    public static func post<U: Encodable>(_ path: String, body: U) -> Request {
-        Request(method: "POST", path: path, body: AnyEncodable(body))
+    public static func post<U: Encodable>(_ path: String, query: [String: String?]? = nil, body: U) -> Request {
+        Request(method: "POST", path: path, query: query, body: AnyEncodable(body))
     }
 
-    public static func put(_ path: String) -> Request {
-        Request(method: "PUT", path: path)
+    public static func put(_ path: String, query: [String: String?]? = nil) -> Request {
+        Request(method: "PUT", path: path, query: query)
     }
     
-    public static func put<U: Encodable>(_ path: String, body: U) -> Request {
-        Request(method: "PUT", path: path, body: AnyEncodable(body))
+    public static func put<U: Encodable>(_ path: String, query: [String: String?]? = nil, body: U) -> Request {
+        Request(method: "PUT", path: path, query: query, body: AnyEncodable(body))
     }
     
-    public static func patch(_ path: String) -> Request {
-        Request(method: "PATCH", path: path)
+    public static func patch(_ path: String, query: [String: String?]? = nil) -> Request {
+        Request(method: "PATCH", path: path, query: query)
     }
     
-    public static func patch<U: Encodable>(_ path: String, body: U) -> Request {
-        Request(method: "PATCH", path: path, body: AnyEncodable(body))
+    public static func patch<U: Encodable>(_ path: String, query: [String: String?]? = nil, body: U) -> Request {
+        Request(method: "PATCH", path: path, query: query, body: AnyEncodable(body))
     }
     
     public static func delete(_ path: String, query: [String: String?]? = nil) -> Request {
