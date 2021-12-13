@@ -6,7 +6,8 @@
 - Body in `post`, `put`, and `patch` can now be empty
 - All methods now support query parameters
 - Add `body` parameter to `delete` method
-- `body` parameter is now optional
+- Make `body` parameter optional
+- Query parameters are not modeled as an array of `(String, String?)` tuples enabling "explode" support
 
 ## APIClient 0.0.5
 
