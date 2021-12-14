@@ -11,7 +11,7 @@ public struct Request<Response> {
     var body: AnyEncodable?
     public var headers: [String: String]?
     public var id: String?
-    
+
     public static func get(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
         Request(method: "GET", path: path, query: query, headers: headers)
     }

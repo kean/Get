@@ -2,13 +2,15 @@
 
 ## APIClient 0.0.6
 
-- `send` method now supports fetching `Response<Data>` (returns raw data) and `Response<String>` (returns plain text)
+*Dec 13, 2021* 
+
+- Method `send` now supports fetching `Response<Data>` (returns raw data) and `Response<String>` (returns plain text)
+- Query parameters are now modeled as an array of `(String, String?)` tuples enabling "explode" support
+- You can now pass `headers` in the request
 - Body in `post`, `put`, and `patch` can now be empty
 - All methods now support query parameters
 - Add `body` parameter to `delete` method
 - Make `body` parameter optional
-- Query parameters are not modeled as an array of `(String, String?)` tuples enabling "explode" support
-- You can now pass `headers` in the request
 
 ## APIClient 0.0.5
 
