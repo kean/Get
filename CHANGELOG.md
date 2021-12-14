@@ -8,6 +8,7 @@
 - Add `body` parameter to `delete` method
 - Make `body` parameter optional
 - Query parameters are not modeled as an array of `(String, String?)` tuples enabling "explode" support
+- You can now pass `headers` in the request
 
 ## APIClient 0.0.5
 

@@ -113,7 +113,7 @@ public actor APIClient {
 
     private func makeRequest<T>(for request: Request<T>) async throws -> URLRequest {
         let url = try makeURL(path: request.path, query: request.query)
-        return try await makeRequest(url: url, method: request.method, body: request.body)
+        return try await makeRequest(url: url, method: request.method, body: request.body, headers: request.headers)
     }
 
     private func makeURL(path: String, query: [(String, String?)]?) throws -> URL {
@@ -137,8 +137,9 @@ public actor APIClient {
         return url
     }
 
-    private func makeRequest(url: URL, method: String, body: AnyEncodable?) async throws -> URLRequest {
+    private func makeRequest(url: URL, method: String, body: AnyEncodable?, headers: [String: String]?) async throws -> URLRequest {
         var request = URLRequest(url: url)
+        request.allHTTPHeaderFields = headers
         request.httpMethod = method
         if let body = body {
             request.httpBody = try await serializer.encode(body)
