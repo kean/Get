@@ -219,7 +219,7 @@ private func json(named name: String) -> Data {
 private final class MockAuthorizatingDelegate: APIClientDelegate {
     var token = "expired-token"
     
-    func client(_ client: APIClient, willSendRequest request: inout URLRequest) {
+    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async {
         request.allHTTPHeaderFields = ["Authorization": "Bearer: \(token)"]
     }
     
