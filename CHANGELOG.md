@@ -1,5 +1,9 @@
 # APIClient 0.x
 
+## Upcoming Release
+
+- Make `willSend` async - [#11](https://github.com/kean/APIClient/pull/11), thanks to [Lars-Jørgen Kristiansen](https://github.com/LarsJK)
+
 ## APIClient 0.0.6
 
 *Dec 13, 2021* 
