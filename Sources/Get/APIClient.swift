@@ -15,6 +15,7 @@ public actor APIClient {
     private let session: URLSession
     private let serializer: Serializer
     private let delegate: APIClientDelegate
+    private let loader = DataLoader()
     
     public struct Configuration {
         public var host: String
@@ -51,7 +52,9 @@ public actor APIClient {
     /// Initializes the client with the given configuration.
     public init(configuration: Configuration) {
         self.conf = configuration
-        self.session = URLSession(configuration: configuration.sessionConfiguration)
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 1
+        self.session = URLSession(configuration: configuration.sessionConfiguration, delegate: loader, delegateQueue: queue)
         self.delegate = configuration.delegate ?? DefaultAPIClientDelegate()
         self.serializer = Serializer(decoder: configuration.decoder, encoder: configuration.encoder)
     }
@@ -105,7 +108,7 @@ public actor APIClient {
     private func actuallySend(_ request: URLRequest) async throws -> Response<Data> {
         var request = request
         await delegate.client(self, willSendRequest: &request)
-        let (data, response) = try await session.data(for: request, delegate: nil)
+        let (data, response) = try await loader.data(for: request, session: session)
         try validate(response: response, data: data)
         let httpResponse = (response as? HTTPURLResponse) ?? HTTPURLResponse() // The right side should never be executed
         return Response(value: data, data: data, request: request, response: httpResponse, statusCode: httpResponse.statusCode)
@@ -177,31 +180,3 @@ public extension APIClientDelegate {
 }
 
 private struct DefaultAPIClientDelegate: APIClientDelegate {}
-
-private actor Serializer {
-    private let decoder: JSONDecoder
-    private let encoder: JSONEncoder
-
-    init(decoder: JSONDecoder?, encoder: JSONEncoder?) {
-        if let decoder = decoder {
-            self.decoder = decoder
-        } else {
-            self.decoder = JSONDecoder()
-            self.decoder.dateDecodingStrategy = .iso8601
-        }
-        if let encoder = encoder {
-            self.encoder = encoder
-        } else {
-            self.encoder = JSONEncoder()
-            self.encoder.dateEncodingStrategy = .iso8601
-        }
-    }
-
-    func decode<T: Decodable>(_ data: Data) async throws -> T {
-        try decoder.decode(T.self, from: data)
-    }
-
-    func encode<T: Encodable>(_ entity: T) async throws -> Data {
-        try encoder.encode(entity)
-    }
-}

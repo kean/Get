@@ -1,7 +1,8 @@
-# APIClient 0.x
+# Get 0.x
 
 ## Upcoming Release
 
+- It now supports iOS 13, macOS 10, watchOS 6, and tvOS 13
 - Make `willSend` async - [#11](https://github.com/kean/APIClient/pull/11), thanks to [Lars-Jørgen Kristiansen](https://github.com/LarsJK)
 
 ## APIClient 0.0.6
