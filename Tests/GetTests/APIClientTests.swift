@@ -155,43 +155,6 @@ final class APIClientTests: XCTestCase {
         XCTAssertEqual(response.request.url, url)
         XCTAssertEqual(response.statusCode, 200)
     }
-    
-    // MARK: - Authorization
-    
-    func testAuthorizationHeaderIsPassed() async throws {
-        // GIVEN
-        let delegate = MockAuthorizatingDelegate()
-        
-        client = APIClient(host: "api.github.com") {
-            $0.delegate = delegate
-            $0.sessionConfiguration.protocolClasses = [MockingURLProtocol.self]
-        }
-        
-        let url = URL(string: "https://api.github.com/user")!
-        var mock = Mock(url: url, dataType: .json, statusCode: 401, data: [
-            .get: "Unauthorized".data(using: .utf8)!
-        ])
-        
-        mock.onRequest = { request, arguments in
-            XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "Bearer: expired-token")
-
-            delegate.token = "valid-token"
-            var mock = Mock(url: url, dataType: .json, statusCode: 200, data: [
-                .get: json(named: "user")
-            ])
-            mock.onRequest = { request, arguments in
-                XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "Bearer: valid-token")
-            }
-            mock.register()
-        }
-        mock.register()
-        
-        // WHEN
-        let user: User = try await client.value(for: .get("/user"))
-                                               
-        // THEN
-        XCTAssertEqual(user.login, "kean")
-    }
 }
 
 final class APIClientIntegrationTests: XCTestCase {
@@ -207,20 +170,5 @@ final class APIClientIntegrationTests: XCTestCase {
         let user = try await sut.value(for: Resources.users("kean").get)
         
         XCTAssertEqual(user.login, "kean")
-    }
-}
-
-private final class MockAuthorizatingDelegate: APIClientDelegate {
-    var token = "expired-token"
-    
-    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async {
-        request.allHTTPHeaderFields = ["Authorization": "Bearer: \(token)"]
-    }
-    
-    func shouldClientRetry(_ client: APIClient, withError error: Error) async -> Bool {
-        if case .unacceptableStatusCode(let statusCode) = (error as? APIError), statusCode == 401 {
-            return true
-        }
-        return false
     }
 }
