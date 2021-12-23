@@ -11,11 +11,10 @@ final class APIClientTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        
-        let configuration = URLSessionConfiguration.default
-        configuration.protocolClasses = [MockingURLProtocol.self]
 
-        client = APIClient(host: "api.github.com", configuration: configuration)
+        client = APIClient(host: "api.github.com") {
+            $0.sessionConfiguration.protocolClasses = [MockingURLProtocol.self]
+        }
     }
     
     // You don't need to provide a predefined list of resources in your app.
@@ -163,10 +162,10 @@ final class APIClientTests: XCTestCase {
         // GIVEN
         let delegate = MockAuthorizatingDelegate()
         
-        let configuration = URLSessionConfiguration.default
-        configuration.protocolClasses = [MockingURLProtocol.self]
-        
-        client = APIClient(host: "api.github.com", configuration: configuration, delegate: delegate)
+        client = APIClient(host: "api.github.com") {
+            $0.delegate = delegate
+            $0.sessionConfiguration.protocolClasses = [MockingURLProtocol.self]
+        }
         
         let url = URL(string: "https://api.github.com/user")!
         var mock = Mock(url: url, dataType: .json, statusCode: 401, data: [
@@ -209,11 +208,6 @@ final class APIClientIntegrationTests: XCTestCase {
         
         XCTAssertEqual(user.login, "kean")
     }
-}
-
-private func json(named name: String) -> Data {
-    let url = Bundle.module.url(forResource: name, withExtension: "json")
-    return try! Data(contentsOf: url!)
 }
 
 private final class MockAuthorizatingDelegate: APIClientDelegate {

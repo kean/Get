@@ -27,15 +27,14 @@ public actor APIClient {
         public var decoder: JSONDecoder?
         /// By default, uses encoder with `.iso8601` date encoding strategy.
         public var encoder: JSONEncoder?
+        /// The (optional) client delegate.
         public var delegate: APIClientDelegate?
+        /// The (optional) URLSession delegate that allows you to monitor the underlying URLSession.
+        public var sessionDelegate: URLSessionDelegate?
     
-        public init(host: String, port: Int? = nil, isInsecure: Bool = false, sessionConfiguration: URLSessionConfiguration = .default, decoder: JSONDecoder? = nil, encoder: JSONEncoder? = nil, delegate: APIClientDelegate? = nil) {
+        public init(host: String, sessionConfiguration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil) {
             self.host = host
-            self.port = port
-            self.isInsecure = isInsecure
             self.sessionConfiguration = sessionConfiguration
-            self.decoder = decoder
-            self.encoder = encoder
             self.delegate = delegate
         }
     }
@@ -43,18 +42,19 @@ public actor APIClient {
     /// Initializes the client with the given parameters.
     ///
     /// - parameter host: A host to be used for requests with relative paths.
-    /// - parameter configuration: By default, `URLSessionConfiguration.default`.
-    /// - parameter delegate: A delegate to customize various aspects of the client.
-    public convenience init(host: String, configuration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil) {
-        self.init(configuration: Configuration(host: host, sessionConfiguration: configuration, delegate: delegate))
+    /// - parameter configure: Updates the client configuration.
+    public convenience init(host: String, _ configure: (inout APIClient.Configuration) -> Void = { _ in }) {
+        var configuration = Configuration(host: host)
+        configure(&configuration)
+        self.init(configuration: configuration)
     }
-    
+
     /// Initializes the client with the given configuration.
     public init(configuration: Configuration) {
         self.conf = configuration
-        let queue = OperationQueue()
-        queue.maxConcurrentOperationCount = 1
-        self.session = URLSession(configuration: configuration.sessionConfiguration, delegate: loader, delegateQueue: queue)
+        let queue = OperationQueue(maxConcurrentOperationCount: 1)
+        let delegate = URLSessionProxyDelegate.make(loader: loader, delegate: configuration.sessionDelegate)
+        self.session = URLSession(configuration: configuration.sessionConfiguration, delegate: delegate, delegateQueue: queue)
         self.delegate = configuration.delegate ?? DefaultAPIClientDelegate()
         self.serializer = Serializer(decoder: configuration.decoder, encoder: configuration.encoder)
     }

@@ -4,6 +4,14 @@
 
 - It now supports iOS 13, macOS 10, watchOS 6, and tvOS 13
 - Make `willSend` async - [#11](https://github.com/kean/APIClient/pull/11), thanks to [Lars-Jørgen Kristiansen](https://github.com/LarsJK)
+- Add a more convenient way to initialize `APIClient` (same as `ImagePipeline` in [Nuke](https://github.com/kean/Nuke)):
+
+```swift
+let client = APIClient(host: "api.github.com") {
+    $0.delegate = MyClientDelegate()
+    $0.sessionConfiguration.httpAdditionalHeaders = ["apiKey": "easilyExtractableSecretKey"]
+}
+```
 
 ## APIClient 0.0.6
 

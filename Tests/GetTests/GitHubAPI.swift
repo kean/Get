@@ -117,7 +117,9 @@ private final class GitHubAPIClientDelegate: APIClientDelegate {
 // MARK: - Usage
 
 func usage() async throws {
-    let client = APIClient(host: "api.github.com", delegate: GitHubAPIClientDelegate())
+    let client = APIClient(host: "api.github.com") {
+        $0.delegate = GitHubAPIClientDelegate()
+    }
     
     let _ = try await client.value(for: Resources.user.get)
     let _ = try await client.value(for: Resources.user.emails.get)
