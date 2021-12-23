@@ -13,7 +13,8 @@ let client = APIClient(host: "api.github.com") {
 }
 ```
 
-- You can now provide a session delegate (`URLSessionDelegate`) when instantiating a client for monitoring URLSession events – the client will continue doing its thing 
+- You can now provide a session delegate (`URLSessionDelegate`) when instantiating a client for monitoring URLSession events – the client will continue doing its thing
+- Add metrics (`URLSessionTaskMetrics`) to `Response`
 
 ## APIClient 0.0.6
 

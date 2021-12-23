@@ -47,6 +47,9 @@ final class APIClientTests: XCTestCase {
         XCTAssertEqual(response.data.count, 1321)
         XCTAssertEqual(response.request.url, url)
         XCTAssertEqual(response.statusCode, 200)
+        let metrics = try XCTUnwrap(response.metrics)
+        let transaction = try XCTUnwrap(metrics.transactionMetrics.first)
+        XCTAssertEqual(transaction.request.url, URL(string: "https://api.github.com/user")!)
     }
     
     func testCancellingRequests() async throws {

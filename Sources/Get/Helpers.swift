@@ -69,10 +69,10 @@ actor Serializer {
 // A simple URLSession wrapper adding async/await APIs compatible with older platforms.
 final class DataLoader: NSObject, URLSessionDataDelegate {
     private var handlers = [URLSessionTask: TaskHandler]()
-    private typealias Completion = (Result<(Data, URLResponse), Error>) -> Void
+    private typealias Completion = (Result<(Data, URLResponse, URLSessionTaskMetrics?), Error>) -> Void
     
     /// Loads data with the given request.
-    func data(for request: URLRequest, session: URLSession) async throws -> (Data, URLResponse) {
+    func data(for request: URLRequest, session: URLSession) async throws -> (Data, URLResponse, URLSessionTaskMetrics?) {
         final class Box { var task: URLSessionTask? }
         let box = Box()
         return try await withTaskCancellationHandler(handler: {
@@ -99,10 +99,14 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
         guard let handler = handlers[task] else { return }
         handlers[task] = nil
         if let data = handler.data, let response = task.response, error == nil {
-            handler.completion(.success((data, response)))
+            handler.completion(.success((data, response, handler.metrics)))
         } else {
             handler.completion(.failure(error ?? URLError(.unknown)))
         }
+    }
+    
+    func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+        handlers[task]?.metrics = metrics
     }
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
@@ -117,6 +121,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
 
     private final class TaskHandler {
         var data: Data?
+        var metrics: URLSessionTaskMetrics?
         let completion: Completion
 
         init(completion: @escaping Completion) {
@@ -141,7 +146,8 @@ final class URLSessionProxyDelegate: NSObject, URLSessionTaskDelegate, URLSessio
         self.delegate = delegate
         self.interceptedSelectors = [
             #selector(URLSessionDataDelegate.urlSession(_:dataTask:didReceive:)),
-            #selector(URLSessionTaskDelegate.urlSession(_:task:didCompleteWithError:))
+            #selector(URLSessionTaskDelegate.urlSession(_:task:didCompleteWithError:)),
+            #selector(URLSessionTaskDelegate.urlSession(_:task:didFinishCollecting:))
         ]
     }
     
@@ -155,6 +161,11 @@ final class URLSessionProxyDelegate: NSObject, URLSessionTaskDelegate, URLSessio
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         loader.urlSession(session, task: task, didCompleteWithError: error)
         (delegate as? URLSessionTaskDelegate)?.urlSession?(session, task: task, didCompleteWithError: error)
+    }
+    
+    func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+        loader.urlSession(session, task: task, didFinishCollecting: metrics)
+        (delegate as? URLSessionTaskDelegate)?.urlSession?(session, task: task, didFinishCollecting: metrics)
     }
 
     // MARK: Proxy

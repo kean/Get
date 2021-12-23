@@ -69,8 +69,9 @@ public struct Response<T> {
     public let request: URLRequest
     public let response: HTTPURLResponse
     public let statusCode: Int
+    public var metrics: URLSessionTaskMetrics?
     
     func map<U>(_ closure: (T) -> U) -> Response<U> {
-        Response<U>(value: closure(value), data: data, request: request, response: response, statusCode: statusCode)
+        Response<U>(value: closure(value), data: data, request: request, response: response, statusCode: statusCode, metrics: metrics)
     }
 }
