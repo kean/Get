@@ -61,15 +61,25 @@ public struct Request<Response> {
     }
 }
 
+/// A response with a value and associated metadata.
 public struct Response<T> {
-    public let value: T
+    public var value: T
     /// Original response data.
-    public let data: Data
+    public var data: Data
     /// Original request.
-    public let request: URLRequest
-    public let response: HTTPURLResponse
-    public let statusCode: Int
+    public var request: URLRequest
+    public var response: HTTPURLResponse
+    public var statusCode: Int
     public var metrics: URLSessionTaskMetrics?
+    
+    public init(value: T, data: Data, request: URLRequest, response: HTTPURLResponse, statusCode: Int, metrics: URLSessionTaskMetrics? = nil) {
+        self.value = value
+        self.data = data
+        self.request = request
+        self.response = response
+        self.statusCode = statusCode
+        self.metrics = metrics
+    }
     
     func map<U>(_ closure: (T) -> U) -> Response<U> {
         Response<U>(value: closure(value), data: data, request: request, response: response, statusCode: statusCode, metrics: metrics)
