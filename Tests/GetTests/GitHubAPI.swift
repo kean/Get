@@ -3,7 +3,7 @@
 // Copyright (c) 2021 Alexander Grebenyuk (github.com/kean).
 
 import Foundation
-import APIClient
+import Get
 
 // An example of an API definition. Feel free to use any other method for
 // organizing the resources.

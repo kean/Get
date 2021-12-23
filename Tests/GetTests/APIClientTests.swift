@@ -4,7 +4,7 @@
 
 import XCTest
 import Mocker
-@testable import APIClient
+@testable import Get
 
 final class APIClientTests: XCTestCase {
     var client: APIClient!
