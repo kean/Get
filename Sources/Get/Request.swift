@@ -81,7 +81,7 @@ public struct Response<T> {
         self.metrics = metrics
     }
     
-    func map<U>(_ closure: (T) -> U) -> Response<U> {
+    public func map<U>(_ closure: (T) -> U) -> Response<U> {
         Response<U>(value: closure(value), data: data, request: request, response: response, statusCode: statusCode, metrics: metrics)
     }
 }
