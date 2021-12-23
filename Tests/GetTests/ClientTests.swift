@@ -136,6 +136,33 @@ final class APIClientTests: XCTestCase {
     }
     
     // MARK: - Request Body
+    
+    func testPassEncodableRequestBody() async throws {
+        #if os(watchOS)
+        throw XCTSkip("Mocker URLProtocol isn't being called for POST requests on watchOS")
+        #endif
+        
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        var mock = Mock(url: url, dataType: .json, statusCode: 200, data: [
+            .post: json(named: "user")
+        ])
+        mock.onRequest = { request, arguments in
+            guard let body = request.httpBody ?? request.httpBodyStream?.data,
+                  let json = try? JSONSerialization.jsonObject(with: body, options: []),
+                  let user = json as? [String: Any] else {
+                return XCTFail()
+            }
+            XCTAssertEqual(user["id"] as? Int, 1)
+            XCTAssertEqual(user["login"] as? String, "kean")
+        }
+        mock.register()
+        
+        // WHEN
+        let body = User(id: 1, login: "kean")
+        let request = Request<Void>.post("/user", body: body)
+        try await client.send(request)
+    }
  
     func testPassingNilBody() async throws {
         #if os(watchOS)
@@ -149,6 +176,7 @@ final class APIClientTests: XCTestCase {
         ])
         mock.onRequest = { request, arguments in
             XCTAssertNil(request.httpBody)
+            XCTAssertNil(request.httpBodyStream)
         }
         mock.register()
         

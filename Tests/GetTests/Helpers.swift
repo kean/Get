@@ -17,3 +17,19 @@ extension Mock {
         ])
     }
 }
+
+extension InputStream {
+    var data: Data {
+        open()
+        let bufferSize: Int = 1024
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        var data = Data()
+        while hasBytesAvailable {
+            let readDat = read(buffer, maxLength: bufferSize)
+            data.append(buffer, count: readDat)
+        }
+        buffer.deallocate()
+        close()
+        return data
+    }
+}

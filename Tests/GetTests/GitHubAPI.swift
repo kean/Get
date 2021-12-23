@@ -70,19 +70,19 @@ extension Resources.UsersResource {
 // MARK: - Entities
 
 public struct UserEmail: Decodable {
-    public let email: String
-    public let verified: Bool
-    public let primary: Bool
-    public let visibility: String?
+    public var email: String
+    public var verified: Bool
+    public var primary: Bool
+    public var visibility: String?
 }
 
 public struct User: Codable {
-    public let id: Int
-    public let login: String
-    public let name: String?
-    public let hireable: Bool?
-    public let location: String?
-    public let bio: String?
+    public var id: Int
+    public var login: String
+    public var name: String?
+    public var hireable: Bool?
+    public var location: String?
+    public var bio: String?
 }
 
 // MARK: - APIClientDelegate
