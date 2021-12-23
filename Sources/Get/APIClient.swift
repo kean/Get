@@ -5,7 +5,7 @@
 import Foundation
 
 public protocol APIClientDelegate {
-    func client(_ client: APIClient, willSendRequest request: inout URLRequest)
+    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async
     func shouldClientRetry(_ client: APIClient, withError error: Error) async -> Bool
     func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error
 }
@@ -104,7 +104,7 @@ public actor APIClient {
 
     private func actuallySend(_ request: URLRequest) async throws -> Response<Data> {
         var request = request
-        delegate.client(self, willSendRequest: &request)
+        await delegate.client(self, willSendRequest: &request)
         let (data, response) = try await session.data(for: request, delegate: nil)
         try validate(response: response, data: data)
         let httpResponse = (response as? HTTPURLResponse) ?? HTTPURLResponse() // The right side should never be executed
