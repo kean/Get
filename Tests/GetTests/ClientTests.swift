@@ -17,14 +17,14 @@ final class APIClientTests: XCTestCase {
         }
     }
     
+    // MARK: Basic Requests
+    
     // You don't need to provide a predefined list of resources in your app.
     // You can define the requests inline instead.
     func testDefiningRequestInline() async throws {
         // GIVEN
         let url = URL(string: "https://api.github.com/user")!
-        Mock(url: url, dataType: .json, statusCode: 200, data: [
-            .get: json(named: "user")
-        ]).register()
+        Mock.get(url: url, json: "user").register()
         
         // WHEN
         let user: User = try await client.value(for: .get("/user"))
@@ -33,12 +33,26 @@ final class APIClientTests: XCTestCase {
         XCTAssertEqual(user.login, "kean")
     }
     
-    func testCancellingTheRequest() async throws {
+    func testResponseMetadata() async throws {
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        Mock.get(url: url, json: "user").register()
+        
+        // WHEN
+        let response = try await client.send(Resources.user.get)
+                                               
+        // THEN the client returns not just the value, but data, original
+        // request, and more
+        XCTAssertEqual(response.value.login, "kean")
+        XCTAssertEqual(response.data.count, 1321)
+        XCTAssertEqual(response.request.url, url)
+        XCTAssertEqual(response.statusCode, 200)
+    }
+    
+    func testCancellingRequests() async throws {
         // Given
         let url = URL(string: "https://api.github.com/users/kean")!
-        var mock = Mock(url: url, dataType: .json, statusCode: 200, data: [
-            .get: json(named: "user")
-        ])
+        var mock = Mock.get(url: url, json: "user")
         mock.delay = DispatchTimeInterval.seconds(60)
         mock.register()
         
@@ -60,22 +74,51 @@ final class APIClientTests: XCTestCase {
         }
     }
     
-    // MARK: Decoding
+    // MARK: Response Types
     
-    func testDecodingWithDecodableResponse() async throws {
+    // func value(for:) -> Decodable
+    func testResponseDecodable() async throws {
         // GIVEN
         let url = URL(string: "https://api.github.com/user")!
-        Mock(url: url, dataType: .json, statusCode: 200, data: [
-            .get: json(named: "user")
-        ]).register()
+        Mock.get(url: url, json: "user").register()
         
         // WHEN
         let user: User = try await client.value(for: .get("/user"))
                                                
-        // THEN
+        // THEN returns decoded JSON
         XCTAssertEqual(user.login, "kean")
     }
+        
+    // func value(for:) -> Data
+    func testResponseData() async throws {
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        Mock(url: url, dataType: .html, statusCode: 200, data: [
+            .get: "<h>Hello</h>".data(using: .utf8)!
+        ]).register()
+        
+        // WHEN
+        let data: Data = try await client.value(for: .get("/user"))
+        
+        // THEN return unprocessed data (NOT what Data: Decodable does by default)
+        XCTAssertEqual(String(data: data, encoding: .utf8), "<h>Hello</h>")
+    }
     
+    // func value(for:) -> String
+    func testResponeString() async throws {
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        Mock(url: url, dataType: .json, statusCode: 200, data: [
+            .get: "hello".data(using: .utf8)!
+        ]).register()
+
+        // WHEN
+        let text: String = try await client.value(for: .get("/user"))
+                                               
+        // THEN
+        XCTAssertEqual(text, "hello")
+    }
+        
     func testDecodingWithVoidResponse() async throws {
         #if os(watchOS)
         throw XCTSkip("Mocker URLProtocol isn't being called for POST requests on watchOS")
@@ -92,35 +135,13 @@ final class APIClientTests: XCTestCase {
         try await client.send(request)
     }
     
-    func testDecodingString() async throws {
-        // GIVEN
-        let url = URL(string: "https://api.github.com/user")!
-        Mock(url: url, dataType: .json, statusCode: 200, data: [
-            .get: "hello".data(using: .utf8)!
-        ]).register()
-
-        // WHEN
-        let text: String = try await client.value(for: .get("/user"))
-                                               
-        // THEN
-        XCTAssertEqual(text, "hello")
-    }
-    
-    func testLoadingRawData() async throws {
-        // GIVEN
-        let url = URL(string: "https://api.github.com/user")!
-        Mock(url: url, dataType: .json, statusCode: 200, data: [
-            .get: "hello".data(using: .utf8)!
-        ]).register()
-
-        // WHEN
-        let data: Data = try await client.value(for: .get("/user"))
-                           
-        // THEN
-        XCTAssertEqual(String(data: data, encoding: .utf8), "hello")
-    }
-    
+    // MARK: - Request Body
+ 
     func testPassingNilBody() async throws {
+        #if os(watchOS)
+        throw XCTSkip("Mocker URLProtocol isn't being called for POST requests on watchOS")
+        #endif
+        
         // GIVEN
         let url = URL(string: "https://api.github.com/user")!
         var mock = Mock(url: url, dataType: .json, statusCode: 200, data: [
@@ -135,40 +156,5 @@ final class APIClientTests: XCTestCase {
         let body: User? = nil
         let request = Request<Void>.post("/user", body: body)
         try await client.send(request)
-    }
-    
-    // MARK: - Response
-    
-    func testResponse() async throws {
-        // GIVEN
-        let url = URL(string: "https://api.github.com/user")!
-        Mock(url: url, dataType: .json, statusCode: 200, data: [
-            .get: json(named: "user")
-        ]).register()
-        
-        // WHEN
-        let response = try await client.send(Resources.user.get)
-                                               
-        // THEN
-        XCTAssertEqual(response.value.login, "kean")
-        XCTAssertEqual(response.data.count, 1321)
-        XCTAssertEqual(response.request.url, url)
-        XCTAssertEqual(response.statusCode, 200)
-    }
-}
-
-final class APIClientIntegrationTests: XCTestCase {
-    var sut: APIClient!
-    
-    override func setUp() {
-        super.setUp()
-        
-        sut = APIClient(host: "api.github.com")
-    }
-
-    func _testGitHubUsersApi() async throws {
-        let user = try await sut.value(for: Resources.users("kean").get)
-        
-        XCTAssertEqual(user.login, "kean")
     }
 }

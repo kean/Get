@@ -22,6 +22,10 @@ final class APIClientSessionDelegateTests: XCTestCase {
     }
     
     func testThatMetricsAreCollected() async throws {
+        #if os(watchOS)
+        throw XCTSkip("Mocker URLProtocol isn't being called for requests on watchOS")
+        #endif
+        
         // GIVEN
         let url = URL(string: "https://api.github.com/user")!
         Mock.get(url: url, json: "user").register()
