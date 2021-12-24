@@ -132,8 +132,9 @@ You can easily add logging to your API client using [Pulse](https://github.com/k
 ```swift
 let client = APIClient(host: "api.github.com") {
     $0.sessionDelegate = PulseCore.URLSessionProxyDelegate()
-    // Or pass your own delegate adding it to the delegate chain
-    // $0.sessionDelegate = PulseCore.URLSessionProxyDelegate(delegate: yourDelegate)
+
+    // If you also have a session delegate, add it to the delegate chain
+    $0.sessionDelegate = PulseCore.URLSessionProxyDelegate(delegate: yourDelegate)
 }
 ```
 
