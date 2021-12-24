@@ -78,7 +78,7 @@ public struct Response<T> {
 }
 ```
 
-The response can be any `Decodable` type. And if the response type is `Data`, the client simply returns raw response data. If it's a `String`, it'll return a response as plain text.
+The response can be any `Decodable` type. And if the response type is `Data`, the client simply returns raw response data. If it's a `String`, it returns the response as plain text.
 
 > If you just want to retrieve the response data, you can also call `data(for:)`.
 
