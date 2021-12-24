@@ -1,6 +1,8 @@
 # Get 0.x
 
-## Upcoming Release
+## Get 0.1
+
+*Dec 23, 2021*
 
 - It now supports iOS 13, macOS 10, watchOS 6, and tvOS 13
 - Make `willSend` async - [#11](https://github.com/kean/APIClient/pull/11), thanks to [Lars-Jørgen Kristiansen](https://github.com/LarsJK)
