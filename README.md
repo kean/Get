@@ -84,11 +84,11 @@ public struct Response<T> {
 }
 ```
 
-> If the response type is `Data`, the client will return a raw response data. And if you use `String`, it'll return a response as plain text.
+> If the response type is `Data`, the client will return raw response data. And if you use `String`, it'll return a response as plain text.
 
 ### Client Delegate
 
-One of the way you customize the client is by providing a custom delegate implementing `APIClientDelegate` protocol. For example, you can use it to implement an authorization flow.
+One of the ways you can customize the client is by providing a custom delegate implementing `APIClientDelegate` protocol. For example, you can use it to implement an authorization flow.
 
 ```swift
 final class AuthorizatingDelegate: APIClientDelegate {    
@@ -107,7 +107,7 @@ final class AuthorizatingDelegate: APIClientDelegate {
 
 ### Session Delegate
 
-`APIClient` provides an elegant high-level APIs, but also gives you _complete_ access to the underlying `URLSession` APIs. You can, as shown earlier, change the session configuration, but it doesn't stop there. You can also provide a custom `URLSessionDelegate` and implement only the methods you are interested in – `APIClient` will handle the rest.
+`APIClient` provides elegant high-level APIs, but also gives you _complete_ access to the underlying `URLSession` APIs. You can, as shown earlier, change the session configuration, but it doesn't stop there. You can also provide a custom `URLSessionDelegate` and implement only the methods you are interested in – `APIClient` will handle the rest.
 
 ```swift
 let client = APIClient(host: "api.github.com") {
@@ -126,3 +126,39 @@ final class YourTaskDelegate: URLSessionTaskDelegate {
     }
 }
 ```
+
+## Integrations
+
+### Pulse
+
+You can easily add logging to your API client using [Pulse](https://github.com/kean/Pulse). It's a one-line setup.
+
+```swift
+let client = APIClient(host: "api.github.com") {
+    $0.sessionDelegate = PulseCore.URLSessionProxyDelegate()
+}
+```
+
+With Pulse, you can inspect logs directly on your device – and it supports _all_ Apple platforms. And you can share the logs at any time and view them on a big screen using [Pulse Pro](https://kean.blog/pulse/guides/pulse-pro).
+
+<img src="https://user-images.githubusercontent.com/1567433/107718772-ab576580-6ca4-11eb-83a1-fc510e57bab1.png">
+
+### CreateAPI
+
+With [CreateAPI](https://github.com/kean/CreateAPI), you can take your backend OpenAPI spec, and generate all of the response entities and even requests for Get `APIClient`.
+
+```swift
+generate api.github.yaml --output ./OctoKit --module "OctoKit"
+```
+
+> Check out [OctoKit](https://github.com/kean/OctoKit/blob/main/README.md), which is a GitHub API client generated using [CreateAPI](https://github.com/kean/CreateAPI) that uses [Get](https://github.com/kean/Get) for networking.
+
+## Minimum Requirements
+
+| Nuke          | Swift           | Xcode           | Platforms                                         |
+|---------------|-----------------|-----------------|---------------------------------------------------|
+| Get 0.1      | Swift 5.5       | Xcode 13.2      | iOS 13.0 / watchOS 6.0 / macOS 10.15 / tvOS 13.0  |
+
+## License
+
+Get is available under the MIT license. See the LICENSE file for more info.
