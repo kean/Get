@@ -10,7 +10,7 @@ A modern Swift web API client built using async/await.
 let client = APIClient(host: "api.github.com")
 
 // Using the client directly
-let user: User = try await client.send(.get("/user"))
+let user: User = try await client.send(.get("/user")).value
 try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 
 // Using a predefined API definition
