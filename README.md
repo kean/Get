@@ -17,19 +17,19 @@ try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 let repos = try await client.send(Paths.users("kean").repos.get)
 ```
 
-For more information, read [Web API Client in Swift](https://kean.blog/post/new-api-client).
+> Learn about the design of Get and how it leverages async/await in [Web API Client in Swift](https://kean.blog/post/new-api-client).
 
 ## Usage
 
 ### Instantiating a Client
 
-You start by instantiating an APIClient:
+You start by instantiating a client:
 
 ```swift
 let client = APIClient(host: "api.github.com")
 ```
 
-You can customize the client using `APIClient.Configuration` (see it for a complete list of available options). You can also use a convenience initializer to set configuration inline:
+You can customize the client using `APIClient.Configuration` (see it for a complete list of available options). You can also use a convenience initializer to configure it inline:
 
 ```swift
 let client = APIClient(host: "api.github.com") {
@@ -40,7 +40,7 @@ let client = APIClient(host: "api.github.com") {
 
 ### Creating Requests
 
-A request is represented using `Request<Response>` struct. To create a request, use one of the factory methods:
+A request is represented using a simple `Request<Response>` struct. To create a request, use one of the factory methods:
 
 ```swift
 let get = Request<User>.get("/user")
@@ -57,21 +57,15 @@ let patch = Request<Repo>.post(
 
 ### Sending Requests
 
-You use `APIClient` to send the requests:
+To send a request, use a client instantiated earlier:
 
 ```swift
-let user: User = try await client.value(for: .get("/user"))
-```
+let user: User = try await client.send(.get("/user")).value
 
-The `value(for:)` method supports `Decodable` response types (or use `data(for:)` to fetch raw response data).
-
-If you want to send a request modifying data, e.g. a `.post` request, use `send` method.
-
-```swift
 try await client.send(.post("/repos", body: Repo(name: "CreateAPI"))
 ```
 
-The `send` method is the primary way you interact with `APIClient`. It's not just for `.post` requests. Unlike `value(for:)`, it returns not just the response value, but all of the associated request metadata:
+The `send` method returns not just the response value, but all of the metadata associated with the request:
 
 ```swift
 public struct Response<T> {
@@ -84,7 +78,9 @@ public struct Response<T> {
 }
 ```
 
-> If the response type is `Data`, the client will return raw response data. And if you use `String`, it'll return a response as plain text.
+The response can be any `Decodable` type. And if the response type is `Data`, the client simply returns raw response data. If it's a `String`, it'll return a response as plain text.
+
+> If you just want to retrieve the response data, you can also call `data(for:)`.
 
 ### Client Delegate
 
@@ -112,10 +108,10 @@ final class AuthorizatingDelegate: APIClientDelegate {
 ```swift
 let client = APIClient(host: "api.github.com") {
     $0.sessionConfiguration.httpAdditionalHeaders = ["UserAgent": "bonjour"]
-    $0.sessionDelegate = YourTaskDelegate()
+    $0.sessionDelegate = YourSessionDelegate()
 }
 
-final class YourTaskDelegate: URLSessionTaskDelegate {
+final class YourSessionDelegate: URLSessionTaskDelegate {
     func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
         let protectionSpace = challenge.protectionSpace
         if protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
@@ -136,6 +132,8 @@ You can easily add logging to your API client using [Pulse](https://github.com/k
 ```swift
 let client = APIClient(host: "api.github.com") {
     $0.sessionDelegate = PulseCore.URLSessionProxyDelegate()
+    // Or pass your own delegate adding it to the delegate chain
+    // $0.sessionDelegate = PulseCore.URLSessionProxyDelegate(delegate: yourDelegate)
 }
 ```
 
