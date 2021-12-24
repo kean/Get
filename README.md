@@ -13,7 +13,7 @@ let client = APIClient(host: "api.github.com")
 let user: User = try await client.send(.get("/user")).value
 try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 
-// Using a predefined API definition
+// Using an API definition generated with CreateAPI
 let repos = try await client.send(Paths.users("kean").repos.get)
 ```
 
