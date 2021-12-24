@@ -4,7 +4,7 @@
 
 # Get
 
-A modern Swift web API client built using Async/Await.
+A modern Swift web API client built using async/await.
 
 ```swift
 let client = APIClient(host: "api.github.com")
