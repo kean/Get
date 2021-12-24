@@ -27,7 +27,7 @@ final class APIClientTests: XCTestCase {
         Mock.get(url: url, json: "user").register()
         
         // WHEN
-        let user: User = try await client.value(for: .get("/user"))
+        let user: User = try await client.send(.get("/user")).value
                                                
         // THEN
         XCTAssertEqual(user.login, "kean")
@@ -39,7 +39,7 @@ final class APIClientTests: XCTestCase {
         Mock.get(url: url, json: "user").register()
         
         // WHEN
-        let response = try await client.send(Resources.user.get)
+        let response = try await client.send(Paths.user.get)
                                                
         // THEN the client returns not just the value, but data, original
         // request, and more
@@ -86,7 +86,7 @@ final class APIClientTests: XCTestCase {
         Mock.get(url: url, json: "user").register()
         
         // WHEN
-        let user: User = try await client.value(for: .get("/user"))
+        let user: User = try await client.send(.get("/user")).value
                                                
         // THEN returns decoded JSON
         XCTAssertEqual(user.login, "kean")
@@ -101,7 +101,7 @@ final class APIClientTests: XCTestCase {
         ]).register()
         
         // WHEN
-        let data: Data = try await client.value(for: .get("/user"))
+        let data: Data = try await client.send(.get("/user")).value
         
         // THEN return unprocessed data (NOT what Data: Decodable does by default)
         XCTAssertEqual(String(data: data, encoding: .utf8), "<h>Hello</h>")
@@ -116,7 +116,7 @@ final class APIClientTests: XCTestCase {
         ]).register()
 
         // WHEN
-        let text: String = try await client.value(for: .get("/user"))
+        let text: String = try await client.send(.get("/user")).value
                                                
         // THEN
         XCTAssertEqual(text, "hello")

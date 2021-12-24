@@ -16,7 +16,7 @@ final class APIClientIntegrationTests: XCTestCase {
     }
 
     func _testGitHubUsersApi() async throws {
-        let user = try await sut.value(for: Resources.users("kean").get)
+        let user = try await sut.send(Paths.users("kean").get).value
         
         XCTAssertEqual(user.login, "kean")
     }

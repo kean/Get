@@ -7,11 +7,11 @@ import Get
 
 // An example of an API definition. Feel free to use any other method for
 // organizing the resources.
-public enum Resources {}
+public enum Paths {}
 
 // MARK: - /user
 
-extension Resources {
+extension Paths {
     public static var user: UserResource { UserResource() }
     
     public struct UserResource {
@@ -23,7 +23,7 @@ extension Resources {
 
 // MARK: - /user/emails
 
-extension Resources.UserResource {
+extension Paths.UserResource {
     public var emails: EmailsResource { EmailsResource() }
     
     public struct EmailsResource {
@@ -43,7 +43,7 @@ extension Resources.UserResource {
 
 // MARK: - /users/{username}
 
-extension Resources {
+extension Paths {
     public static func users(_ name: String) -> UsersResource {
         UsersResource(path: "/users/\(name)")
     }
@@ -57,7 +57,7 @@ extension Resources {
 
 // MARK: - /users/{username}/followers
 
-extension Resources.UsersResource {
+extension Paths.UsersResource {
     public var followers: FollowersResource { FollowersResource(path: path + "/followers") }
     
     public struct FollowersResource {
@@ -121,12 +121,12 @@ func usage() async throws {
         $0.delegate = GitHubAPIClientDelegate()
     }
     
-    let _ = try await client.value(for: Resources.user.get)
-    let _ = try await client.value(for: Resources.user.emails.get)
+    let _ = try await client.send(Paths.user.get)
+    let _ = try await client.send(Paths.user.emails.get)
     
 //    try await client.send(Resources.user.emails.delete(["octocat@gmail.com"]))
         
-    let _ = try await client.value(for: Resources.users("kean").followers.get)
+    let _ = try await client.send(Paths.users("kean").followers.get)
     
-    let _: User = try await client.value(for: .get("/user"))
+    let _: User = try await client.send(.get("/user")).value
 }

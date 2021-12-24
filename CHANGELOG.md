@@ -1,5 +1,16 @@
 # Get 0.x
 
+## Get 0.2.1
+
+*Dec 24, 2021*
+
+- Remove `value(for:)`. It's not a great convenience method if it requires the same amount of code as an regular version. 
+
+```swift
+let user: User = try await client.send(.get("/user")).value
+let user: User = try await client.value(for: .get("/user"))
+```
+
 ## Get 0.2
 
 *Dec 23, 2021*

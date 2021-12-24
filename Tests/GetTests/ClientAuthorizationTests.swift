@@ -39,7 +39,7 @@ final class APIClientAuthorizationTests: XCTestCase {
         mock.register()
         
         // WHEN
-        let user: User = try await client.value(for: .get("/user"))
+        let user: User = try await client.send(.get("/user")).value
                                                
         // THEN
         XCTAssertEqual(user.login, "kean")

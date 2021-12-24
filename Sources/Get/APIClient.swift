@@ -58,11 +58,6 @@ public actor APIClient {
         self.delegate = configuration.delegate ?? DefaultAPIClientDelegate()
         self.serializer = Serializer(decoder: configuration.decoder, encoder: configuration.encoder)
     }
-    
-    /// Returns a decoded response value for the given request.
-    public func value<T: Decodable>(for request: Request<T>) async throws -> T {
-        try await send(request).value
-    }
 
     /// Sends the given request and returns a response with a decoded response value.
     public func send<T: Decodable>(_ request: Request<T>) async throws -> Response<T> {
