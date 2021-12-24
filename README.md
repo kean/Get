@@ -21,7 +21,7 @@ For more information, read [Web API Client in Swift](https://kean.blog/post/new-
 
 ## Usage
 
-### Intantiating a Client
+### Instantiating a Client
 
 You start by instantiating an APIClient:
 
