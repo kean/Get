@@ -1,5 +1,11 @@
 # Get 0.x
 
+## Get 0.3.1
+
+*Dec 29, 2021*
+
+- The new optional `send()` variant now also supports `String`, and `Data`.
+
 ## Get 0.3.0
 
 *Dec 29, 2021*

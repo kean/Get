@@ -65,22 +65,24 @@ public actor APIClient {
             if data.isEmpty {
                 return nil
             } else {
-                return try await self.serializer.decode(data)
+                return try await self.decode(data)
             }
         }
     }
     
     /// Sends the given request and returns a response with a decoded response value.
     public func send<T: Decodable>(_ request: Request<T>) async throws -> Response<T> {
-        try await send(request) { data in
-            if T.self == Data.self {
-                return data as! T
-            } else if T.self == String.self {
-                guard let string = String(data: data, encoding: .utf8) else { throw URLError(.badServerResponse) }
-                return string as! T
-            } else {
-                return try await self.serializer.decode(data)
-            }
+        try await send(request, decode)
+    }
+    
+    private func decode<T: Decodable>(_ data: Data) async throws -> T {
+        if T.self == Data.self {
+            return data as! T
+        } else if T.self == String.self {
+            guard let string = String(data: data, encoding: .utf8) else { throw URLError(.badServerResponse) }
+            return string as! T
+        } else {
+            return try await self.serializer.decode(data)
         }
     }
 
