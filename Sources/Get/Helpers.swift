@@ -98,8 +98,8 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         guard let handler = handlers[task] else { return }
         handlers[task] = nil
-        if let data = handler.data, let response = task.response, error == nil {
-            handler.completion(.success((data, response, handler.metrics)))
+        if let response = task.response, error == nil {
+            handler.completion(.success((handler.data ?? Data(), response, handler.metrics)))
         } else {
             handler.completion(.failure(error ?? URLError(.unknown)))
         }

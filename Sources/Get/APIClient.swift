@@ -60,6 +60,17 @@ public actor APIClient {
     }
 
     /// Sends the given request and returns a response with a decoded response value.
+    public func send<T: Decodable>(_ request: Request<T?>) async throws -> Response<T?> {
+        try await send(request) { data in
+            if data.isEmpty {
+                return nil
+            } else {
+                return try await self.serializer.decode(data)
+            }
+        }
+    }
+    
+    /// Sends the given request and returns a response with a decoded response value.
     public func send<T: Decodable>(_ request: Request<T>) async throws -> Response<T> {
         try await send(request) { data in
             if T.self == Data.self {

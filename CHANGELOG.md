@@ -1,5 +1,11 @@
 # Get 0.x
 
+## Get 0.3.0
+
+*Dec 29, 2021*
+
+- Add `send` variant that works with optional types. If the response is empty – return `nil`.
+
 ## Get 0.2.1
 
 *Dec 24, 2021*
