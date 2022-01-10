@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2021 Alexander Grebenyuk (github.com/kean).
+// Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
 
 import Foundation
 
@@ -11,6 +11,21 @@ public struct Request<Response> {
     var body: AnyEncodable?
     public var headers: [String: String]?
     public var id: String?
+    
+    public init(method: String, path: String, query: [(String, String?)]? = nil, headers: [String : String]? = nil) {
+        self.method = method
+        self.path = path
+        self.query = query
+        self.headers = headers
+    }
+    
+    public init<U: Encodable>(method: String, path: String, query: [(String, String?)]? = nil, body: U?, headers: [String : String]? = nil) {
+        self.method = method
+        self.path = path
+        self.query = query
+        self.body = body.map(AnyEncodable.init)
+        self.headers = headers
+    }
 
     public static func get(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
         Request(method: "GET", path: path, query: query, headers: headers)
@@ -21,7 +36,7 @@ public struct Request<Response> {
     }
     
     public static func post<U: Encodable>(_ path: String, query: [(String, String?)]? = nil, body: U?, headers: [String: String]? = nil) -> Request {
-        Request(method: "POST", path: path, query: query, body: body.map(AnyEncodable.init), headers: headers)
+        Request(method: "POST", path: path, query: query, body: body, headers: headers)
     }
 
     public static func put(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
@@ -29,7 +44,7 @@ public struct Request<Response> {
     }
     
     public static func put<U: Encodable>(_ path: String, query: [(String, String?)]? = nil, body: U?, headers: [String: String]? = nil) -> Request {
-        Request(method: "PUT", path: path, query: query, body: body.map(AnyEncodable.init), headers: headers)
+        Request(method: "PUT", path: path, query: query, body: body, headers: headers)
     }
     
     public static func patch(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
@@ -37,7 +52,7 @@ public struct Request<Response> {
     }
     
     public static func patch<U: Encodable>(_ path: String, query: [(String, String?)]? = nil, body: U?, headers: [String: String]? = nil) -> Request {
-        Request(method: "PATCH", path: path, query: query, body: body.map(AnyEncodable.init), headers: headers)
+        Request(method: "PATCH", path: path, query: query, body: body, headers: headers)
     }
     
     public static func delete(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
@@ -45,7 +60,7 @@ public struct Request<Response> {
     }
     
     public static func delete<U: Encodable>(_ path: String, query: [(String, String?)]? = nil, body: U?, headers: [String: String]? = nil) -> Request {
-        Request(method: "DELETE", path: path, query: query, body: body.map(AnyEncodable.init), headers: headers)
+        Request(method: "DELETE", path: path, query: query, body: body, headers: headers)
     }
     
     public static func options(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {

@@ -1,5 +1,11 @@
 # Get 0.x
 
+## Get 0.4.0
+
+*Jan 10, 2022*
+
+- Add public `Request` intializer
+
 ## Get 0.3.1
 
 *Dec 29, 2021*
