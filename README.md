@@ -87,7 +87,7 @@ The response can be any `Decodable` type. The response can also be optional. And
 One of the ways you can customize the client is by providing a custom delegate implementing `APIClientDelegate` protocol. For example, you can use it to implement an authorization flow.
 
 ```swift
-final class AuthorizatingDelegate: APIClientDelegate {    
+final class AuthorizingDelegate: APIClientDelegate {    
     func client(_ client: APIClient, willSendRequest request: inout URLRequest) async {
         request.allHTTPHeaderFields = ["Authorization": "Bearer: \(token)"]
     }
