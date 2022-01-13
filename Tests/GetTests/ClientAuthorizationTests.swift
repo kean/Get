@@ -8,7 +8,7 @@ import Mocker
 
 final class APIClientAuthorizationTests: XCTestCase {
     private var client: APIClient!
-    private let delegate = MockAuthorizatingDelegate()
+    private let delegate = MockAuthorizingDelegate()
     
     override func setUp() {
         super.setUp()
@@ -46,7 +46,7 @@ final class APIClientAuthorizationTests: XCTestCase {
     }
 }
 
-private final class MockAuthorizatingDelegate: APIClientDelegate {
+private final class MockAuthorizingDelegate: APIClientDelegate {
     var token = "expired-token"
     
     func client(_ client: APIClient, willSendRequest request: inout URLRequest) async {
