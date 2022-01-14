@@ -88,7 +88,7 @@ One of the ways you can customize the client is by providing a custom delegate i
 
 ```swift
 final class AuthorizingDelegate: APIClientDelegate {    
-    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async {
+    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws {
         request.allHTTPHeaderFields = ["Authorization": "Bearer: \(token)"]
     }
     

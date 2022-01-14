@@ -49,7 +49,7 @@ final class APIClientAuthorizationTests: XCTestCase {
 private final class MockAuthorizingDelegate: APIClientDelegate {
     var token = "expired-token"
     
-    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async {
+    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws {
         request.allHTTPHeaderFields = ["Authorization": "Bearer: \(token)"]
     }
     
