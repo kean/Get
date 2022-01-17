@@ -25,7 +25,7 @@ final class APIClientAuthorizationTests: XCTestCase {
         let url = URL(string: "https://api.github.com/user")!
         var mock = Mock.get(url: url, json: "user")
         mock.onRequest = { request, arguments in
-            XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "Bearer valid-token")
+            XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "token valid-token")
         }
         mock.register()
 
@@ -39,7 +39,7 @@ final class APIClientAuthorizationTests: XCTestCase {
         let url = URL(string: "https://api.github.com/user")!
         var mock = Mock.get(url: url, json: "user")
         mock.onRequest = { request, arguments in
-            XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "Bearer valid-token")
+            XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "token valid-token")
         }
         mock.register()
         
@@ -55,11 +55,11 @@ final class APIClientAuthorizationTests: XCTestCase {
             .get: "Unauthorized".data(using: .utf8)!
         ])
         mock.onRequest = { request, arguments in
-            XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "Bearer invalid-token")
+            XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "token invalid-token")
 
             var mock = Mock.get(url: url, json: "user")
             mock.onRequest = { request, arguments in
-                XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "Bearer valid-token")
+                XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "token valid-token")
             }
             mock.register()
         }
@@ -82,7 +82,7 @@ private final class MockAuthorizingDelegate: APIClientDelegate {
             token = try await tokenRefresher.refreshToken()
         }
 
-        request.addValue("Bearer \(token.value)", forHTTPHeaderField: "Authorization")
+        request.addValue("token \(token.value)", forHTTPHeaderField: "Authorization")
     }
     
     func shouldClientRetry(_ client: APIClient, withError error: Error) async throws -> Bool {
