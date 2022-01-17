@@ -92,7 +92,7 @@ final class AuthorizingDelegate: APIClientDelegate {
         request.allHTTPHeaderFields = ["Authorization": "Bearer: \(token)"]
     }
     
-    func shouldClientRetry(_ client: APIClient, withError error: Error) async -> Bool {
+    func shouldClientRetry(_ client: APIClient, withError error: Error) async throws -> Bool {
         if case .unacceptableStatusCode(let statusCode) = (error as? APIError), statusCode == 401 {
             return await refreshAccessToken()
         }
