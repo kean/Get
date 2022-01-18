@@ -27,3 +27,32 @@ public protocol Authenticator {
     func apply(_ credential: Credential, to request: inout URLRequest) async throws
 }
 
+
+// MARK: - Errors
+
+/// Represents various authentication failures that occur when using the `AuthenticationInterceptor`.
+public struct AuthenticationError: Error, LocalizedError {
+    /// Reason for the authentication error
+    public enum Reason {
+        case loadingCredentialFailed
+        case refreshingCredentialFailed
+        case applyingCredentialFailed
+    }
+
+    /// Underlying reason an authentication error occurred.
+    public var reason: Reason
+
+    /// The underlying `Error` responsible for generating the failure associated with `AuthenticationError`.
+    public var underlyingError: Error?
+
+    public var errorDescription: String? {
+        switch reason {
+        case .loadingCredentialFailed:
+            return "Failed to load `Credential`."
+        case .refreshingCredentialFailed:
+            return "Failed to refresh `Credential`"
+        case .applyingCredentialFailed:
+            return "Failed to apply `Credential` to `URLRequest`."
+        }
+    }
+}
