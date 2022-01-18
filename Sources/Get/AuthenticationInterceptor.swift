@@ -119,6 +119,31 @@ public class AuthenticationInterceptor<AuthenticatorType: Authenticator> {
     }
 }
 
+// MARK: - APIClientDelegate
+
+extension AuthenticationInterceptor: APIClientDelegate {
+    /// Apply the `Credential` to the `URLRequest` before sending the request.
+    public func client(_: APIClient, willSendRequest request: inout URLRequest) async throws {
+        let token = try await loadCredential()
+        do {
+            try await authenticator.apply(token, to: &request)
+        } catch {
+            // Wrap the error with `AuthenticationError`.
+            throw AuthenticationError(reason: .applyingCredentialFailed, underlyingError: error)
+        }
+    }
+
+    /// If an authentication error is received, refresh `Credentail` and retry the request.
+    public func shouldClientRetry(_: APIClient, withError error: Error) async throws -> Bool {
+        if case .unacceptableStatusCode(let statusCode) = (error as? APIError), statusCode == 401 {
+            try await refreshCredential()
+            return true
+        }
+
+        return false
+    }
+}
+
 // MARK: - Errors
 
 /// Represents various authentication failures that occur when using the `AuthenticationInterceptor`.
