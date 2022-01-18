@@ -5,8 +5,8 @@
 import Foundation
 
 public protocol APIClientDelegate {
-    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async
-    func shouldClientRetry(_ client: APIClient, withError error: Error) async -> Bool
+    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws
+    func shouldClientRetry(_ client: APIClient, withError error: Error) async throws -> Bool
     func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error
 }
 
@@ -108,14 +108,14 @@ public actor APIClient {
         do {
             return try await actuallySend(request)
         } catch {
-            guard await delegate.shouldClientRetry(self, withError: error) else { throw error }
+            guard try await delegate.shouldClientRetry(self, withError: error) else { throw error }
             return try await actuallySend(request)
         }
     }
 
     private func actuallySend(_ request: URLRequest) async throws -> Response<Data> {
         var request = request
-        await delegate.client(self, willSendRequest: &request)
+        try await delegate.client(self, willSendRequest: &request)
         let (data, response, metrics) = try await loader.data(for: request, session: session)
         try validate(response: response, data: data)
         return Response(value: data, data: data, request: request, response: response, metrics: metrics)
@@ -179,8 +179,8 @@ public enum APIError: Error, LocalizedError {
 }
 
 public extension APIClientDelegate {
-    func client(_ client: APIClient, willSendRequest request: inout URLRequest) {}
-    func shouldClientRetry(_ client: APIClient, withError error: Error) async -> Bool { false }
+    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws {}
+    func shouldClientRetry(_ client: APIClient, withError error: Error) async throws -> Bool { false }
     func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error {
         APIError.unacceptableStatusCode(response.statusCode)
     }

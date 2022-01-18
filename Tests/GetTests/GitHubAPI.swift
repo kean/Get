@@ -92,11 +92,11 @@ enum GitHubError: Error {
 }
 
 private final class GitHubAPIClientDelegate: APIClientDelegate {
-    func client(_ client: APIClient, willSendRequest request: inout URLRequest) {
+    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws {
         request.setValue("Bearer: \("your-access-token")", forHTTPHeaderField: "Authorization")
     }
         
-    func shouldClientRetry(_ client: APIClient, withError error: Error) async -> Bool {
+    func shouldClientRetry(_ client: APIClient, withError error: Error) async throws -> Bool {
         if case .unacceptableStatusCode(let status) = (error as? GitHubError), status == 401 {
             return await refreshAccessToken()
         }
