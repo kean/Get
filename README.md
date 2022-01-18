@@ -88,11 +88,11 @@ One of the ways you can customize the client is by providing a custom delegate i
 
 ```swift
 final class AuthorizingDelegate: APIClientDelegate {    
-    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async {
+    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws {
         request.allHTTPHeaderFields = ["Authorization": "Bearer: \(token)"]
     }
     
-    func shouldClientRetry(_ client: APIClient, withError error: Error) async -> Bool {
+    func shouldClientRetry(_ client: APIClient, withError error: Error) async throws -> Bool {
         if case .unacceptableStatusCode(let statusCode) = (error as? APIError), statusCode == 401 {
             return await refreshAccessToken()
         }
