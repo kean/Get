@@ -27,6 +27,97 @@ public protocol Authenticator {
     func apply(_ credential: Credential, to request: inout URLRequest) async throws
 }
 
+// MARK: -
+
+/// The `AuthenticationInterceptor` class provides authentication for requests using exclusive control.
+/// It relies on an `Authenticator` type to handle the actual `URLRequest` authentication and `Credential` refresh.
+public class AuthenticationInterceptor<AuthenticatorType: Authenticator> {
+    /// Type of credential used to authenticate requests.
+    public typealias Credential = AuthenticatorType.Credential
+
+    /// The `State` manage the loading state and the observers waiting to load with exclusive control.
+    private actor State {
+        var isLoading = false
+        var observers: [(Result<Credential, Error>) -> Void] = []
+
+        func startLoading() {
+            isLoading = true
+        }
+
+        func endLoading(with result: Result<Credential, Error>) {
+            observers.forEach { $0(result) }
+            observers.removeAll()
+
+            isLoading = false
+        }
+
+        func observeCredential() async throws -> Credential {
+            try await withUnsafeThrowingContinuation { continueation in
+                observers.append(continueation.resume(with:))
+            }
+        }
+    }
+
+    /// An instance that adopting the `Authenticator` protocol.
+    public let authenticator: AuthenticatorType
+
+    private let state = State()
+
+    /// Initializes the `AuthorizationIntercepter` instance with the given parameters.
+    ///
+    /// - parameter authenticator: An instance that adopting the `Authenticator` protocol.
+    public init(authenticator: AuthenticatorType) {
+        self.authenticator = authenticator
+    }
+
+    /// Load the `Credential` using the exclusive control.
+    ///
+    /// - throws: Error wrapped in `AuthenticationError`.
+    public func loadCredential() async throws -> Credential {
+        guard await !state.isLoading else {
+            // Waiting for credentials to be updated.
+            return try await state.observeCredential()
+        }
+
+        await state.startLoading()
+
+        do {
+            let credential = try await authenticator.credential()
+            await state.endLoading(with: .success(credential))
+            return credential
+        } catch {
+            // Wrap the error with `AuthenticationError`.
+            let authError = AuthenticationError(reason: .loadingCredentialFailed, underlyingError: error)
+            await state.endLoading(with: .failure(authError))
+            throw authError
+        }
+    }
+
+    /// Refresh the `Credential` using the exclusive control.
+    ///
+    /// - throws: Error wrapped in `AuthenticationError`.
+    @discardableResult
+    public func refreshCredential() async throws -> Credential {
+        guard await !state.isLoading else {
+            // Waiting for credentials to be updated.
+            return try await state.observeCredential()
+        }
+
+        await state.startLoading()
+
+        do {
+            let credential = try await authenticator.credential()
+            let refreshedCredential = try await authenticator.refreshCredential(with: credential)
+            await state.endLoading(with: .success(refreshedCredential))
+            return refreshedCredential
+        } catch {
+            // Wrap the error with `AuthenticationError`.
+            let authError = AuthenticationError(reason: .refreshingCredentialFailed, underlyingError: error)
+            await state.endLoading(with: .failure(authError))
+            throw authError
+        }
+    }
+}
 
 // MARK: - Errors
 
