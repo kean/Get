@@ -38,22 +38,22 @@ public class AuthenticationInterceptor<AuthenticatorType: Authenticator> {
     /// The `State` manage the loading state and the observers waiting to load with exclusive control.
     private actor State {
         var isLoading = false
-        var observers: [(Result<Credential, Error>) -> Void] = []
+        private var subscribers: [(Result<Credential, Error>) -> Void] = []
 
         func startLoading() {
             isLoading = true
         }
 
         func endLoading(with result: Result<Credential, Error>) {
-            observers.forEach { $0(result) }
-            observers.removeAll()
+            subscribers.forEach { $0(result) }
+            subscribers.removeAll()
 
             isLoading = false
         }
 
-        func observeCredential() async throws -> Credential {
+        func waitForResultOfCredentialLoading() async throws -> Credential {
             try await withUnsafeThrowingContinuation { continueation in
-                observers.append(continueation.resume(with:))
+                subscribers.append(continueation.resume(with:))
             }
         }
     }
@@ -75,8 +75,7 @@ public class AuthenticationInterceptor<AuthenticatorType: Authenticator> {
     /// - throws: Error wrapped in `AuthenticationError`.
     public func loadCredential() async throws -> Credential {
         guard await !state.isLoading else {
-            // Waiting for credentials to be updated.
-            return try await state.observeCredential()
+            return try await state.waitForResultOfCredentialLoading()
         }
 
         await state.startLoading()
@@ -99,8 +98,7 @@ public class AuthenticationInterceptor<AuthenticatorType: Authenticator> {
     @discardableResult
     public func refreshCredential() async throws -> Credential {
         guard await !state.isLoading else {
-            // Waiting for credentials to be updated.
-            return try await state.observeCredential()
+            return try await state.waitForResultOfCredentialLoading()
         }
 
         await state.startLoading()
