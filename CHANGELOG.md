@@ -1,6 +1,8 @@
 # Get 0.x
 
-## Unreleased
+## Get 0.5.0
+
+*Jan 21, 2022*
 
 - Make `APIClientDelegate` method throwable - [#16](https://github.com/kean/Get/pull/16), thanks to [Tomoya Hayakawa](https://github.com/simorgh3196)
 
