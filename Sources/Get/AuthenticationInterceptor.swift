@@ -13,18 +13,52 @@ public protocol Authenticator {
     /// Provide the current `Credential`.
     func credential() async throws -> Credential
 
-    /// Refreshes the `Credential`.
-    ///
-    /// - parameter credential: The `Credential` before the refresh.
-    func refreshCredential(with credential: Credential) async throws -> Credential
-
     /// Applies the `Credential` to the `URLRequest`.
     ///
     /// Example: Add access token in `Credential` to the `Authorization` header of `URLRequest`.
     ///
-    /// - parameter credential: The `Credential`.
-    /// - parameter urlRequest: The `URLRequest`.
+    /// - parameter credential: The current `Credential`.
+    /// - parameter request: The `URLRequest` to be sent.
     func apply(_ credential: Credential, to request: inout URLRequest) async throws
+
+    /// Refreshes the `Credential`.
+    ///
+    /// - parameter credential: The current `Credential`.
+    /// - parameter client: The `APIClient` instance that inherits from Configuration to refresh Credential.
+    func refresh(credential: Credential, for client: APIClient) async throws -> Credential
+
+    /// Determines whether the `URLRequest` failed due to an authentication error.
+    ///
+    /// Example of retrying if the HTTP status code is `401`:
+    /// ```
+    /// func didRequest(_ request: URLRequest, failDueToAuthenticationError error: Error) -> Bool {
+    ///     if case .unacceptableStatusCode(let status) = (error as? APIError), status == 401 {
+    ///        return true
+    ///     }
+    ///     return false
+    /// }
+    /// ```
+    ///
+    /// - parameter request: The `URLRequest` that was sent.
+    /// - parameter error: The `Error` raised by sending the request.
+    ///
+    /// - returns: `true` if the `URLRequest` failed due to an authentication error, `false` otherwise.
+    func didRequest(_ request: URLRequest, failDueToAuthenticationError error: Error) -> Bool
+
+    /// Determines whether the `URLRequest` is authenticated with the `Credential`.
+    ///
+    /// Example of checking if `URLRequest` is authenticated with `Credential`:
+    /// ```
+    /// func isRequest(_ request: URLRequest, authenticatedWith credential: Credential) -> Bool {
+    ///     request.value(forHTTPHeaderField: "Authorization") == "token \(credential.value)"
+    /// }
+    /// ```
+    ///
+    /// - parameter request: The `URLRequest`.
+    /// - parameter credential: The `Credential`.
+    ///
+    /// - returns: `true` if the `URLRequest` is authenticated with the `Credential`, `false` otherwise.
+    func isRequest(_ request: URLRequest, authenticatedWith credential: Credential) -> Bool
 }
 
 // MARK: -
@@ -96,16 +130,16 @@ public class AuthenticationInterceptor<AuthenticatorType: Authenticator> {
     ///
     /// - throws: Error wrapped in `AuthenticationError`.
     @discardableResult
-    public func refreshCredential() async throws -> Credential {
+    public func refresh(_ credential: Credential, with client: APIClient) async throws -> Credential {
         guard await !state.isLoading else {
-            return try await state.waitForResultOfCredentialLoading()
+            _ = try await state.waitForResultOfCredentialLoading()
+            return
         }
 
         await state.startLoading()
 
         do {
-            let credential = try await authenticator.credential()
-            let refreshedCredential = try await authenticator.refreshCredential(with: credential)
+            let refreshedCredential = try await authenticator.refresh(credential: credential, for: client)
             await state.endLoading(with: .success(refreshedCredential))
             return refreshedCredential
         } catch {
@@ -132,9 +166,18 @@ extension AuthenticationInterceptor: APIClientDelegate {
     }
 
     /// If an authentication error is received, refresh `Credentail` and retry the request.
-    public func shouldClientRetry(_: APIClient, withError error: Error) async throws -> Bool {
-        if case .unacceptableStatusCode(let statusCode) = (error as? APIError), statusCode == 401 {
-            try await refreshCredential()
+    ///
+    /// - throws: The error wrapped in `AuthenticationError`.
+    public func shouldClientRetry(_ client: APIClient, for request: URLRequest, with error: Error) async throws -> Bool {
+        if authenticator.didRequest(request, failDueToAuthenticationError: error) {
+            let credential = try await loadCredential()
+
+            // If Credential has been updated, retry without updating Credential.
+            guard authenticator.isRequest(request, authenticatedWith: credential) else {
+                return true
+            }
+
+            try await refresh(credential, with: client)
             return true
         }
 

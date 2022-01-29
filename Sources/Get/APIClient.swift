@@ -6,7 +6,7 @@ import Foundation
 
 public protocol APIClientDelegate {
     func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws
-    func shouldClientRetry(_ client: APIClient, withError error: Error) async throws -> Bool
+    func shouldClientRetry(_ client: APIClient, for request: URLRequest, with error: Error) async throws -> Bool
     func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error
 }
 
@@ -105,17 +105,23 @@ public actor APIClient {
     }
 
     private func send(_ request: URLRequest) async throws -> Response<Data> {
+        var actualRequest = request
         do {
-            return try await actuallySend(request)
+            try await delegate.client(self, willSendRequest: &actualRequest)
+            return try await actuallySend(actualRequest)
         } catch {
-            guard try await delegate.shouldClientRetry(self, withError: error) else { throw error }
-            return try await actuallySend(request)
+            guard try await delegate.shouldClientRetry(self, for: actualRequest, with: error) else {
+                throw error
+            }
+
+            // Restore the request to original value.
+            var requestToRetry = request
+            try await delegate.client(self, willSendRequest: &requestToRetry)
+            return try await actuallySend(requestToRetry)
         }
     }
 
     private func actuallySend(_ request: URLRequest) async throws -> Response<Data> {
-        var request = request
-        try await delegate.client(self, willSendRequest: &request)
         let (data, response, metrics) = try await loader.data(for: request, session: session)
         try validate(response: response, data: data)
         return Response(value: data, data: data, request: request, response: response, metrics: metrics)
@@ -179,9 +185,9 @@ public enum APIError: Error, LocalizedError {
 }
 
 public extension APIClientDelegate {
-    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws {}
-    func shouldClientRetry(_ client: APIClient, withError error: Error) async throws -> Bool { false }
-    func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error {
+    func client(_: APIClient, willSendRequest _: inout URLRequest) async throws {}
+    func shouldClientRetry(_: APIClient, for _: URLRequest, with _: Error) async throws -> Bool { false }
+    func client(_: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data _: Data) -> Error {
         APIError.unacceptableStatusCode(response.statusCode)
     }
 }
