@@ -133,8 +133,7 @@ public class AuthenticationInterceptor<AuthenticatorType: Authenticator> {
     /// Refresh the `Credential` using the exclusive control.
     ///
     /// - throws: Error wrapped in `AuthenticationError`.
-    @discardableResult
-    private func refresh(_ credential: Credential, with client: APIClient) async throws -> Credential {
+    private func refresh(_ credential: Credential, with client: APIClient) async throws {
         guard await state.startLoadingIfPossible() else {
             _ = try await state.waitForResultOfCredentialLoading()
             return
@@ -143,7 +142,6 @@ public class AuthenticationInterceptor<AuthenticatorType: Authenticator> {
         do {
             let refreshedCredential = try await authenticator.refresh(credential: credential, for: client)
             await state.endLoading(with: .success(refreshedCredential))
-            return refreshedCredential
         } catch {
             // Wrap the error with `AuthenticationError`.
             let authError = AuthenticationError(reason: .refreshingCredentialFailed, underlyingError: error)
