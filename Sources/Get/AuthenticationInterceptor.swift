@@ -169,4 +169,9 @@ public struct AuthenticationError: Error, LocalizedError {
             return "Failed to apply `Credential` to `URLRequest`."
         }
     }
+
+    public init(reason: Reason, underlyingError: Error) {
+        self.reason = reason
+        self.underlyingError = underlyingError
+    }
 }
