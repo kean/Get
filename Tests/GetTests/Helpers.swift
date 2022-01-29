@@ -11,9 +11,15 @@ func json(named name: String) -> Data {
 }
 
 extension Mock {
-    static func get(url: URL, json name: String) -> Mock {
-        Mock(url: url, dataType: .json, statusCode: 200, data: [
+    static func get(url: URL, statusCode: Int = 200, json name: String) -> Mock {
+        Mock(url: url, dataType: .json, statusCode: statusCode, data: [
             .get: json(named: name)
+        ])
+    }
+
+    static func get(url: URL, statusCode: Int = 200, message: String) -> Mock {
+        Mock(url: url, dataType: .json, statusCode: statusCode, data: [
+            .get: message.data(using: .utf8)!
         ])
     }
 }
