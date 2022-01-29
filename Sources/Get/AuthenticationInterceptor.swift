@@ -158,9 +158,10 @@ public class AuthenticationInterceptor<AuthenticatorType: Authenticator> {
 extension AuthenticationInterceptor: APIClientDelegate {
     /// Apply the `Credential` to the `URLRequest` before sending the request.
     public func client(_: APIClient, willSendRequest request: inout URLRequest) async throws {
-        let token = try await loadCredential()
+        let credential = try await loadCredential()
+
         do {
-            try await authenticator.apply(token, to: &request)
+            try await authenticator.apply(credential, to: &request)
         } catch {
             // Wrap the error with `AuthenticationError`.
             throw AuthenticationError(reason: .applyingCredentialFailed, underlyingError: error)
