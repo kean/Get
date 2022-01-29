@@ -71,23 +71,29 @@ public class AuthenticationInterceptor<AuthenticatorType: Authenticator> {
 
     /// The `State` manage the loading state and the observers waiting to load with exclusive control.
     private actor State {
-        var isLoading = false
-        private var subscribers: [(Result<Credential, Error>) -> Void] = []
+        private var isLoading = false
+        private var waitingContinuations: [UnsafeContinuation<Credential, Error>] = []
 
-        func startLoading() {
+        func startLoadingIfPossible() async -> Bool {
+            guard !isLoading else { return false }
+
             isLoading = true
+            return true
         }
 
         func endLoading(with result: Result<Credential, Error>) {
-            subscribers.forEach { $0(result) }
-            subscribers.removeAll()
+            let continuations = waitingContinuations
+            waitingContinuations.removeAll()
 
             isLoading = false
+
+            // Return loading result to waiting continuations.
+            continuations.forEach { $0.resume(with: result) }
         }
 
         func waitForResultOfCredentialLoading() async throws -> Credential {
             try await withUnsafeThrowingContinuation { continueation in
-                subscribers.append(continueation.resume(with:))
+                waitingContinuations.append(continueation)
             }
         }
     }
@@ -108,11 +114,9 @@ public class AuthenticationInterceptor<AuthenticatorType: Authenticator> {
     ///
     /// - throws: Error wrapped in `AuthenticationError`.
     public func loadCredential() async throws -> Credential {
-        guard await !state.isLoading else {
+        guard await state.startLoadingIfPossible() else {
             return try await state.waitForResultOfCredentialLoading()
         }
-
-        await state.startLoading()
 
         do {
             let credential = try await authenticator.credential()
@@ -131,12 +135,10 @@ public class AuthenticationInterceptor<AuthenticatorType: Authenticator> {
     /// - throws: Error wrapped in `AuthenticationError`.
     @discardableResult
     public func refresh(_ credential: Credential, with client: APIClient) async throws -> Credential {
-        guard await !state.isLoading else {
+        guard await state.startLoadingIfPossible() else {
             _ = try await state.waitForResultOfCredentialLoading()
             return
         }
-
-        await state.startLoading()
 
         do {
             let refreshedCredential = try await authenticator.refresh(credential: credential, for: client)
