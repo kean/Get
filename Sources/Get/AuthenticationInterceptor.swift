@@ -113,7 +113,7 @@ public class AuthenticationInterceptor<AuthenticatorType: Authenticator> {
     /// Load the `Credential` using the exclusive control.
     ///
     /// - throws: Error wrapped in `AuthenticationError`.
-    public func loadCredential() async throws -> Credential {
+    private func loadCredential() async throws -> Credential {
         guard await state.startLoadingIfPossible() else {
             return try await state.waitForResultOfCredentialLoading()
         }
@@ -134,7 +134,7 @@ public class AuthenticationInterceptor<AuthenticatorType: Authenticator> {
     ///
     /// - throws: Error wrapped in `AuthenticationError`.
     @discardableResult
-    public func refresh(_ credential: Credential, with client: APIClient) async throws -> Credential {
+    private func refresh(_ credential: Credential, with client: APIClient) async throws -> Credential {
         guard await state.startLoadingIfPossible() else {
             _ = try await state.waitForResultOfCredentialLoading()
             return
