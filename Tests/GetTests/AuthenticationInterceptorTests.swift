@@ -182,8 +182,7 @@ private class StubAuthenticator: Authenticator {
 
     func refresh(_ credential: Credential) async throws -> Credential {
         guard !shouldFailToRefreshCredential else { throw TestError.error }
-        self.credential = TestCredential(value: "refreshed-\(credential.value)",
-                                         expiresDate: Date(timeIntervalSinceNow: 1000))
+        self.credential = TestCredential(value: "refreshed-\(credential.value)")
         refreshCount += 1
         return self.credential
     }
@@ -206,18 +205,10 @@ private class StubAuthenticator: Authenticator {
 }
 
 private struct TestCredential: Equatable {
-    /// Value for authorization header.
     var value: String
-    /// Expiration date of the token. Even within the expiration date,the token may
-    /// have been invalidated in the server.
-    var expiresDate: Date
 
-    static let validCredential = TestCredential(value: "refreshed-token",
-                                                expiresDate: Date(timeIntervalSinceNow: 1000))
-    static let invalidCredetial = TestCredential(value: "token",
-                                                 expiresDate: Date(timeIntervalSinceNow: 1000))
-    static let expiredCredential = TestCredential(value: "refreshed-token",
-                                                  expiresDate: Date(timeIntervalSinceNow: -1000))
+    static let validCredential = TestCredential(value: "refreshed-token")
+    static let invalidCredetial = TestCredential(value: "token")
 }
 
 private extension URLRequest {
