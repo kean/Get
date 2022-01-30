@@ -33,7 +33,7 @@ final class AuthenticationInterceptorTests: XCTestCase {
         XCTAssertEqual(authenticator.refreshCount, 0)
     }
 
-    func testRefreshAndRetryRequestWhenCredentialIsInvalid() async throws {
+    func testRefreshCredentialAndRetryWhenCredentialIsInvalid() async throws {
         // GIVEN
         authenticator.credential = .invalidCredetial
         Mock.get(url: URL(string: "https://example.com/user?token=refreshed-token")!,
