@@ -29,13 +29,13 @@ final class AuthenticationInterceptorTests: XCTestCase {
         try await self.client.send(.get("/user"))
 
         // THEN
-        XCTAssertEqual(authenticator.credential.value, "refreshed-token")
+        XCTAssertEqual(authenticator.credential, .validCredential)
         XCTAssertEqual(authenticator.refreshCount, 0)
     }
 
     func testRefreshCredentialAndRetryWhenCredentialIsInvalid() async throws {
         // GIVEN
-        authenticator.credential = .invalidCredetial
+        authenticator.credential = .invalidCredential
         Mock.get(url: URL(string: "https://example.com/user?token=refreshed-token")!,
                  statusCode: 200,
                  json: "user").register()
@@ -47,13 +47,14 @@ final class AuthenticationInterceptorTests: XCTestCase {
         try await self.client.send(.get("/user"))
 
         // THEN
-        XCTAssertEqual(authenticator.credential.value, "refreshed-token")
+        XCTAssertEqual(authenticator.credential, .validCredential)
         XCTAssertEqual(authenticator.refreshCount, 1)
     }
 
     func testThrowErrorWhenCredentialIsInvalid() async {
         // GIVEN
-        authenticator.credential = .invalidCredetial
+        authenticator.credential = .invalidCredential
+        // Return 401 when `.validCredential` is received.
         Mock.get(url: URL(string: "https://example.com/user?token=refreshed-token")!,
                  statusCode: 401,
                  message: "Unauthorized").register()
@@ -67,7 +68,7 @@ final class AuthenticationInterceptorTests: XCTestCase {
             XCTFail("Should throw an error")
         } catch {
             // THEN
-            XCTAssertEqual(authenticator.credential.value, "refreshed-token")
+            XCTAssertEqual(authenticator.credential, .validCredential)
             XCTAssertEqual(authenticator.refreshCount, 1)
             guard case APIError.unacceptableStatusCode(401) = error else {
                 XCTFail("Should receive http status code 401")
@@ -78,7 +79,7 @@ final class AuthenticationInterceptorTests: XCTestCase {
 
     func testThrowErrorWhenFailToGetCredential() async {
         // GIVEN
-        authenticator.credential = .invalidCredetial
+        authenticator.credential = .invalidCredential
         authenticator.shouldFailToGetCredential = true
 
         do {
@@ -87,7 +88,7 @@ final class AuthenticationInterceptorTests: XCTestCase {
             XCTFail("Should throw an error")
         } catch {
             // THEN
-            XCTAssertEqual(authenticator.credential.value, "token")
+            XCTAssertEqual(authenticator.credential, .invalidCredential)
             XCTAssertEqual(authenticator.refreshCount, 0)
             XCTAssertEqual((error as? AuthenticationError)?.reason, .loadingCredentialFailed)
         }
@@ -95,7 +96,7 @@ final class AuthenticationInterceptorTests: XCTestCase {
 
     func testThrowErrorWhenFailToApplyCredential() async {
         // GIVEN
-        authenticator.credential = .invalidCredetial
+        authenticator.credential = .invalidCredential
         authenticator.shouldFailToApplyCredential = true
 
         do {
@@ -104,7 +105,7 @@ final class AuthenticationInterceptorTests: XCTestCase {
             XCTFail("Should throw an error")
         } catch {
             // THEN
-            XCTAssertEqual(authenticator.credential.value, "token")
+            XCTAssertEqual(authenticator.credential, .invalidCredential)
             XCTAssertEqual(authenticator.refreshCount, 0)
             XCTAssertEqual((error as? AuthenticationError)?.reason, .applyingCredentialFailed)
         }
@@ -112,7 +113,7 @@ final class AuthenticationInterceptorTests: XCTestCase {
 
     func testThrowErrorWhenFailToRefreshCredential() async {
         // GIVEN
-        authenticator.credential = .invalidCredetial
+        authenticator.credential = .invalidCredential
         authenticator.shouldFailToRefreshCredential = true
         Mock.get(url: URL(string: "https://example.com/user?token=refreshed-token")!,
                  statusCode: 200,
@@ -127,7 +128,7 @@ final class AuthenticationInterceptorTests: XCTestCase {
             XCTFail("Should throw an error")
         } catch {
             // THEN
-            XCTAssertEqual(authenticator.credential.value, "token")
+            XCTAssertEqual(authenticator.credential, .invalidCredential)
             XCTAssertEqual(authenticator.refreshCount, 0)
             XCTAssertEqual((error as? AuthenticationError)?.reason, .refreshingCredentialFailed)
         }
@@ -135,7 +136,7 @@ final class AuthenticationInterceptorTests: XCTestCase {
 
     func testRefreshCredentialOnlyOnceForParallelRequests() async throws {
         // GIVEN
-        authenticator.credential = .invalidCredetial
+        authenticator.credential = .invalidCredential
         Mock.get(url: URL(string: "https://example.com/user?token=refreshed-token")!,
                  statusCode: 200,
                  json: "user").register()
@@ -151,7 +152,7 @@ final class AuthenticationInterceptorTests: XCTestCase {
         }
 
         // THEN
-        XCTAssertEqual(authenticator.credential.value, "refreshed-token")
+        XCTAssertEqual(authenticator.credential, .validCredential)
         XCTAssertEqual(authenticator.refreshCount, 1)
     }
 }
@@ -182,7 +183,7 @@ private class StubAuthenticator: Authenticator {
 
     func refresh(_ credential: Credential) async throws -> Credential {
         guard !shouldFailToRefreshCredential else { throw TestError.error }
-        self.credential = TestCredential(value: "refreshed-\(credential.value)")
+        self.credential = credential.refreshed()
         refreshCount += 1
         return self.credential
     }
@@ -207,8 +208,12 @@ private class StubAuthenticator: Authenticator {
 private struct TestCredential: Equatable {
     var value: String
 
+    func refreshed() -> TestCredential {
+        TestCredential(value: "refreshed-\(value)")
+    }
+
     static let validCredential = TestCredential(value: "refreshed-token")
-    static let invalidCredetial = TestCredential(value: "token")
+    static let invalidCredential = TestCredential(value: "token")
 }
 
 private extension URLRequest {
