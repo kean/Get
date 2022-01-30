@@ -194,8 +194,8 @@ private class StubAuthenticator: Authenticator {
         return false
     }
 
-    func isRequest(_ urlRequest: URLRequest, authenticatedWith credential: Credential) -> Bool {
-        guard let url = urlRequest.url,
+    func isRequest(_ request: URLRequest, authenticatedWith credential: Credential) -> Bool {
+        guard let url = request.url,
               let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
               let queryItems = components.queryItems
         else { return false }
