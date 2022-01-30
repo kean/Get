@@ -25,7 +25,7 @@ public protocol Authenticator {
     ///
     /// - parameter credential: The current `Credential`.
     /// - parameter client: The `APIClient` instance that inherits from Configuration to refresh Credential.
-    func refresh(credential: Credential, for client: APIClient) async throws -> Credential
+    func refresh(_ credential: Credential, for client: APIClient) async throws -> Credential
 
     /// Determines whether the `URLRequest` failed due to an authentication error.
     ///
@@ -140,7 +140,7 @@ public class AuthenticationInterceptor<AuthenticatorType: Authenticator> {
         }
 
         do {
-            let refreshedCredential = try await authenticator.refresh(credential: credential, for: client)
+            let refreshedCredential = try await authenticator.refresh(credential, for: client)
             await state.endLoading(with: .success(refreshedCredential))
         } catch {
             // Wrap the error with `AuthenticationError`.
