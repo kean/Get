@@ -180,7 +180,7 @@ private class StubAuthenticator: Authenticator {
         request.setQueryItems([.init(name: "token", value: credential.value)])
     }
 
-    func refresh(_ credential: Credential, for client: APIClient) async throws -> Credential {
+    func refresh(_ credential: Credential) async throws -> Credential {
         guard !shouldFailToRefreshCredential else { throw TestError.error }
         self.credential = TestCredential(value: "refreshed-\(credential.value)",
                                          expiresDate: Date(timeIntervalSinceNow: 1000))
