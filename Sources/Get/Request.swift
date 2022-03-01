@@ -2,9 +2,9 @@
 //
 // Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
 
-import Foundation
+@preconcurrency import Foundation
 
-public struct Request<Response> {
+public struct Request<Response>: Sendable {
     public var method: String
     public var path: String
     public var query: [(String, String?)]?
@@ -99,3 +99,5 @@ public struct Response<T> {
         Response<U>(value: closure(value), data: data, request: request, response: response, metrics: metrics)
     }
 }
+
+extension Response: Sendable where T: Sendable {}

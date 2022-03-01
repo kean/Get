@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
 
-import Foundation
+@preconcurrency import Foundation
 
 struct AnyEncodable: Encodable {
     private let value: Encodable
@@ -67,13 +67,40 @@ actor Serializer {
 }
 
 // A simple URLSession wrapper adding async/await APIs compatible with older platforms.
-final class DataLoader: NSObject, URLSessionDataDelegate {
-    private var handlers = [URLSessionTask: TaskHandler]()
+final class DataLoader: NSObject, URLSessionDataDelegate, @unchecked Sendable {
+    private var _handlers = [URLSessionTask: TaskHandler]()
+    private var handlers: [URLSessionTask: TaskHandler] {
+      get { safe { _handlers } }
+      set { safe { _handlers = newValue } }
+    }
+
+    private let lock = NSRecursiveLock()
+    private func safe<Value>(_ action: () -> Value) -> Value {
+        defer { lock.unlock() }
+        lock.lock()
+        return action()
+    }
+
     private typealias Completion = (Result<(Data, URLResponse, URLSessionTaskMetrics?), Error>) -> Void
     
     /// Loads data with the given request.
     func data(for request: URLRequest, session: URLSession) async throws -> (Data, URLResponse, URLSessionTaskMetrics?) {
-        final class Box { var task: URLSessionTask? }
+        final class Box: @unchecked Sendable {
+            private let lock = NSRecursiveLock()
+            private var _task: URLSessionTask?
+
+            var task: URLSessionTask? {
+                get { safe { _task } }
+                set { safe { _task = newValue } }
+            }
+
+            private func safe<Value>(_ action: () -> Value) -> Value {
+                defer { lock.unlock() }
+                lock.lock()
+                return action()
+            }
+        }
+
         let box = Box()
         return try await withTaskCancellationHandler(handler: {
             box.task?.cancel()

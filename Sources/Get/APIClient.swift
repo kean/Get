@@ -2,9 +2,9 @@
 //
 // Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
 
-import Foundation
+@preconcurrency import Foundation
 
-public protocol APIClientDelegate {
+public protocol APIClientDelegate: Sendable {
     func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws
     func shouldClientRetry(_ client: APIClient, withError error: Error) async throws -> Bool
     func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error
@@ -17,7 +17,7 @@ public actor APIClient {
     private let delegate: APIClientDelegate
     private let loader = DataLoader()
     
-    public struct Configuration {
+    public struct Configuration: Sendable  {
         public var host: String
         public var port: Int?
         /// If `true`, uses `http` instead of `https`.
@@ -60,7 +60,7 @@ public actor APIClient {
     }
 
     /// Sends the given request and returns a response with a decoded response value.
-    public func send<T: Decodable>(_ request: Request<T?>) async throws -> Response<T?> {
+    public func send<T: Decodable>(_ request: Request<T?>) async throws -> Response<T?> where T: Sendable {
         try await send(request) { data in
             if data.isEmpty {
                 return nil
@@ -71,11 +71,11 @@ public actor APIClient {
     }
     
     /// Sends the given request and returns a response with a decoded response value.
-    public func send<T: Decodable>(_ request: Request<T>) async throws -> Response<T> {
+    public func send<T: Decodable>(_ request: Request<T>) async throws -> Response<T> where T: Sendable {
         try await send(request, decode)
     }
     
-    private func decode<T: Decodable>(_ data: Data) async throws -> T {
+    private func decode<T: Decodable>(_ data: Data) async throws -> T where T: Sendable {
         if T.self == Data.self {
             return data as! T
         } else if T.self == String.self {
