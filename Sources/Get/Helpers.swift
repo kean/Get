@@ -134,9 +134,12 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
 }
 
 /// Allows users to monitor URLSession.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 final class URLSessionProxyDelegate: NSObject, URLSessionTaskDelegate, URLSessionDataDelegate {
     private var delegate: URLSessionDelegate
+    #if !os(Linux)
     private let interceptedSelectors: Set<Selector>
+    #endif
     private let loader: DataLoader
 
     static func make(loader: DataLoader, delegate: URLSessionDelegate?) -> URLSessionDelegate {
@@ -147,11 +150,13 @@ final class URLSessionProxyDelegate: NSObject, URLSessionTaskDelegate, URLSessio
     init(loader: DataLoader, delegate: URLSessionDelegate) {
         self.loader = loader
         self.delegate = delegate
+        #if !os(Linux)
         self.interceptedSelectors = [
             #selector(URLSessionDataDelegate.urlSession(_:dataTask:didReceive:)),
             #selector(URLSessionTaskDelegate.urlSession(_:task:didCompleteWithError:)),
             #selector(URLSessionTaskDelegate.urlSession(_:task:didFinishCollecting:))
         ]
+        #endif
     }
 
     // MARK: URLSessionDelegate
@@ -173,6 +178,7 @@ final class URLSessionProxyDelegate: NSObject, URLSessionTaskDelegate, URLSessio
 
     // MARK: Proxy
 
+    #if !os(Linux)
     override func responds(to aSelector: Selector!) -> Bool {
         if interceptedSelectors.contains(aSelector) {
             return true
@@ -183,6 +189,7 @@ final class URLSessionProxyDelegate: NSObject, URLSessionTaskDelegate, URLSessio
     override func forwardingTarget(for selector: Selector!) -> Any? {
         interceptedSelectors.contains(selector) ? nil : delegate
     }
+    #endif
 }
 
 extension OperationQueue {
