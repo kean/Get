@@ -3,6 +3,9 @@
 // Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
 
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 struct AnyEncodable: Encodable {
     private let value: Encodable
@@ -70,7 +73,7 @@ actor Serializer {
 final class DataLoader: NSObject, URLSessionDataDelegate {
     private var handlers = [URLSessionTask: TaskHandler]()
     private typealias Completion = (Result<(Data, URLResponse, URLSessionTaskMetrics?), Error>) -> Void
-    
+
     /// Loads data with the given request.
     func data(for request: URLRequest, session: URLSession) async throws -> (Data, URLResponse, URLSessionTaskMetrics?) {
         final class Box { var task: URLSessionTask? }
@@ -85,7 +88,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
             }
         })
     }
-    
+
     private func loadData(with request: URLRequest, session: URLSession, completion: @escaping Completion) -> URLSessionTask {
         let task = session.dataTask(with: request)
         session.delegateQueue.addOperation {
@@ -104,7 +107,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
             handler.completion(.failure(error ?? URLError(.unknown)))
         }
     }
-    
+
     func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
         handlers[task]?.metrics = metrics
     }
@@ -140,7 +143,7 @@ final class URLSessionProxyDelegate: NSObject, URLSessionTaskDelegate, URLSessio
         guard let delegate = delegate else { return loader }
         return URLSessionProxyDelegate(loader: loader, delegate: delegate)
     }
-    
+
     init(loader: DataLoader, delegate: URLSessionDelegate) {
         self.loader = loader
         self.delegate = delegate
@@ -150,9 +153,9 @@ final class URLSessionProxyDelegate: NSObject, URLSessionTaskDelegate, URLSessio
             #selector(URLSessionTaskDelegate.urlSession(_:task:didFinishCollecting:))
         ]
     }
-    
+
     // MARK: URLSessionDelegate
-    
+
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         loader.urlSession(session, dataTask: dataTask, didReceive: data)
         (delegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didReceive: data)
@@ -162,7 +165,7 @@ final class URLSessionProxyDelegate: NSObject, URLSessionTaskDelegate, URLSessio
         loader.urlSession(session, task: task, didCompleteWithError: error)
         (delegate as? URLSessionTaskDelegate)?.urlSession?(session, task: task, didCompleteWithError: error)
     }
-    
+
     func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
         loader.urlSession(session, task: task, didFinishCollecting: metrics)
         (delegate as? URLSessionTaskDelegate)?.urlSession?(session, task: task, didFinishCollecting: metrics)
