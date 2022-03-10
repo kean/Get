@@ -163,17 +163,29 @@ final class URLSessionProxyDelegate: NSObject, URLSessionTaskDelegate, URLSessio
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         loader.urlSession(session, dataTask: dataTask, didReceive: data)
+        #if !os(Linux)
         (delegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didReceive: data)
+        #else
+        (delegate as? URLSessionDataDelegate)?.urlSession(session, dataTask: dataTask, didReceive: data)
+        #endif
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         loader.urlSession(session, task: task, didCompleteWithError: error)
+        #if !os(Linux)
         (delegate as? URLSessionTaskDelegate)?.urlSession?(session, task: task, didCompleteWithError: error)
+        #else
+        (delegate as? URLSessionTaskDelegate)?.urlSession(session, task: task, didCompleteWithError: error)
+        #endif
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
         loader.urlSession(session, task: task, didFinishCollecting: metrics)
+        #if !os(Linux)
         (delegate as? URLSessionTaskDelegate)?.urlSession?(session, task: task, didFinishCollecting: metrics)
+        #else
+        (delegate as? URLSessionTaskDelegate)?.urlSession(session, task: task, didFinishCollecting: metrics)
+        #endif
     }
 
     // MARK: Proxy
