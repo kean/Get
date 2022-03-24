@@ -2,7 +2,11 @@
 //
 // Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
 
+#if compiler(>=5.6)
 @preconcurrency import Foundation
+#else
+import Foundation
+#endif
 
 public struct Request<Response>: Sendable {
     public var method: String

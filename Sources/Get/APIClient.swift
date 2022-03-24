@@ -2,7 +2,11 @@
 //
 // Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
 
+#if compiler(>=5.6)
 @preconcurrency import Foundation
+#else
+import Foundation
+#endif
 
 public protocol APIClientDelegate: Sendable {
     func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws
