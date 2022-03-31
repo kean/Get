@@ -93,7 +93,7 @@ enum GitHubError: Error {
 
 private final class GitHubAPIClientDelegate: APIClientDelegate {
     func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws {
-        request.setValue("Bearer: \("your-access-token")", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \("your-access-token")", forHTTPHeaderField: "Authorization")
     }
         
     func shouldClientRetry(_ client: APIClient, for request: URLRequest, withError error: Error) async throws -> Bool {
