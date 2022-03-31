@@ -85,7 +85,7 @@ private final class MockAuthorizingDelegate: APIClientDelegate {
         request.addValue("token \(token.value)", forHTTPHeaderField: "Authorization")
     }
     
-    func shouldClientRetry(_ client: APIClient, withError error: Error) async throws -> Bool {
+    func shouldClientRetry(_ client: APIClient, for request: URLRequest, withError error: Error) async throws -> Bool {
         if case .unacceptableStatusCode(let statusCode) = (error as? APIError), statusCode == 401 {
             token = try await tokenRefresher.refreshToken()
             return true

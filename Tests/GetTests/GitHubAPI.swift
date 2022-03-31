@@ -96,7 +96,7 @@ private final class GitHubAPIClientDelegate: APIClientDelegate {
         request.setValue("Bearer: \("your-access-token")", forHTTPHeaderField: "Authorization")
     }
         
-    func shouldClientRetry(_ client: APIClient, withError error: Error) async throws -> Bool {
+    func shouldClientRetry(_ client: APIClient, for request: URLRequest, withError error: Error) async throws -> Bool {
         if case .unacceptableStatusCode(let status) = (error as? GitHubError), status == 401 {
             return await refreshAccessToken()
         }
