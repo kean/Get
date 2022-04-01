@@ -108,7 +108,7 @@ public actor APIClient {
         do {
             return try await actuallySend(request)
         } catch {
-            guard try await delegate.shouldClientRetry(self, for request: request, withError: error) else { throw error }
+            guard try await delegate.shouldClientRetry(self, for: request, withError: error) else { throw error }
             return try await actuallySend(request)
         }
     }
