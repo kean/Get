@@ -4,7 +4,7 @@
 
 # Get
 
-[![Platform](https://img.shields.io/badge/Platforms-iOS%20%7CmacOS%20%7C%20watchOS%20%7C%20tvOS%20%7C%20Linux-4E4E4E.svg?colorA=28a745)](#installation)
+[![Platform](https://img.shields.io/badge/Platforms-iOS%20%7C%20macOS%20%7C%20watchOS%20%7C%20tvOS%20%7C%20Linux-4E4E4E.svg?colorA=28a745)](#installation)
 
 A modern Swift web API client built using async/await.
 
