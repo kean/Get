@@ -32,8 +32,10 @@ public actor APIClient {
         public var encoder: JSONEncoder?
         /// The (optional) client delegate.
         public var delegate: APIClientDelegate?
+#if !os(Linux)
         /// The (optional) URLSession delegate that allows you to monitor the underlying URLSession.
         public var sessionDelegate: URLSessionDelegate?
+#endif
 
         public init(host: String, sessionConfiguration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil) {
             self.host = host
@@ -56,7 +58,11 @@ public actor APIClient {
     public init(configuration: Configuration) {
         self.conf = configuration
         let queue = OperationQueue(maxConcurrentOperationCount: 1)
+#if !os(Linux)
         let delegate = URLSessionProxyDelegate.make(loader: loader, delegate: configuration.sessionDelegate)
+#else
+        let delegate = loader
+#endif
         self.session = URLSession(configuration: configuration.sessionConfiguration, delegate: delegate, delegateQueue: queue)
         self.delegate = configuration.delegate ?? DefaultAPIClientDelegate()
         self.serializer = Serializer(decoder: configuration.decoder, encoder: configuration.encoder)

@@ -133,13 +133,12 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
     }
 }
 
+#if !os(Linux)
 /// Allows users to monitor URLSession.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 final class URLSessionProxyDelegate: NSObject, URLSessionTaskDelegate, URLSessionDataDelegate {
     private var delegate: URLSessionDelegate
-    #if !os(Linux)
     private let interceptedSelectors: Set<Selector>
-    #endif
     private let loader: DataLoader
 
     static func make(loader: DataLoader, delegate: URLSessionDelegate?) -> URLSessionDelegate {
@@ -150,47 +149,32 @@ final class URLSessionProxyDelegate: NSObject, URLSessionTaskDelegate, URLSessio
     init(loader: DataLoader, delegate: URLSessionDelegate) {
         self.loader = loader
         self.delegate = delegate
-        #if !os(Linux)
         self.interceptedSelectors = [
             #selector(URLSessionDataDelegate.urlSession(_:dataTask:didReceive:)),
             #selector(URLSessionTaskDelegate.urlSession(_:task:didCompleteWithError:)),
             #selector(URLSessionTaskDelegate.urlSession(_:task:didFinishCollecting:))
         ]
-        #endif
     }
 
     // MARK: URLSessionDelegate
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         loader.urlSession(session, dataTask: dataTask, didReceive: data)
-        #if !os(Linux)
         (delegate as? URLSessionDataDelegate)?.urlSession?(session, dataTask: dataTask, didReceive: data)
-        #else
-        (delegate as? URLSessionDataDelegate)?.urlSession(session, dataTask: dataTask, didReceive: data)
-        #endif
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         loader.urlSession(session, task: task, didCompleteWithError: error)
-        #if !os(Linux)
         (delegate as? URLSessionTaskDelegate)?.urlSession?(session, task: task, didCompleteWithError: error)
-        #else
-        (delegate as? URLSessionTaskDelegate)?.urlSession(session, task: task, didCompleteWithError: error)
-        #endif
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
         loader.urlSession(session, task: task, didFinishCollecting: metrics)
-        #if !os(Linux)
         (delegate as? URLSessionTaskDelegate)?.urlSession?(session, task: task, didFinishCollecting: metrics)
-        #else
-        (delegate as? URLSessionTaskDelegate)?.urlSession(session, task: task, didFinishCollecting: metrics)
-        #endif
     }
 
     // MARK: Proxy
 
-    #if !os(Linux)
     override func responds(to aSelector: Selector!) -> Bool {
         if interceptedSelectors.contains(aSelector) {
             return true
@@ -201,8 +185,8 @@ final class URLSessionProxyDelegate: NSObject, URLSessionTaskDelegate, URLSessio
     override func forwardingTarget(for selector: Selector!) -> Any? {
         interceptedSelectors.contains(selector) ? nil : delegate
     }
-    #endif
 }
+#endif
 
 extension OperationQueue {
     convenience init(maxConcurrentOperationCount: Int) {

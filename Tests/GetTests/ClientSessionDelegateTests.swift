@@ -6,6 +6,7 @@ import XCTest
 import Mocker
 @testable import Get
 
+#if !os(Linux)
 final class APIClientSessionDelegateTests: XCTestCase {
     var client: APIClient!
     private var delegate: SessionDelegate!
@@ -48,3 +49,4 @@ private final class SessionDelegate: NSObject, URLSessionTaskDelegate {
         self.metrics[task] = metrics
     }
 }
+#endif
