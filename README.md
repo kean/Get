@@ -4,6 +4,8 @@
 
 # Get
 
+[![Platform](https://img.shields.io/badge/Platforms-iOS%20%7CmacOS%20%7C%20watchOS%20%7C%20tvOS%20%7C%20Linux-4E4E4E.svg?colorA=28a745)](#installation)
+
 A modern Swift web API client built using async/await.
 
 ```swift
@@ -156,6 +158,7 @@ generate api.github.yaml --output ./OctoKit --module "OctoKit"
 
 | Nuke          | Swift           | Xcode           | Platforms                                         |
 |---------------|-----------------|-----------------|---------------------------------------------------|
+| Get 0.6      | Swift 5.5       | Xcode 13.2      | iOS 13.0 / watchOS 6.0 / macOS 10.15 / tvOS 13.0 / Linux |
 | Get 0.1      | Swift 5.5       | Xcode 13.2      | iOS 13.0 / watchOS 6.0 / macOS 10.15 / tvOS 13.0  |
 
 ## License
