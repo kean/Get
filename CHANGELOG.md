@@ -1,5 +1,8 @@
 # Get 0.x
 
+- Add `URLRequest` parameter to `shouldClientRetry(_:request:withError:)` in `APIClientDelegate` - [#23](https://github.com/kean/Get/pull/23/files), thanks to [Pavel Krusek](https://github.com/pkrusek)
+- Add Linux support - [#20](https://github.com/kean/Get/pull/20), thanks to [Mathieu Barnachon](https://github.com/mbarnach)
+
 ## Get 0.5.0
 
 *Jan 21, 2022*
