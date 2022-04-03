@@ -19,7 +19,7 @@ public struct Request<Response> {
         self.headers = headers
     }
     
-    public init<U: Encodable>(method: String, path: String, query: [(String, String?)]? = nil, body: U?, headers: [String : String]? = nil) {
+    public init<U: Encodable>(method: String, path: String, query: [(String, String?)]? = nil, body: U?, headers: [String: String]? = nil) {
         self.method = method
         self.path = path
         self.query = query
