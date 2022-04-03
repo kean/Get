@@ -3,6 +3,9 @@
 // Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
 
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 public protocol APIClientDelegate {
     func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws
@@ -16,7 +19,7 @@ public actor APIClient {
     private let serializer: Serializer
     private let delegate: APIClientDelegate
     private let loader = DataLoader()
-    
+
     public struct Configuration {
         public var host: String
         public var port: Int?
@@ -31,7 +34,7 @@ public actor APIClient {
         public var delegate: APIClientDelegate?
         /// The (optional) URLSession delegate that allows you to monitor the underlying URLSession.
         public var sessionDelegate: URLSessionDelegate?
-    
+
         public init(host: String, sessionConfiguration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil) {
             self.host = host
             self.sessionConfiguration = sessionConfiguration
@@ -69,12 +72,12 @@ public actor APIClient {
             }
         }
     }
-    
+
     /// Sends the given request and returns a response with a decoded response value.
     public func send<T: Decodable>(_ request: Request<T>) async throws -> Response<T> {
         try await send(request, decode)
     }
-    
+
     private func decode<T: Decodable>(_ data: Data) async throws -> T {
         if T.self == Data.self {
             return data as! T
@@ -91,13 +94,13 @@ public actor APIClient {
     public func send(_ request: Request<Void>) async throws -> Response<Void> {
         try await send(request) { _ in () }
     }
-    
+
     private func send<T>(_ request: Request<T>, _ decode: @escaping (Data) async throws -> T) async throws -> Response<T> {
         let response = try await data(for: request)
         let value = try await decode(response.value)
         return response.map { _ in value } // Keep metadata
     }
-    
+
     /// Returns response data for the given request.
     public func data<T>(for request: Request<T>) async throws -> Response<Data> {
         let request = try await makeRequest(for: request)
@@ -169,7 +172,7 @@ public actor APIClient {
 
 public enum APIError: Error, LocalizedError {
     case unacceptableStatusCode(Int)
-    
+
     public var errorDescription: String? {
         switch self {
         case .unacceptableStatusCode(let statusCode):
