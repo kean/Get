@@ -9,7 +9,7 @@
 Usage:
 
 ```swift
-APIClient(baseURL: URL(string: "https://api.github.com))
+APIClient(baseURL: URL(string: "https://api.github.com"))
 ```
 
 ## Get 0.6.0
