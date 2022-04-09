@@ -22,6 +22,8 @@ public actor APIClient {
 
     public struct Configuration {
         public var host: String
+        /// extends host with additional path eg. /hostPath, host:9009/hostPath
+        public var hostPath: String = ""
         public var port: Int?
         /// If `true`, uses `http` instead of `https`.
         public var isInsecure = false
@@ -136,7 +138,7 @@ public actor APIClient {
     }
 
     private func makeURL(path: String, query: [(String, String?)]?) throws -> URL {
-        guard let url = URL(string: path),
+        guard let url = URL(string: conf.hostPath + path),
               var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             throw URLError(.badURL)
         }
