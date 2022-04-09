@@ -1,5 +1,17 @@
 # Get 0.x
 
+## Get 0.7.0
+
+*Apr 9, 2022*
+
+- Add `baseURL` client configuration option. Deprecate `host`, `port`, and `isInsercure`.
+
+Usage:
+
+```swift
+APIClient(baseURL: URL(string: "https://api.github.com))
+```
+
 ## Get 0.6.0
 
 *Apr 3, 2022*
