@@ -1,0 +1,20 @@
+name: "Get CI"
+
+on: 
+  push:
+    branches: 
+      - main
+  pull_request:
+    branches: 
+      - '*'
+
+jobs:
+  macos-run-tests:
+    name: Unit Tests (macOS, Xcode 13.2)
+    runs-on: macOS-11
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_13.2.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Tests
+        run: swift test
