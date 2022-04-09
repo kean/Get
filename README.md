@@ -9,7 +9,7 @@
 A modern Swift web API client built using async/await.
 
 ```swift
-let client = APIClient(baseURL: URL(string: "https://api.github.com))
+let client = APIClient(baseURL: URL(string: "https://api.github.com"))
 
 // Using the client directly
 let user: User = try await client.send(.get("/user")).value
@@ -28,13 +28,13 @@ let repos = try await client.send(Paths.users("kean").repos.get)
 You start by instantiating a client:
 
 ```swift
-let client = APIClient(baseURL: URL(string: "https://api.github.com)) 
+let client = APIClient(baseURL: URL(string: "https://api.github.com")) 
 ```
 
 You can customize the client using `APIClient.Configuration` (see it for a complete list of available options). You can also use a convenience initializer to configure it inline:
 
 ```swift
-let client = APIClient(baseURL: URL(string: "https://api.github.com)) {
+let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
     $0.sessionConfiguration.httpAdditionalHeaders = ["UserAgent": "bonjour"]
     $0.delegate = YourDelegate()
 }
@@ -108,7 +108,7 @@ final class AuthorizingDelegate: APIClientDelegate {
 `APIClient` provides elegant high-level APIs, but also gives you _complete_ access to the underlying `URLSession` APIs. You can, as shown earlier, change the session configuration, but it doesn't stop there. You can also provide a custom `URLSessionDelegate` and implement only the methods you are interested in – `APIClient` will handle the rest.
 
 ```swift
-let client = APIClient(baseURL: URL(string: "https://api.github.com)) {
+let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
     $0.sessionConfiguration.httpAdditionalHeaders = ["UserAgent": "bonjour"]
     $0.sessionDelegate = YourSessionDelegate()
 }
@@ -132,7 +132,7 @@ final class YourSessionDelegate: URLSessionTaskDelegate {
 You can easily add logging to your API client using [Pulse](https://github.com/kean/Pulse). It's a one-line setup.
 
 ```swift
-let client = APIClient(baseURL: URL(string: "https://api.github.com)) {
+let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
     $0.sessionDelegate = PulseCore.URLSessionProxyDelegate()
 
     // If you also have a session delegate, add it to the delegate chain
