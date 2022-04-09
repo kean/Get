@@ -15,7 +15,7 @@ final class APIClientSessionDelegateTests: XCTestCase {
         super.setUp()
         
         delegate = SessionDelegate()
-        client = APIClient(host: "api.github.com") {
+        client = APIClient(baseURL: URL(string: "https://api.github.com")) {
             $0.sessionConfiguration.protocolClasses = [MockingURLProtocol.self]
             $0.sessionConfiguration.urlCache = nil
             $0.sessionDelegate = delegate

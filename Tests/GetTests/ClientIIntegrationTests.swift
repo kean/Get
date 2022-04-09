@@ -12,7 +12,7 @@ final class APIClientIntegrationTests: XCTestCase {
     override func setUp() {
         super.setUp()
         
-        sut = APIClient(host: "api.github.com")
+        sut = APIClient(baseURL: URL(string: "https://api.github.com"))
     }
 
     func _testGitHubUsersApi() async throws {

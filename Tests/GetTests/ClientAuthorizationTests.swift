@@ -13,7 +13,7 @@ final class APIClientAuthorizationTests: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        client = APIClient(host: "api.github.com") {
+        client = APIClient(baseURL: URL(string: "https://api.github.com")) {
             $0.delegate = delegate
             $0.sessionConfiguration.protocolClasses = [MockingURLProtocol.self]
         }

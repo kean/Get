@@ -21,10 +21,9 @@ public actor APIClient {
     private let loader = DataLoader()
 
     public struct Configuration {
-        public var host: String
-        public var port: Int?
-        /// If `true`, uses `http` instead of `https`.
-        public var isInsecure = false
+        /// A base URL. For example, `"https://api.github.com"`.
+        public var baseURL: URL?
+        /// By default, `URLSessionConfiguration.default`.
         public var sessionConfiguration: URLSessionConfiguration = .default
         /// By default, uses decoder with `.iso8601` date decoding strategy.
         public var decoder: JSONDecoder?
@@ -32,13 +31,20 @@ public actor APIClient {
         public var encoder: JSONEncoder?
         /// The (optional) client delegate.
         public var delegate: APIClientDelegate?
+
 #if !os(Linux)
         /// The (optional) URLSession delegate that allows you to monitor the underlying URLSession.
         public var sessionDelegate: URLSessionDelegate?
 #endif
+        
+        @available(*, deprecated, message: "Please use `baseURL` instead")
+        public var port: Int?
 
-        public init(host: String, sessionConfiguration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil) {
-            self.host = host
+        @available(*, deprecated, message: "Please use `baseURL` instead")
+        public var isInsecure = false
+
+        public init(baseURL: URL?, sessionConfiguration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil) {
+            self.baseURL = baseURL
             self.sessionConfiguration = sessionConfiguration
             self.delegate = delegate
         }
@@ -48,8 +54,21 @@ public actor APIClient {
     ///
     /// - parameter host: A host to be used for requests with relative paths.
     /// - parameter configure: Updates the client configuration.
+    @available(*, deprecated, message: "Please use an initializer with a `baseURL` parameter instead")
     public convenience init(host: String, _ configure: (inout APIClient.Configuration) -> Void = { _ in }) {
-        var configuration = Configuration(host: host)
+        var components = URLComponents()
+        components.host = host
+        components.scheme = "https"
+
+        self.init(baseURL: components.url, configure)
+    }
+    
+    /// Initializes the client with the given parameters.
+    ///
+    /// - parameter baseURL: A base URL. For example, `"https://api.github.com"`.
+    /// - parameter configure: Updates the client configuration.
+    public convenience init(baseURL: URL?, _ configure: (inout APIClient.Configuration) -> Void = { _ in }) {
+        var configuration = Configuration(baseURL: baseURL)
         configure(&configuration)
         self.init(configuration: configuration)
     }
@@ -136,16 +155,12 @@ public actor APIClient {
     }
 
     private func makeURL(path: String, query: [(String, String?)]?) throws -> URL {
-        guard let url = URL(string: path),
+        func makeAbsoluteURL() -> URL? {
+            path.starts(with: "/") ? conf.baseURL?.appendingPathComponent(path) : URL(string: path)
+        }
+        guard let url = makeAbsoluteURL(),
               var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             throw URLError(.badURL)
-        }
-        if path.starts(with: "/") {
-            components.scheme = conf.isInsecure ? "http" : "https"
-            components.host = conf.host
-            if let port = conf.port {
-                components.port = port
-            }
         }
         if let query = query {
             components.queryItems = query.map(URLQueryItem.init)

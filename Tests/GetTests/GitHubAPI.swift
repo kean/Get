@@ -117,7 +117,7 @@ private final class GitHubAPIClientDelegate: APIClientDelegate {
 // MARK: - Usage
 
 func usage() async throws {
-    let client = APIClient(host: "api.github.com") {
+    let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
         $0.delegate = GitHubAPIClientDelegate()
     }
     
