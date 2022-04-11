@@ -138,7 +138,8 @@ public actor APIClient {
                 components.port = port
             }
         }
-        if let query = query {
+
+        if let query = query, !query.isEmpty {
             components.queryItems = query.map(URLQueryItem.init)
         }
         guard let url = components.url else {
