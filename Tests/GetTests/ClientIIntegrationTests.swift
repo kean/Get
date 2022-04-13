@@ -7,17 +7,22 @@ import Mocker
 @testable import Get
 
 final class APIClientIntegrationTests: XCTestCase {
-    var sut: APIClient!
-    
-    override func setUp() {
-        super.setUp()
-        
-        sut = APIClient(baseURL: URL(string: "https://api.github.com"))
-    }
 
     func _testGitHubUsersApi() async throws {
+        let sut = makeSUT()
         let user = try await sut.send(Paths.users("kean").get).value
         
         XCTAssertEqual(user.login, "kean")
     }
+
+    // MARK: - Helpers
+
+    private func makeSUT(using baseURL: URL? = URL(string: "https://api.github.com")) -> APIClient {
+        let client = APIClient(baseURL: URL(string: "https://api.github.com"))
+
+        trackForMemoryLeak(client)
+
+        return client
+    }
+    
 }
