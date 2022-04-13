@@ -7,6 +7,7 @@ import Mocker
 @testable import Get
 
 final class APIClientAuthorizationTests: XCTestCase {
+    
     func testAuthorizationHeaderWidhValidToken() async throws {
         // GIVEN
         let (client, delegate) = makeSUT()
@@ -76,12 +77,6 @@ final class APIClientAuthorizationTests: XCTestCase {
         trackForMemoryLeak(delegate)
 
         return (client, delegate)
-    }
-
-    private func trackForMemoryLeak(_ instance: AnyObject, file: StaticString = #filePath, line: UInt = #line) {
-        addTeardownBlock { [weak instance] in
-            XCTAssertNil(instance, file: file, line: line)
-        }
     }
 }
 
