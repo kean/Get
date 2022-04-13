@@ -8,26 +8,15 @@ import Mocker
 
 #if !os(Linux)
 final class APIClientSessionDelegateTests: XCTestCase {
-    var client: APIClient!
-    private var delegate: SessionDelegate!
-    
-    override func setUp() {
-        super.setUp()
-        
-        delegate = SessionDelegate()
-        client = APIClient(baseURL: URL(string: "https://api.github.com")) {
-            $0.sessionConfiguration.protocolClasses = [MockingURLProtocol.self]
-            $0.sessionConfiguration.urlCache = nil
-            $0.sessionDelegate = delegate
-        }
-    }
-    
+
     func testThatMetricsAreCollected() async throws {
         #if os(watchOS)
         throw XCTSkip("Mocker URLProtocol isn't being called for requests on watchOS")
         #endif
         
         // GIVEN
+        let (client, delegate) = makeSUT()
+
         let url = URL(string: "https://api.github.com/user")!
         Mock.get(url: url, json: "user").register()
         
@@ -39,6 +28,23 @@ final class APIClientSessionDelegateTests: XCTestCase {
         let metrics = try XCTUnwrap(delegate.metrics.first?.value)
         let transaction = try XCTUnwrap(metrics.transactionMetrics.first)
         XCTAssertEqual(transaction.request.url, URL(string: "https://api.github.com/user")!)
+    }
+
+    // MARK: - Helpers
+
+    private func makeSUT(using baseURL: URL? = URL(string: "https://api.github.com"),
+                         file: StaticString = #filePath,
+                         line: UInt = #line) -> (APIClient, SessionDelegate) {
+        let delegate = SessionDelegate()
+        let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
+            $0.sessionConfiguration.protocolClasses = [MockingURLProtocol.self]
+            $0.sessionConfiguration.urlCache = nil
+            $0.sessionDelegate = delegate
+        }
+
+        trackForMemoryLeak(client, file: file, line: line)
+
+        return (client, delegate)
     }
 }
 

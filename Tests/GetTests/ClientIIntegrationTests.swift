@@ -17,10 +17,12 @@ final class APIClientIntegrationTests: XCTestCase {
 
     // MARK: - Helpers
 
-    private func makeSUT(using baseURL: URL? = URL(string: "https://api.github.com")) -> APIClient {
+    private func makeSUT(using baseURL: URL? = URL(string: "https://api.github.com"),
+                         file: StaticString = #filePath,
+                         line: UInt = #line) -> APIClient {
         let client = APIClient(baseURL: URL(string: "https://api.github.com"))
 
-        trackForMemoryLeak(client)
+        trackForMemoryLeak(client, file: file, line: line)
 
         return client
     }

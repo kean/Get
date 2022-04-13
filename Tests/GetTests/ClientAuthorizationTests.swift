@@ -66,16 +66,17 @@ final class APIClientAuthorizationTests: XCTestCase {
 
     // MARK: - Helpers
 
-    private func makeSUT(using baseURL: URL? = URL(string: "https://api.github.com")) -> (APIClient, MockAuthorizingDelegate) {
+    private func makeSUT(using baseURL: URL? = URL(string: "https://api.github.com"),
+                         file: StaticString = #filePath,
+                         line: UInt = #line) -> (APIClient, MockAuthorizingDelegate) {
         let delegate = MockAuthorizingDelegate()
         let client = APIClient(baseURL: baseURL) {
             $0.delegate = delegate
             $0.sessionConfiguration.protocolClasses = [MockingURLProtocol.self]
         }
 
-        trackForMemoryLeak(client)
-        trackForMemoryLeak(delegate)
-
+        trackForMemoryLeak(client, file: file, line: line)
+        
         return (client, delegate)
     }
 }
