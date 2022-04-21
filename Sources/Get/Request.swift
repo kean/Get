@@ -15,7 +15,7 @@ public struct Request<Response> {
     public var headers: [String: String]?
     public var id: String?
 
-    public init(method: String, path: String, query: [(String, String?)]? = nil, headers: [String : String]? = nil) {
+    public init(method: String, path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) {
         self.method = method
         self.path = path
         self.query = query
