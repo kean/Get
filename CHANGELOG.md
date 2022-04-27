@@ -3,6 +3,7 @@
 ## Upcoming
 
 - Make `Request` and `Response` conditionally `Sendable` (requires Xcode 13.3)
+- Deprecate `URLRequest` `cURLDescription()` extension – it was never meant to be in scope
 
 ## Get 0.7.1
 

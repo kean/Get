@@ -20,6 +20,7 @@ struct AnyEncodable: Encodable {
 }
 
 extension URLRequest {
+    @available(*, deprecated, message: "This feature is no longer in scope")
     public func cURLDescription() -> String {
         guard let url = url, let method = httpMethod else {
             return "$ curl command generation failed"
