@@ -1,5 +1,9 @@
 # Get 0.x
 
+## Upcoming
+
+- Make `Request` and `Response` conditionally `Sendable` (requires Xcode 13.3)
+
 ## Get 0.7.1
 
 *Apr 11, 2022*

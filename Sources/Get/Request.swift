@@ -3,6 +3,7 @@
 // Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
 
 import Foundation
+
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
@@ -102,3 +103,8 @@ public struct Response<T> {
         Response<U>(value: closure(value), data: data, request: request, response: response, metrics: metrics)
     }
 }
+
+#if swift(>=5.6)
+extension Request: Sendable {}
+extension Response: @unchecked Sendable where T: Sendable {}
+#endif
