@@ -142,7 +142,7 @@ let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
 
 With Pulse, you can inspect logs directly on your device – and it supports _all_ Apple platforms. And you can share the logs at any time and view them on a big screen using [Pulse Pro](https://kean.blog/pulse/guides/pulse-pro).
 
-<img src="https://user-images.githubusercontent.com/1567433/107718772-ab576580-6ca4-11eb-83a1-fc510e57bab1.png">
+<img src="https://user-images.githubusercontent.com/1567433/165643719-a736c4b0-41db-4bce-9d32-ce38b8caea74.png">
 
 ### CreateAPI
 
