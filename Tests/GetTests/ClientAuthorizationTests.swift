@@ -7,20 +7,11 @@ import Mocker
 @testable import Get
 
 final class APIClientAuthorizationTests: XCTestCase {
-    private var client: APIClient!
-    private let delegate = MockAuthorizingDelegate()
     
-    override func setUp() {
-        super.setUp()
-
-        client = APIClient(baseURL: URL(string: "https://api.github.com")) {
-            $0.delegate = delegate
-            $0.sessionConfiguration.protocolClasses = [MockingURLProtocol.self]
-        }
-    }
-
     func testAuthorizationHeaderWidhValidToken() async throws {
         // GIVEN
+        let (client, delegate) = makeSUT()
+
         delegate.token = Token(value: "valid-token", expiresDate: Date(timeIntervalSinceNow: 1000))
         let url = URL(string: "https://api.github.com/user")!
         var mock = Mock.get(url: url, json: "user")
@@ -35,6 +26,8 @@ final class APIClientAuthorizationTests: XCTestCase {
     
     func testAuthorizationHeaderWithExpiredToken() async throws {
         // GIVEN
+        let (client, delegate) = makeSUT()
+
         delegate.token = Token(value: "expired-token", expiresDate: Date(timeIntervalSinceNow: -1000))
         let url = URL(string: "https://api.github.com/user")!
         var mock = Mock.get(url: url, json: "user")
@@ -49,6 +42,8 @@ final class APIClientAuthorizationTests: XCTestCase {
 
     func testAuthorizationHeaderWithInvalidToken() async throws {
         // GIVEN
+        let (client, delegate) = makeSUT()
+
         delegate.token = Token(value: "invalid-token", expiresDate: Date(timeIntervalSinceNow: 1000))
         let url = URL(string: "https://api.github.com/user")!
         var mock = Mock(url: url, dataType: .json, statusCode: 401, data: [
@@ -67,6 +62,22 @@ final class APIClientAuthorizationTests: XCTestCase {
 
         // WHEN
         try await client.send(.get("/user"))
+    }
+
+    // MARK: - Helpers
+
+    private func makeSUT(using baseURL: URL? = URL(string: "https://api.github.com"),
+                         file: StaticString = #filePath,
+                         line: UInt = #line) -> (APIClient, MockAuthorizingDelegate) {
+        let delegate = MockAuthorizingDelegate()
+        let client = APIClient(baseURL: baseURL) {
+            $0.delegate = delegate
+            $0.sessionConfiguration.protocolClasses = [MockingURLProtocol.self]
+        }
+
+        trackForMemoryLeak(client, file: file, line: line)
+        
+        return (client, delegate)
     }
 }
 
