@@ -3,6 +3,9 @@
 // Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
 
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 import Get
 
 // An example of an API definition. Feel free to use any other method for
