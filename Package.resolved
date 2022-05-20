@@ -3,11 +3,11 @@
     "pins": [
       {
         "package": "Mocker",
-        "repositoryURL": "https://github.com/vox-humana/Mocker.git",
+        "repositoryURL": "https://github.com/WeTransfer/Mocker.git",
         "state": {
-          "branch": "master",
-          "revision": "9b2a6f7de644aeb73ae2114f102d5466874df0fa",
-          "version": null
+          "branch": null,
+          "revision": "5b270d79f39f6628f4c87752f7470ba640e09cba",
+          "version": "2.5.6"
         }
       }
     ]
