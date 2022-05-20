@@ -4,6 +4,9 @@
 
 import XCTest
 import Mocker
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 @testable import Get
 
 final class APIClientAuthorizationTests: XCTestCase {

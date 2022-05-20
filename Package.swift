@@ -10,7 +10,7 @@ let package = Package(
         .library(name: "Get", targets: ["Get"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/WeTransfer/Mocker.git", from: "2.3.0")
+        .package(url: "https://github.com/WeTransfer/Mocker.git", from: "2.5.6")
     ],
     targets: [
         .target(name: "Get"),
