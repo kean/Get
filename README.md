@@ -21,6 +21,10 @@ let repos = try await client.send(Paths.users("kean").repos.get)
 
 > Learn about the design of Get and how it leverages async/await in [Web API Client in Swift](https://kean.blog/post/new-api-client).
 
+## Sponsors 💖
+
+[Support](https://github.com/sponsors/kean) Get on GitHub Sponsors.
+
 ## Usage
 
 ### Instantiating a Client
