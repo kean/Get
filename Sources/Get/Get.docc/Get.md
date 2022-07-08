@@ -38,13 +38,17 @@ Get is available under the MIT license. See the LICENSE file for more info.
 
 - ``APIClient``
 - ``APIClientDelegate``
-- <doc:Integrations>
 
 ### Sending Requests
 
 - ``Request``
 - ``Response``
 
-### Misc
+### Articles
+
+- <doc:authorization>
+- <doc:integrations>
 
 - ``APIError``
+
+
