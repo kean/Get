@@ -37,30 +37,11 @@ public actor APIClient {
         public var sessionDelegate: URLSessionDelegate?
 #endif
         
-        @available(*, deprecated, message: "Please use `baseURL` instead")
-        public var port: Int?
-
-        @available(*, deprecated, message: "Please use `baseURL` instead")
-        public var isInsecure = false
-
         public init(baseURL: URL?, sessionConfiguration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil) {
             self.baseURL = baseURL
             self.sessionConfiguration = sessionConfiguration
             self.delegate = delegate
         }
-    }
-
-    /// Initializes the client with the given parameters.
-    ///
-    /// - parameter host: A host to be used for requests with relative paths.
-    /// - parameter configure: Updates the client configuration.
-    @available(*, deprecated, message: "Please use an initializer with a `baseURL` parameter instead")
-    public convenience init(host: String, _ configure: (inout APIClient.Configuration) -> Void = { _ in }) {
-        var components = URLComponents()
-        components.host = host
-        components.scheme = "https"
-
-        self.init(baseURL: components.url, configure)
     }
     
     /// Initializes the client with the given parameters.
