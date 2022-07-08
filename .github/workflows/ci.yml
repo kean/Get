@@ -10,10 +10,10 @@ on:
 
 jobs:
   macos-run-tests:
-    name: Unit Tests (macOS, Xcode 13.2)
-    runs-on: macOS-11
+    name: Unit Tests (iOS 15.4, Xcode 13.3.1)
+    runs-on: macOS-12
     env:
-      DEVELOPER_DIR: /Applications/Xcode_13.2.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_13.3.1.app/Contents/Developer
     steps:
       - uses: actions/checkout@v2
       - name: Run Tests
