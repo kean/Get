@@ -13,6 +13,7 @@ public protocol APIClientDelegate {
     func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error
 }
 
+/// Performs network requests constructed using ``Request``.
 public actor APIClient {
     private let conf: Configuration
     private let session: URLSession
@@ -20,6 +21,7 @@ public actor APIClient {
     private let delegate: APIClientDelegate
     private let loader = DataLoader()
 
+    /// The configuration for ``APIClient``.
     public struct Configuration {
         /// A base URL. For example, `"https://api.github.com"`.
         public var baseURL: URL?

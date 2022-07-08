@@ -160,10 +160,10 @@ generate api.github.yaml --output ./OctoKit --module "OctoKit"
 
 ## Minimum Requirements
 
-| Nuke          | Swift           | Xcode           | Platforms                                         |
-|---------------|-----------------|-----------------|---------------------------------------------------|
-| Get 0.6      | Swift 5.5       | Xcode 13.2      | iOS 13.0 / watchOS 6.0 / macOS 10.15 / tvOS 13.0 / Linux |
-| Get 0.1      | Swift 5.5       | Xcode 13.2      | iOS 13.0 / watchOS 6.0 / macOS 10.15 / tvOS 13.0  |
+| Get | Date       | Swift | Xcode | Platforms                                            |
+|-----|------------|-------|-------|------------------------------------------------------|
+| 0.6 | 04/03/2022 | 5.5   | 13.2  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
+| 0.1 | 12/22/2021 | 5.5   | 13.2  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0        |
 
 ## License
 
