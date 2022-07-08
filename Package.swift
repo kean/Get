@@ -9,11 +9,8 @@ let package = Package(
     products: [
         .library(name: "Get", targets: ["Get"]),
     ],
-    dependencies: [
-        .package(url: "https://github.com/WeTransfer/Mocker.git", from: "2.5.6")
-    ],
     targets: [
         .target(name: "Get"),
-        .testTarget(name: "GetTests", dependencies: ["Get", "Mocker"], resources: [.process("Resources")]),
+        .testTarget(name: "GetTests", dependencies: ["Get"], resources: [.process("Resources")]),
     ]
 )

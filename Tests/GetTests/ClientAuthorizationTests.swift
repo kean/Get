@@ -3,7 +3,6 @@
 // Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
 
 import XCTest
-import Mocker
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif

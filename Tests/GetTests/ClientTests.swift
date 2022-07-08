@@ -3,7 +3,6 @@
 // Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
 
 import XCTest
-import Mocker
 @testable import Get
 
 final class APIClientTests: XCTestCase {

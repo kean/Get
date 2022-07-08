@@ -3,7 +3,6 @@
 // Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
 
 import XCTest
-import Mocker
 
 func json(named name: String) -> Data {
     let url = Bundle.module.url(forResource: name, withExtension: "json")
