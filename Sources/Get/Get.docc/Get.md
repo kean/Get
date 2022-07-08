@@ -38,6 +38,7 @@ Get is available under the MIT license. See the LICENSE file for more info.
 
 - ``APIClient``
 - ``APIClientDelegate``
+- ``APIError``
 
 ### Sending Requests
 
@@ -48,7 +49,4 @@ Get is available under the MIT license. See the LICENSE file for more info.
 
 - <doc:authorization>
 - <doc:integrations>
-
-- ``APIError``
-
-
+- <doc:caching>
