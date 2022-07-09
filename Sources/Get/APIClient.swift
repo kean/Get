@@ -11,7 +11,8 @@ import FoundationNetworking
 public actor APIClient {
     private let conf: Configuration
     private let session: URLSession
-    private let serializer: Serializer
+    private let decoder: JSONDecoder
+    private let encoder: JSONEncoder
     private let delegate: APIClientDelegate
     private let dataLoader = DataLoader()
 
@@ -22,9 +23,9 @@ public actor APIClient {
         /// By default, `URLSessionConfiguration.default`.
         public var sessionConfiguration: URLSessionConfiguration = .default
         /// By default, uses decoder with `.iso8601` date decoding strategy.
-        public var decoder: JSONDecoder?
+        public var decoder: JSONDecoder
         /// By default, uses encoder with `.iso8601` date encoding strategy.
-        public var encoder: JSONEncoder?
+        public var encoder: JSONEncoder
         /// The (optional) client delegate.
         public var delegate: APIClientDelegate?
         /// The (optional) URLSession delegate that allows you to monitor the underlying URLSession.
@@ -37,6 +38,10 @@ public actor APIClient {
             self.baseURL = baseURL
             self.sessionConfiguration = sessionConfiguration
             self.delegate = delegate
+            self.decoder = JSONDecoder()
+            self.decoder.dateDecodingStrategy = .iso8601
+            self.encoder = JSONEncoder()
+            self.encoder.dateEncodingStrategy = .iso8601
         }
     }
 
@@ -59,7 +64,8 @@ public actor APIClient {
         self.session = URLSession(configuration: configuration.sessionConfiguration, delegate: dataLoader, delegateQueue: delegateQueue)
         self.dataLoader.userSessionDelegate = configuration.sessionDelegate
         self.delegate = configuration.delegate ?? DefaultAPIClientDelegate()
-        self.serializer = Serializer(decoder: configuration.decoder, encoder: configuration.encoder)
+        self.decoder = configuration.decoder
+        self.encoder = configuration.encoder
     }
 
     // MARK: Sending Requests
@@ -154,7 +160,9 @@ public actor APIClient {
             guard let string = String(data: data, encoding: .utf8) else { throw URLError(.badServerResponse) }
             return string as! T
         } else {
-            return try await self.serializer.decode(data)
+            return try await Task.detached { [decoder] in
+                try decoder.decode(T.self, from: data)
+            }.value
         }
     }
 
@@ -174,6 +182,26 @@ public actor APIClient {
     /// - returns: A response with a location of the downloaded file.
     public func download<T>(
         _ request: Request<T>,
+        delegate: URLSessionDownloadDelegate? = nil,
+        configure: ((inout URLRequest) -> Void)? = nil
+    ) async throws -> Response<URL> {
+        var request = try await makeURLRequest(for: request)
+        configure?(&request)
+        return try await _download(request, attempts: 1, delegate: delegate)
+    }
+
+    /// Downloads the data for the given request.
+    ///
+    /// - parameters:
+    ///   - request: The request to perform.
+    ///   - delegate: Task-specific delegate.
+    ///   - configure: Modifies the underlying `URLRequest` before sending it.
+    ///
+    /// - important: Make sure to move the downloaded file to a location in your app after the completion.
+    ///
+    /// - returns: A response with a location of the downloaded file.
+    public func download(
+        _ request: Request<Void>,
         delegate: URLSessionDownloadDelegate? = nil,
         configure: ((inout URLRequest) -> Void)? = nil
     ) async throws -> Response<URL> {
@@ -207,7 +235,9 @@ public actor APIClient {
         urlRequest.allHTTPHeaderFields = request.headers
         urlRequest.httpMethod = request.method
         if let body = request.body {
-            urlRequest.httpBody = try await serializer.encode(body)
+            urlRequest.httpBody = try await Task.detached { [encoder] in
+                try encoder.encode(body)
+            }.value
             urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
         urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")

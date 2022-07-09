@@ -89,3 +89,15 @@ public struct Request<Response>: @unchecked Sendable {
         Request(method: "TRACE", path: path, query: query, headers: headers)
     }
 }
+
+struct AnyEncodable: Encodable {
+    private let value: Encodable
+
+    init(_ value: Encodable) {
+        self.value = value
+    }
+
+    func encode(to encoder: Encoder) throws {
+        try value.encode(to: encoder)
+    }
+}

@@ -90,4 +90,5 @@ final class YourSessionDelegate: URLSessionTaskDelegate {
 
 ### Downloads
 
-- ``download(_:delegate:configure:)``
+- ``download(_:delegate:configure:)-42jkd``
+- ``download(_:delegate:configure:)-53qlf``

@@ -295,3 +295,11 @@ private final class DownloadTaskHandler: TaskHandler {
         super.init(delegate: delegate)
     }
 }
+
+extension OperationQueue {
+    static func serial() -> OperationQueue {
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 1
+        return queue
+    }
+}
