@@ -158,6 +158,8 @@ public actor APIClient {
         }
     }
 
+#if !os(Linux)
+
     // MARK: Downloads
 
     /// Downloads the data for the given request.
@@ -194,6 +196,8 @@ public actor APIClient {
             return try await _download(request, attempts: attempts + 1, delegate: delegate)
         }
     }
+
+#endif
 
     // MARK: Helpers
 

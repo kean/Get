@@ -220,6 +220,7 @@ final class APIClientTests: XCTestCase {
 
     // MARK: - Downloads
 
+#if !os(Linux)
     func testDownloads() async throws {
         // GIVEN
         let client = makeSUT()
@@ -236,6 +237,7 @@ final class APIClientTests: XCTestCase {
         let user = try JSONDecoder().decode(User.self, from: data)
         XCTAssertEqual(user.login, "kean")
     }
+#endif
 
     // MARK: - Request Body
 
