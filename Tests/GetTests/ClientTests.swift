@@ -232,6 +232,7 @@ final class APIClientTests: XCTestCase {
 
     // MARK: - URLSessionDataDelegate (Per Request)
 
+#if !os(Linux)
     func testSettingDelegate() async throws {
 #if os(watchOS)
         throw XCTSkip("Mocker URLProtocol isn't being called for POST requests on watchOS")
@@ -311,6 +312,7 @@ final class APIClientTests: XCTestCase {
         // THEN
         XCTAssertEqual(delegate.response?.url, url)
     }
+#endif
 
     // MARK: - Helpers
 
