@@ -20,21 +20,25 @@ public actor APIClient {
     public struct Configuration {
         /// A base URL. For example, `"https://api.github.com"`.
         public var baseURL: URL?
+        /// The (optional) client delegate.
+        public var delegate: APIClientDelegate?
         /// By default, `URLSessionConfiguration.default`.
         public var sessionConfiguration: URLSessionConfiguration = .default
+        /// The (optional) URLSession delegate that allows you to monitor the underlying URLSession.
+        public var sessionDelegate: URLSessionDelegate?
+        /// Overrides the default delegate queue.
+        public var sessionDelegateQueue: OperationQueue?
         /// By default, uses decoder with `.iso8601` date decoding strategy.
         public var decoder: JSONDecoder
         /// By default, uses encoder with `.iso8601` date encoding strategy.
         public var encoder: JSONEncoder
-        /// The (optional) client delegate.
-        public var delegate: APIClientDelegate?
-        /// The (optional) URLSession delegate that allows you to monitor the underlying URLSession.
-        public var sessionDelegate: URLSessionDelegate?
-        /// Overrides the default delegate queue.
-        public var delegateQueue: OperationQueue?
 
         /// Initializes the configuration.
-        public init(baseURL: URL?, sessionConfiguration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil) {
+        public init(
+            baseURL: URL?,
+            sessionConfiguration: URLSessionConfiguration = .default,
+            delegate: APIClientDelegate? = nil
+        ) {
             self.baseURL = baseURL
             self.sessionConfiguration = sessionConfiguration
             self.delegate = delegate
@@ -60,7 +64,7 @@ public actor APIClient {
     /// Initializes the client with the given configuration.
     public init(configuration: Configuration) {
         self.conf = configuration
-        let delegateQueue = configuration.delegateQueue ?? .serial()
+        let delegateQueue = configuration.sessionDelegateQueue ?? .serial()
         self.session = URLSession(configuration: configuration.sessionConfiguration, delegate: dataLoader, delegateQueue: delegateQueue)
         self.dataLoader.userSessionDelegate = configuration.sessionDelegate
         self.delegate = configuration.delegate ?? DefaultAPIClientDelegate()

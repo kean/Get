@@ -22,15 +22,15 @@ final class APIClientSessionDelegateTests: XCTestCase {
 
     func testThatDelegateQueueIsUsed() async throws {
         // GIVEN
-        let delegateQueue = OperationQueue()
+        let sessionDelegateQueue = OperationQueue()
         let queue = DispatchQueue(label: "com.get.api-client-tests")
         let queueKey = DispatchSpecificKey<Void>()
         queue.setSpecific(key: queueKey, value: ())
-        delegateQueue.underlyingQueue = queue
+        sessionDelegateQueue.underlyingQueue = queue
 
         self.client = .github {
             $0.sessionDelegate = delegate
-            $0.delegateQueue = delegateQueue
+            $0.sessionDelegateQueue = sessionDelegateQueue
         }
 
         self.delegate.onMetrics = { [unowned self] _ in
