@@ -175,6 +175,44 @@ final class APIClientTests: XCTestCase {
         try await client.send(request)
     }
 
+    // MARK: - Retries
+
+    func testRetries() async throws {
+        // GIVEN
+        final class RetryingDelegate: APIClientDelegate {
+            func client(_ client: APIClient, shouldRetryRequest request: URLRequest, attempts: Int, error: Error) async throws -> Bool {
+                attempts < 3
+            }
+        }
+
+        let client = APIClient.github {
+            $0.delegate = RetryingDelegate()
+        }
+
+        let url = URL(string: "https://api.github.com/user")!
+        var mock = Mock(url: url, dataType: .json, statusCode: 401, data: [
+            .get: "Unauthorized".data(using: .utf8)!
+        ])
+        var attemptsCount = 0
+        mock.onRequest = { _, _ in
+            attemptsCount += 1
+        }
+        mock.register()
+
+        // WHEN
+        do {
+            try await client.send(.get("/user"))
+            XCTFail("Expected request to fail")
+        } catch {
+            XCTAssertEqual(attemptsCount, 3)
+            let error = try XCTUnwrap(error as? APIError)
+            switch error {
+            case let .unacceptableStatusCode(statusCode):
+                XCTAssertEqual(statusCode, 401)
+            }
+        }
+    }
+
     // MARK: - Request Body
 
     func testPassEncodableRequestBody() async throws {

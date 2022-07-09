@@ -36,10 +36,11 @@ public protocol APIClientDelegate {
     /// - parameters:
     ///   - client: The client that sent the request.
     ///   - response: The current request.
+    ///   - attempts: The number of already performed attempts.
     ///   - error: The encountered error.
     ///
     /// - returns: Return `true` to retry the request.
-    func shouldClientRetry(_ client: APIClient, for request: URLRequest, withError error: Error) async throws -> Bool
+    func client(_ client: APIClient, shouldRetryRequest request: URLRequest, attempts: Int, error: Error) async throws -> Bool
 
     /// Constructs URL for the given request.
     ///
@@ -57,7 +58,7 @@ public extension APIClientDelegate {
         // Do nothing
     }
 
-    func shouldClientRetry(_ client: APIClient, for request: URLRequest, withError error: Error) async throws -> Bool {
+    func client(_ client: APIClient, shouldRetryRequest request: URLRequest, attempts: Int, error: Error) async throws -> Bool {
         false // Disabled by default
     }
 

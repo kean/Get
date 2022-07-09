@@ -123,26 +123,24 @@ public actor APIClient {
     ) async throws -> Response<T> {
         var request = try await makeURLRequest(for: request)
         configure?(&request)
-        let response = try await _send(request, delegate: delegate)
+        let response = try await _send(request, attempts: 1, delegate: delegate)
         let value = try await decode(response.value)
         return response.map { _ in value } // Keep metadata
     }
 
-    private func _send(_ request: URLRequest, delegate: URLSessionDataDelegate?) async throws -> Response<Data> {
+    private func _send(_ request: URLRequest, attempts: Int, delegate: URLSessionDataDelegate?) async throws -> Response<Data> {
         do {
-            return try await _actuallySend(request, delegate: delegate)
+            var request = request
+            try await self.delegate.client(self, willSendRequest: &request)
+            let (data, response, metrics) = try await dataLoader.data(for: request, session: session, delegate: delegate)
+            try validate(response: response, data: data)
+            return Response(value: data, data: data, request: request, response: response, metrics: metrics)
         } catch {
-            guard try await self.delegate.shouldClientRetry(self, for: request, withError: error) else { throw error }
-            return try await _actuallySend(request, delegate: delegate)
+            guard try await self.delegate.client(self, shouldRetryRequest: request, attempts: attempts, error: error) else {
+                throw error
+            }
+            return try await _send(request, attempts: attempts + 1, delegate: delegate)
         }
-    }
-
-    private func _actuallySend(_ request: URLRequest, delegate: URLSessionDataDelegate?) async throws -> Response<Data> {
-        var request = request
-        try await self.delegate.client(self, willSendRequest: &request)
-        let (data, response, metrics) = try await dataLoader.data(for: request, session: session, delegate: delegate)
-        try validate(response: response, data: data)
-        return Response(value: data, data: data, request: request, response: response, metrics: metrics)
     }
 
     private func decode<T: Decodable>(_ data: Data) async throws -> T {

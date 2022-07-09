@@ -9,11 +9,19 @@ import FoundationNetworking
 @testable import Get
 
 final class APIClientAuthorizationTests: XCTestCase {
+    var client: APIClient!
+    private let delegate = MockAuthorizingDelegate()
+
+    override func setUp() {
+        super.setUp()
+
+        client = APIClient.github {
+            $0.delegate = delegate
+        }
+    }
 
     func testAuthorizationHeaderWidhValidToken() async throws {
         // GIVEN
-        let (client, delegate) = makeSUT()
-
         delegate.token = Token(value: "valid-token", expiresDate: Date(timeIntervalSinceNow: 1000))
         let url = URL(string: "https://api.github.com/user")!
         var mock = Mock.get(url: url, json: "user")
@@ -28,8 +36,6 @@ final class APIClientAuthorizationTests: XCTestCase {
 
     func testAuthorizationHeaderWithExpiredToken() async throws {
         // GIVEN
-        let (client, delegate) = makeSUT()
-
         delegate.token = Token(value: "expired-token", expiresDate: Date(timeIntervalSinceNow: -1000))
         let url = URL(string: "https://api.github.com/user")!
         var mock = Mock.get(url: url, json: "user")
@@ -44,8 +50,6 @@ final class APIClientAuthorizationTests: XCTestCase {
 
     func testAuthorizationHeaderWithInvalidToken() async throws {
         // GIVEN
-        let (client, delegate) = makeSUT()
-
         delegate.token = Token(value: "invalid-token", expiresDate: Date(timeIntervalSinceNow: 1000))
         let url = URL(string: "https://api.github.com/user")!
         var mock = Mock(url: url, dataType: .json, statusCode: 401, data: [
@@ -65,21 +69,6 @@ final class APIClientAuthorizationTests: XCTestCase {
         // WHEN
         try await client.send(.get("/user"))
     }
-
-    // MARK: - Helpers
-
-    private func makeSUT(using baseURL: URL? = URL(string: "https://api.github.com"),
-                         file: StaticString = #filePath,
-                         line: UInt = #line) -> (APIClient, MockAuthorizingDelegate) {
-        let delegate = MockAuthorizingDelegate()
-        let client = APIClient.github {
-            $0.delegate = delegate
-        }
-
-        trackForMemoryLeak(client, file: file, line: line)
-
-        return (client, delegate)
-    }
 }
 
 private final class MockAuthorizingDelegate: APIClientDelegate {
@@ -97,7 +86,7 @@ private final class MockAuthorizingDelegate: APIClientDelegate {
         request.addValue("token \(token.value)", forHTTPHeaderField: "Authorization")
     }
 
-    func shouldClientRetry(_ client: APIClient, for request: URLRequest, withError error: Error) async throws -> Bool {
+    func client(_ client: APIClient, shouldRetryRequest request: URLRequest, attempts: Int, error: Error) async throws -> Bool {
         if case .unacceptableStatusCode(let statusCode) = (error as? APIError), statusCode == 401 {
             token = try await tokenRefresher.refreshToken()
             return true
