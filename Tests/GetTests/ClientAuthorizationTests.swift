@@ -72,9 +72,8 @@ final class APIClientAuthorizationTests: XCTestCase {
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (APIClient, MockAuthorizingDelegate) {
         let delegate = MockAuthorizingDelegate()
-        let client = APIClient(baseURL: baseURL) {
+        let client = APIClient.github {
             $0.delegate = delegate
-            $0.sessionConfiguration.protocolClasses = [MockingURLProtocol.self]
         }
 
         trackForMemoryLeak(client, file: file, line: line)

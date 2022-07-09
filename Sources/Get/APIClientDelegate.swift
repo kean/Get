@@ -49,5 +49,25 @@ public protocol APIClientDelegate {
     ///
     /// - returns: The URL for the request. Return `nil` to use the default
     /// logic used by client.
-    func client<T>(_ client: APIClient, makeURLForRequest request: Request<T>) throws -> URL?
+    func client(_ client: APIClient, makeURLForPath path: String, query: [(String, String?)]?) throws -> URL?
 }
+
+public extension APIClientDelegate {
+    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws {
+        // Do nothing
+    }
+
+    func shouldClientRetry(_ client: APIClient, for request: URLRequest, withError error: Error) async throws -> Bool {
+        false // Disabled by default
+    }
+
+    func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error {
+        APIError.unacceptableStatusCode(response.statusCode)
+    }
+
+    func client(_ client: APIClient, makeURLForPath path: String, query: [(String, String?)]?) throws -> URL? {
+        nil // Use default handlings
+    }
+}
+
+struct DefaultAPIClientDelegate: APIClientDelegate {}

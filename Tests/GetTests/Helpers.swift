@@ -3,6 +3,18 @@
 // Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
 
 import XCTest
+import Get
+
+extension APIClient {
+    static func github(_ configure: (inout APIClient.Configuration) -> Void = { _ in }) -> APIClient {
+        APIClient(baseURL: URL(string: "https://api.github.com")) {
+            $0.sessionConfiguration.protocolClasses = [MockingURLProtocol.self]
+            $0.sessionConfiguration.urlCache = nil
+            configure(&$0)
+        }
+    }
+}
+
 
 func json(named name: String) -> Data {
     let url = Bundle.module.url(forResource: name, withExtension: "json")
