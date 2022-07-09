@@ -49,5 +49,5 @@ Get is available under the MIT license. See the LICENSE file for more info.
 
 - <doc:define-api>
 - <doc:authorization>
-- <doc:integrations>
 - <doc:caching>
+- <doc:integrations>
