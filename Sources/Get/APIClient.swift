@@ -99,15 +99,10 @@ public actor APIClient {
     }
 
     private func send<T>(_ request: Request<T>, _ decode: @escaping (Data) async throws -> T) async throws -> Response<T> {
-        let response = try await data(for: request)
+        let request = try await makeURLRequest(for: request)
+        let response = try await send(request)
         let value = try await decode(response.value)
         return response.map { _ in value } // Keep metadata
-    }
-
-    /// Returns response data for the given request.
-    public func data<T>(for request: Request<T>) async throws -> Response<Data> {
-        let request = try await makeURLRequest(for: request)
-        return try await send(request)
     }
 
     private func send(_ request: URLRequest) async throws -> Response<Data> {

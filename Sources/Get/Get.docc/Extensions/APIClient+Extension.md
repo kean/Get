@@ -31,8 +31,6 @@ The ``send(_:)-6d91y`` method returns not just the response value, but all of th
 
 The response can be any `Decodable` type. The response can also be optional. And if the response type is `Data`, the client simply returns raw response data. If it's a `String`, it returns the response as plain text.
 
-> Tip: If you just want to retrieve the response data, you can also call ``data(for:)``.
-
 ### Client Delegate
 
 One of the ways you can customize the client is by providing a custom delegate implementing `APIClientDelegate` protocol. For example, you can use it to implement an authorization flow.
@@ -87,7 +85,3 @@ final class YourSessionDelegate: URLSessionTaskDelegate {
 - ``send(_:)-6d91y``
 - ``send(_:)-6tb6p``
 - ``send(_:)-4a71v``
-
-### Fetching Data
-
-- ``data(for:)``
