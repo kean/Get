@@ -9,7 +9,7 @@ import FoundationNetworking
 @testable import Get
 
 final class APIClientAuthorizationTests: XCTestCase {
-    
+
     func testAuthorizationHeaderWidhValidToken() async throws {
         // GIVEN
         let (client, delegate) = makeSUT()
@@ -17,7 +17,7 @@ final class APIClientAuthorizationTests: XCTestCase {
         delegate.token = Token(value: "valid-token", expiresDate: Date(timeIntervalSinceNow: 1000))
         let url = URL(string: "https://api.github.com/user")!
         var mock = Mock.get(url: url, json: "user")
-        mock.onRequest = { request, arguments in
+        mock.onRequest = { request, _ in
             XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "token valid-token")
         }
         mock.register()
@@ -25,7 +25,7 @@ final class APIClientAuthorizationTests: XCTestCase {
         // WHEN
         try await client.send(.get("/user"))
     }
-    
+
     func testAuthorizationHeaderWithExpiredToken() async throws {
         // GIVEN
         let (client, delegate) = makeSUT()
@@ -33,11 +33,11 @@ final class APIClientAuthorizationTests: XCTestCase {
         delegate.token = Token(value: "expired-token", expiresDate: Date(timeIntervalSinceNow: -1000))
         let url = URL(string: "https://api.github.com/user")!
         var mock = Mock.get(url: url, json: "user")
-        mock.onRequest = { request, arguments in
+        mock.onRequest = { request, _ in
             XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "token valid-token")
         }
         mock.register()
-        
+
         // WHEN
         try await client.send(.get("/user"))
     }
@@ -55,7 +55,7 @@ final class APIClientAuthorizationTests: XCTestCase {
             XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "token invalid-token")
 
             var mock = Mock.get(url: url, json: "user")
-            mock.onRequest = { request, arguments in
+            mock.onRequest = { request, _ in
                 XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "token valid-token")
             }
             mock.register()
@@ -78,7 +78,7 @@ final class APIClientAuthorizationTests: XCTestCase {
         }
 
         trackForMemoryLeak(client, file: file, line: line)
-        
+
         return (client, delegate)
     }
 }
@@ -97,7 +97,7 @@ private final class MockAuthorizingDelegate: APIClientDelegate {
 
         request.addValue("token \(token.value)", forHTTPHeaderField: "Authorization")
     }
-    
+
     func shouldClientRetry(_ client: APIClient, for request: URLRequest, withError error: Error) async throws -> Bool {
         if case .unacceptableStatusCode(let statusCode) = (error as? APIError), statusCode == 401 {
             token = try await tokenRefresher.refreshToken()

@@ -32,14 +32,14 @@ public actor APIClient {
         /// The (optional) URLSession delegate that allows you to monitor the underlying URLSession.
         public var sessionDelegate: URLSessionDelegate?
 #endif
-        
+
         public init(baseURL: URL?, sessionConfiguration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil) {
             self.baseURL = baseURL
             self.sessionConfiguration = sessionConfiguration
             self.delegate = delegate
         }
     }
-    
+
     /// Initializes the client with the given parameters.
     ///
     /// - parameter baseURL: A base URL. For example, `"https://api.github.com"`.
