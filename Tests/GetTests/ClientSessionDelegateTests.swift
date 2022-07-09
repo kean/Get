@@ -18,7 +18,7 @@ final class APIClientSessionDelegateTests: XCTestCase {
         }
     }
 
-    // MARK: - Conifiguration
+    // MARK: - Configuration
 
     func testThatDelegateQueueIsUsed() async throws {
         // GIVEN
