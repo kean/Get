@@ -18,6 +18,37 @@ final class APIClientSessionDelegateTests: XCTestCase {
         }
     }
 
+    // MARK: - Conifiguration
+
+    func testThatDelegateQueueIsUsed() async throws {
+        // GIVEN
+        let delegateQueue = OperationQueue()
+        let queue = DispatchQueue(label: "com.get.api-client-tests")
+        let queueKey = DispatchSpecificKey<Void>()
+        queue.setSpecific(key: queueKey, value: ())
+        delegateQueue.underlyingQueue = queue
+
+        self.client = .github {
+            $0.sessionDelegate = delegate
+            $0.delegateQueue = delegateQueue
+        }
+
+        self.delegate.onMetrics = { [unowned self] _ in
+            XCTAssertNotNil(DispatchQueue.getSpecific(key: queueKey))
+            self.delegate.onMetrics = nil
+        }
+
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        Mock.get(url: url, json: "user").register()
+
+        // WHEN
+        try await client.send(.get("/user"))
+
+        // THEN
+        XCTAssertNil(self.delegate.onMetrics)
+    }
+
     // MARK: - Global Delegate
 
     func testThatMetricsAreCollected() async throws {
@@ -130,8 +161,10 @@ final class APIClientSessionDelegateTests: XCTestCase {
 
 private final class SessionDelegate: NSObject, URLSessionTaskDelegate {
     var metrics: [URLSessionTask: URLSessionTaskMetrics] = [:]
+    var onMetrics: ((URLSessionTaskMetrics) -> Void)?
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+        self.onMetrics?(metrics)
         self.metrics[task] = metrics
     }
 }
