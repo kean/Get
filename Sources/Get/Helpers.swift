@@ -165,10 +165,3 @@ final class URLSessionProxyDelegate: NSObject, URLSessionTaskDelegate, URLSessio
     }
 }
 #endif
-
-extension OperationQueue {
-    convenience init(maxConcurrentOperationCount: Int) {
-        self.init()
-        self.maxConcurrentOperationCount = maxConcurrentOperationCount
-    }
-}

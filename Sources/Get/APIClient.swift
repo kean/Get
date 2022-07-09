@@ -53,7 +53,8 @@ public actor APIClient {
     /// Initializes the client with the given configuration.
     public init(configuration: Configuration) {
         self.conf = configuration
-        let queue = OperationQueue(maxConcurrentOperationCount: 1)
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 1
 #if !os(Linux)
         let delegate = URLSessionProxyDelegate.make(loader: loader, delegate: configuration.sessionDelegate)
 #else
