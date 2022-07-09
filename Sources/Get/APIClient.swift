@@ -219,7 +219,7 @@ public actor APIClient {
             return url
         }
         func makeAbsoluteURL() -> URL? {
-            path.starts(with: "/") ? conf.baseURL?.appendingPathComponent(path) : URL(string: path)
+            (path.starts(with: "/") || URL(string: path)?.scheme == nil) ? conf.baseURL?.appendingPathComponent(path) : URL(string: path)
         }
         guard let url = makeAbsoluteURL(),
               var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
