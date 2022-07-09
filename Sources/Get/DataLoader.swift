@@ -134,6 +134,7 @@ extension DataLoader {
         handlers[task]?.delegate?.urlSession?(session, taskIsWaitingForConnectivity: task)
     }
 
+#if swift(>=5.7)
     func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
         if #available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *) {
             handlers[task]?.delegate?.urlSession?(session, didCreateTask: task)
@@ -141,6 +142,7 @@ extension DataLoader {
             // Doesn't exist on earlier versions
         }
     }
+#endif
 }
 #else
 extension DataLoader {
