@@ -76,6 +76,53 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
         return task
     }
 
+    private final class TaskHandler {
+        let delegate: URLSessionDataDelegate?
+        let completion: Completion
+        var data: Data?
+        var metrics: URLSessionTaskMetrics?
+
+        init(delegate: URLSessionDataDelegate?, completion: @escaping Completion) {
+            self.delegate = delegate
+            self.completion = completion
+        }
+    }
+
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        guard let handler = handlers[dataTask] else { return }
+#if os(Linux)
+        handler.delegate?.urlSession(session, dataTask: dataTask, didReceive: data)
+#else
+        handler.delegate?.urlSession?(session, dataTask: dataTask, didReceive: data)
+#endif
+        if handler.data == nil {
+            handler.data = Data()
+        }
+        handler.data!.append(data)
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        guard let handler = handlers[task] else { return }
+        handlers[task] = nil
+#if os(Linux)
+        handler.delegate?.urlSession(session, task: task, didCompleteWithError: error)
+#else
+        handler.delegate?.urlSession?(session, task: task, didCompleteWithError: error)
+#endif
+        if let response = task.response, error == nil {
+            handler.completion(.success((handler.data ?? Data(), response, handler.metrics)))
+        } else {
+            handler.completion(.failure(error ?? URLError(.unknown)))
+        }
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+        handlers[task]?.metrics = metrics
+    }
+}
+
+#if !os(Linux)
+extension DataLoader {
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
         if handlers[dataTask]?.delegate?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler) != nil {
             return
@@ -89,26 +136,6 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome streamTask: URLSessionStreamTask) {
         handlers[dataTask]?.delegate?.urlSession?(session, dataTask: dataTask, didBecome: streamTask)
-    }
-
-    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        guard let handler = handlers[dataTask] else { return }
-        handler.delegate?.urlSession?(session, dataTask: dataTask, didReceive: data)
-        if handler.data == nil {
-            handler.data = Data()
-        }
-        handler.data!.append(data)
-    }
-
-    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        guard let handler = handlers[task] else { return }
-        handlers[task] = nil
-        handler.delegate?.urlSession?(session, task: task, didCompleteWithError: error)
-        if let response = task.response, error == nil {
-            handler.completion(.success((handler.data ?? Data(), response, handler.metrics)))
-        } else {
-            handler.completion(.failure(error ?? URLError(.unknown)))
-        }
     }
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @escaping (CachedURLResponse?) -> Void) {
@@ -154,23 +181,53 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
             // Doesn't exist on earlier versions
         }
     }
-
-    func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
-        handlers[task]?.metrics = metrics
+}
+#else
+extension DataLoader {
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+        if handlers[dataTask]?.delegate?.urlSession(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler) != nil {
+            return
+        }
+        completionHandler(.allow)
     }
 
-    private final class TaskHandler {
-        let delegate: URLSessionDataDelegate?
-        let completion: Completion
-        var data: Data?
-        var metrics: URLSessionTaskMetrics?
-
-        init(delegate: URLSessionDataDelegate?, completion: @escaping Completion) {
-            self.delegate = delegate
-            self.completion = completion
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @escaping (CachedURLResponse?) -> Void) {
+        if handlers[dataTask]?.delegate?.urlSession(session, dataTask: dataTask, willCacheResponse: proposedResponse, completionHandler: completionHandler) != nil {
+            // Do nothing, delegate called
+        } else {
+            completionHandler(proposedResponse)
         }
     }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
+        if handlers[task]?.delegate?.urlSession(session, task: task, willPerformHTTPRedirection: response, newRequest: request, completionHandler: completionHandler) != nil {
+            // Do nothing, delegate called
+        } else {
+            completionHandler(request)
+        }
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        if handlers[task]?.delegate?.urlSession(session, task: task, didReceive: challenge, completionHandler: completionHandler) != nil {
+            // Do nothing, delegate called
+        } else {
+            completionHandler(.performDefaultHandling, nil)
+        }
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @escaping (URLSession.DelayedRequestDisposition, URLRequest?) -> Void) {
+        if handlers[task]?.delegate?.urlSession(session, task: task, willBeginDelayedRequest: request, completionHandler: completionHandler) != nil {
+            // Do nothing, delegate called
+        } else {
+            completionHandler(.continueLoading, nil)
+        }
+    }
+
+    func urlSession(_ session: URLSession, taskIsWaitingForConnectivity task: URLSessionTask) {
+        handlers[task]?.delegate?.urlSession(session, taskIsWaitingForConnectivity: task)
+    }
 }
+#endif
 
 #if !os(Linux)
 /// Allows users to monitor URLSession.
