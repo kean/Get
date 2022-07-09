@@ -172,8 +172,8 @@ public actor APIClient {
     /// - important: Make sure to move the downloaded file to a location in your app after the completion.
     ///
     /// - returns: A response with a location of the downloaded file.
-    public func download(
-        _ request: Request<Void>,
+    public func download<T>(
+        _ request: Request<T>,
         delegate: URLSessionDownloadDelegate? = nil,
         configure: ((inout URLRequest) -> Void)? = nil
     ) async throws -> Response<URL> {
