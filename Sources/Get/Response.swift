@@ -32,6 +32,4 @@ public struct Response<T> {
     }
 }
 
-#if swift(>=5.6)
 extension Response: @unchecked Sendable where T: Sendable {}
-#endif

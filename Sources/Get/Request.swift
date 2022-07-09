@@ -8,7 +8,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public struct Request<Response> {
+public struct Request<Response>: @unchecked Sendable {
     public var method: String
     public var path: String
     public var query: [(String, String?)]?
@@ -79,7 +79,3 @@ public struct Request<Response> {
         Request(method: "TRACE", path: path, query: query, headers: headers)
     }
 }
-
-#if swift(>=5.6)
-extension Request: @unchecked Sendable {}
-#endif
