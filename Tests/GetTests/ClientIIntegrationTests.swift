@@ -3,7 +3,6 @@
 // Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
 
 import XCTest
-import Mocker
 @testable import Get
 
 final class APIClientIntegrationTests: XCTestCase {
@@ -11,7 +10,7 @@ final class APIClientIntegrationTests: XCTestCase {
     func _testGitHubUsersApi() async throws {
         let sut = makeSUT()
         let user = try await sut.send(Paths.users("kean").get).value
-        
+
         XCTAssertEqual(user.login, "kean")
     }
 
@@ -26,5 +25,5 @@ final class APIClientIntegrationTests: XCTestCase {
 
         return client
     }
-    
+
 }
