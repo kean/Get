@@ -31,6 +31,8 @@ The ``send(_:delegate:configure:)-2ls6m`` method returns not just the response v
 
 The response can be any `Decodable` type. The response can also be optional. And if the response type is `Data`, the client simply returns raw response data. If it's a `String`, it returns the response as plain text.
 
+> tip: By default, the request ``Request/path`` is appended to the client's ``APIClient/Configuration/baseURL``. However, if you pass a complete URL, e.g. `"https://api.github.com/user"`, it will be used instead. 
+
 ### Client Delegate
 
 One of the ways you can customize the client is by providing a custom delegate implementing `APIClientDelegate` protocol. For example, you can use it to implement an authorization flow.
