@@ -40,6 +40,8 @@ public actor APIClient {
         }
     }
 
+    // MARK: Initializers
+
     /// Initializes the client with the given parameters.
     ///
     /// - parameter baseURL: A base URL. For example, `"https://api.github.com"`.
@@ -59,6 +61,8 @@ public actor APIClient {
         self.delegate = configuration.delegate ?? DefaultAPIClientDelegate()
         self.serializer = Serializer(decoder: configuration.decoder, encoder: configuration.encoder)
     }
+
+    // MARK: Sending Requests
 
     /// Sends the given request.
     ///
@@ -153,6 +157,49 @@ public actor APIClient {
             return try await self.serializer.decode(data)
         }
     }
+
+#if !os(Linux)
+
+    // MARK: Downloads
+
+    /// Downloads the data for the given request.
+    ///
+    /// - parameters:
+    ///   - request: The request to perform.
+    ///   - delegate: Task-specific delegate.
+    ///   - configure: Modifies the underlying `URLRequest` before sending it.
+    ///
+    /// - important: Make sure to move the downloaded file to a location in your app after the completion.
+    ///
+    /// - returns: A response with a location of the downloaded file.
+    public func download(
+        _ request: Request<Void>,
+        delegate: URLSessionDownloadDelegate? = nil,
+        configure: ((inout URLRequest) -> Void)? = nil
+    ) async throws -> Response<URL> {
+        var request = try await makeURLRequest(for: request)
+        configure?(&request)
+        return try await _download(request, attempts: 1, delegate: delegate)
+    }
+
+    private func _download(_ request: URLRequest, attempts: Int, delegate: URLSessionDownloadDelegate?) async throws -> Response<URL> {
+        do {
+            var request = request
+            try await self.delegate.client(self, willSendRequest: &request)
+            let (location, response, metrics) = try await dataLoader.download(for: request, session: session, delegate: delegate)
+            try validate(response: response, data: Data())
+            return Response(value: location, data: Data(), request: request, response: response, metrics: metrics)
+        } catch {
+            guard try await self.delegate.client(self, shouldRetryRequest: request, attempts: attempts, error: error) else {
+                throw error
+            }
+            return try await _download(request, attempts: attempts + 1, delegate: delegate)
+        }
+    }
+
+#endif
+
+    // MARK: Helpers
 
     private func makeURLRequest<T>(for request: Request<T>) async throws -> URLRequest {
         let url = try makeURL(path: request.path, query: request.query)

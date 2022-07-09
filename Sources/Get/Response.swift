@@ -37,4 +37,8 @@ public struct Response<T> {
     }
 }
 
+extension Response where T == URL {
+    public var location: URL { value }
+}
+
 extension Response: @unchecked Sendable where T: Sendable {}
