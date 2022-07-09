@@ -88,7 +88,12 @@ final class YourSessionDelegate: URLSessionTaskDelegate {
 - ``send(_:delegate:configure:)-2uc3f``
 - ``send(_:delegate:configure:)-3vh73``
 
+### Loading Data
+
+- ``data(for:delegate:configure:)-83pkq``
+- ``data(for:delegate:configure:)-t8pp``
+
 ### Downloads
 
-- ``download(_:delegate:configure:)-42jkd``
-- ``download(_:delegate:configure:)-53qlf``
+- ``download(for:delegate:configure:)-68huc``
+- ``download(for:delegate:configure:)-3q3o4``

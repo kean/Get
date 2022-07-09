@@ -218,6 +218,23 @@ final class APIClientTests: XCTestCase {
         }
     }
 
+    // MARK: - Fetching Data
+
+    func testFetchData() async throws {
+        // GIVEN
+        let client = makeSUT()
+
+        let url = URL(string: "https://api.github.com/user")!
+        Mock.get(url: url, json: "user").register()
+
+        // WHEN
+        let response = try await client.data(for: .get("/user"))
+
+        // THEN
+        let user = try JSONDecoder().decode(User.self, from: response.data)
+        XCTAssertEqual(user.login, "kean")
+    }
+
     // MARK: - Downloads
 
 #if !os(Linux)
@@ -229,10 +246,9 @@ final class APIClientTests: XCTestCase {
         Mock.get(url: url, json: "user").register()
 
         // WHEN
-        let response = try await client.download(.get("/user"))
+        let response = try await client.download(for: .get("/user"))
 
         // THEN
-        print(response.location)
         let data = try Data(contentsOf: response.location)
         let user = try JSONDecoder().decode(User.self, from: data)
         XCTAssertEqual(user.login, "kean")

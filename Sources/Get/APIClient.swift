@@ -125,12 +125,12 @@ public actor APIClient {
         try await _send(request, delegate: delegate, configure: configure) { _ in () }
     }
 
-    private func _send<T>(
+    private func _send<T, U>(
         _ request: Request<T>,
         delegate: URLSessionDataDelegate?,
         configure: ((inout URLRequest) -> Void)?,
-        _ decode: @escaping (Data) async throws -> T
-    ) async throws -> Response<T> {
+        _ decode: @escaping (Data) async throws -> U
+    ) async throws -> Response<U> {
         var request = try await makeURLRequest(for: request)
         configure?(&request)
         let response = try await _send(request, attempts: 1, delegate: delegate)
@@ -168,6 +168,40 @@ public actor APIClient {
 
 #if !os(Linux)
 
+    // MARK: Fetch Data
+
+    /// Fetches the data for the given request.
+    ///
+    /// - parameters:
+    ///   - request: The request to perform.
+    ///   - delegate: Task-specific delegate.
+    ///   - configure: Modifies the underlying `URLRequest` before sending it.
+    ///
+    /// - returns: A response with a raw response data.
+    public func data<T>(
+        for request: Request<T>,
+        delegate: URLSessionDataDelegate? = nil,
+        configure: ((inout URLRequest) -> Void)? = nil
+    ) async throws -> Response<Data> {
+        try await _send(request, delegate: delegate, configure: configure) { $0 }
+    }
+
+    /// Fetches the data for the given request.
+    ///
+    /// - parameters:
+    ///   - request: The request to perform.
+    ///   - delegate: Task-specific delegate.
+    ///   - configure: Modifies the underlying `URLRequest` before sending it.
+    ///
+    /// - returns: A response with a raw response data.
+    public func data(
+        for request: Request<Data>,
+        delegate: URLSessionDataDelegate? = nil,
+        configure: ((inout URLRequest) -> Void)? = nil
+    ) async throws -> Response<Data> {
+        try await _send(request, delegate: delegate, configure: configure) { $0 }
+    }
+
     // MARK: Downloads
 
     /// Downloads the data for the given request.
@@ -181,13 +215,11 @@ public actor APIClient {
     ///
     /// - returns: A response with a location of the downloaded file.
     public func download<T>(
-        _ request: Request<T>,
+        for request: Request<T>,
         delegate: URLSessionDownloadDelegate? = nil,
         configure: ((inout URLRequest) -> Void)? = nil
     ) async throws -> Response<URL> {
-        var request = try await makeURLRequest(for: request)
-        configure?(&request)
-        return try await _download(request, attempts: 1, delegate: delegate)
+        try await _download(request, delegate: delegate, configure: configure)
     }
 
     /// Downloads the data for the given request.
@@ -201,16 +233,28 @@ public actor APIClient {
     ///
     /// - returns: A response with a location of the downloaded file.
     public func download(
-        _ request: Request<Void>,
+        for request: Request<URL>,
         delegate: URLSessionDownloadDelegate? = nil,
         configure: ((inout URLRequest) -> Void)? = nil
+    ) async throws -> Response<URL> {
+        try await _download(request, delegate: delegate, configure: configure)
+    }
+
+    private func _download<T>(
+        _ request: Request<T>,
+        delegate: URLSessionDownloadDelegate?,
+        configure: ((inout URLRequest) -> Void)?
     ) async throws -> Response<URL> {
         var request = try await makeURLRequest(for: request)
         configure?(&request)
         return try await _download(request, attempts: 1, delegate: delegate)
     }
 
-    private func _download(_ request: URLRequest, attempts: Int, delegate: URLSessionDownloadDelegate?) async throws -> Response<URL> {
+    private func _download(
+        _ request: URLRequest,
+        attempts: Int,
+        delegate: URLSessionDownloadDelegate?
+    ) async throws -> Response<URL> {
         do {
             var request = request
             try await self.delegate.client(self, willSendRequest: &request)
