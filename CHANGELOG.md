@@ -42,7 +42,7 @@ APIClient(baseURL: URL(string: "https://api.github.com"))
 
 *Jan 10, 2022*
 
-- Add public `Request` intializer
+- Add public `Request` initializer
 
 ## Get 0.3.1
 
@@ -119,7 +119,7 @@ let client = APIClient(host: "api.github.com") {
 - Update example JSON models to match the GitHub API spec - [#5](https://github.com/kean/APIClient/pull/5), thanks to [Arthur Semenyutin](https://github.com/vox-humana)
 - Use `iso8601` date decoding and encoding strategies by default and add a way to customize the decoder and encoder
 - Add `id` to requests
-- Make `Request` properies public
+- Make `Request` properties public
 
 ## APIClient 0.0.3
 
@@ -131,4 +131,4 @@ let client = APIClient(host: "api.github.com") {
 
 *Nov 23, 2021*
 
-- Initial relase 
+- Initial release 
