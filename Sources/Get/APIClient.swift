@@ -13,7 +13,7 @@ public actor APIClient {
     private let session: URLSession
     private let serializer: Serializer
     private let delegate: APIClientDelegate
-    private let loader = DataLoader()
+    private let dataLoader = DataLoader()
 
     /// The configuration for ``APIClient``.
     public struct Configuration {
@@ -55,13 +55,9 @@ public actor APIClient {
     /// Initializes the client with the given configuration.
     public init(configuration: Configuration) {
         self.conf = configuration
-#if !os(Linux)
-        let delegate = URLSessionProxyDelegate.make(loader: loader, delegate: configuration.sessionDelegate)
-#else
-        let delegate = loader
-#endif
         let delegateQueue = configuration.delegateQueue ?? .serial()
-        self.session = URLSession(configuration: configuration.sessionConfiguration, delegate: delegate, delegateQueue: delegateQueue)
+        self.session = URLSession(configuration: configuration.sessionConfiguration, delegate: dataLoader, delegateQueue: delegateQueue)
+        self.dataLoader.userDelegate = configuration.sessionDelegate
         self.delegate = configuration.delegate ?? DefaultAPIClientDelegate()
         self.serializer = Serializer(decoder: configuration.decoder, encoder: configuration.encoder)
     }
@@ -118,7 +114,7 @@ public actor APIClient {
     private func actuallySend(_ request: URLRequest, delegate: URLSessionDataDelegate?) async throws -> Response<Data> {
         var request = request
         try await self.delegate.client(self, willSendRequest: &request)
-        let (data, response, metrics) = try await loader.data(for: request, session: session, delegate: delegate)
+        let (data, response, metrics) = try await dataLoader.data(for: request, session: session, delegate: delegate)
         try validate(response: response, data: data)
         return Response(value: data, data: data, request: request, response: response, metrics: metrics)
     }
