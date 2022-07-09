@@ -7,12 +7,6 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public protocol APIClientDelegate {
-    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws
-    func shouldClientRetry(_ client: APIClient, for request: URLRequest, withError error: Error) async throws -> Bool
-    func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error
-}
-
 /// Performs network requests constructed using ``Request``.
 public actor APIClient {
     private let conf: Configuration
@@ -111,7 +105,7 @@ public actor APIClient {
 
     /// Returns response data for the given request.
     public func data<T>(for request: Request<T>) async throws -> Response<Data> {
-        let request = try await makeRequest(for: request)
+        let request = try await makeURLRequest(for: request)
         return try await send(request)
     }
 
@@ -132,12 +126,23 @@ public actor APIClient {
         return Response(value: data, data: data, request: request, response: response, metrics: metrics)
     }
 
-    private func makeRequest<T>(for request: Request<T>) async throws -> URLRequest {
-        let url = try makeURL(path: request.path, query: request.query)
-        return try await makeRequest(url: url, method: request.method, body: request.body, headers: request.headers)
+    private func makeURLRequest<T>(for request: Request<T>) async throws -> URLRequest {
+        let url = try makeURL(for: request)
+        var urlRequest = URLRequest(url: url)
+        urlRequest.allHTTPHeaderFields = request.headers
+        urlRequest.httpMethod = request.method
+        if let body = request.body {
+            urlRequest.httpBody = try await serializer.encode(body)
+            urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+        return urlRequest
     }
 
-    private func makeURL(path: String, query: [(String, String?)]?) throws -> URL {
+    private func makeURL<T>(for request: Request<T>) throws -> URL {
+        if let url = try delegate.client(self, makeURLForRequest: request) { return url }
+
+        let path = request.path
         func makeAbsoluteURL() -> URL? {
             path.starts(with: "/") ? conf.baseURL?.appendingPathComponent(path) : URL(string: path)
         }
@@ -145,25 +150,13 @@ public actor APIClient {
               var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             throw URLError(.badURL)
         }
-        if let query = query, !query.isEmpty {
+        if let query = request.query, !query.isEmpty {
             components.queryItems = query.map(URLQueryItem.init)
         }
         guard let url = components.url else {
             throw URLError(.badURL)
         }
         return url
-    }
-
-    private func makeRequest(url: URL, method: String, body: AnyEncodable?, headers: [String: String]?) async throws -> URLRequest {
-        var request = URLRequest(url: url)
-        request.allHTTPHeaderFields = headers
-        request.httpMethod = method
-        if let body = body {
-            request.httpBody = try await serializer.encode(body)
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        }
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        return request
     }
 
     private func validate(response: URLResponse, data: Data) throws {
@@ -191,6 +184,7 @@ public extension APIClientDelegate {
     func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error {
         APIError.unacceptableStatusCode(response.statusCode)
     }
+    func client<T>(_ client: APIClient, makeURLForRequest request: Request<T>) throws -> URL? { nil }
 }
 
 private struct DefaultAPIClientDelegate: APIClientDelegate {}
