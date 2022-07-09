@@ -166,8 +166,6 @@ public actor APIClient {
         }
     }
 
-#if !os(Linux)
-
     // MARK: Fetch Data
 
     /// Fetches the data for the given request.
@@ -201,6 +199,8 @@ public actor APIClient {
     ) async throws -> Response<Data> {
         try await _send(request, delegate: delegate, configure: configure) { $0 }
     }
+
+#if !os(Linux)
 
     // MARK: Downloads
 
