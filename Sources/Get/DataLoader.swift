@@ -12,10 +12,10 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
     private var handlers = [URLSessionTask: TaskHandler]()
     private typealias Completion = (Result<(Data, URLResponse, URLSessionTaskMetrics?), Error>) -> Void
 
-    var userDelegate: URLSessionDelegate? {
+    var userSessionDelegate: URLSessionDelegate? {
         didSet {
-            userTaskDelegate = userDelegate as? URLSessionTaskDelegate
-            userDataDelegate = userDelegate as? URLSessionDataDelegate
+            userTaskDelegate = userSessionDelegate as? URLSessionTaskDelegate
+            userDataDelegate = userSessionDelegate as? URLSessionDataDelegate
         }
     }
     private var userTaskDelegate: URLSessionTaskDelegate?
@@ -60,16 +60,22 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
     // MARK: - URLSessionDelegate
 
     func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
-        userDelegate?.urlSession?(session, didBecomeInvalidWithError: error)
+#if os(Linux)
+        userSessionDelegate?.urlSession(session, didBecomeInvalidWithError: error)
+#else
+        userSessionDelegate?.urlSession?(session, didBecomeInvalidWithError: error)
+#endif
     }
 
+#if !os(Linux)
     func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
         if #available(macOS 11.0, *) {
-            userDelegate?.urlSessionDidFinishEvents?(forBackgroundURLSession: session)
+            userSessionDelegate?.urlSessionDidFinishEvents?(forBackgroundURLSession: session)
         } else {
             // Fallback on earlier versions
         }
     }
+#endif
 
     // MARK: - URLSessionTaskDelegate
 
@@ -93,8 +99,13 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
     func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
         let handler = handlers[task]
         handler?.metrics = metrics
+#if os(Linux)
+        handler?.delegate?.urlSession(session, task: task, didFinishCollecting: metrics)
+        userTaskDelegate?.urlSession(session, task: task, didFinishCollecting: metrics)
+#else
         handler?.delegate?.urlSession?(session, task: task, didFinishCollecting: metrics)
         userTaskDelegate?.urlSession?(session, task: task, didFinishCollecting: metrics)
+#endif
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {

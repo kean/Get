@@ -55,7 +55,7 @@ public actor APIClient {
         self.conf = configuration
         let delegateQueue = configuration.delegateQueue ?? .serial()
         self.session = URLSession(configuration: configuration.sessionConfiguration, delegate: dataLoader, delegateQueue: delegateQueue)
-        self.dataLoader.userDelegate = configuration.sessionDelegate
+        self.dataLoader.userSessionDelegate = configuration.sessionDelegate
         self.delegate = configuration.delegate ?? DefaultAPIClientDelegate()
         self.serializer = Serializer(decoder: configuration.decoder, encoder: configuration.encoder)
     }
