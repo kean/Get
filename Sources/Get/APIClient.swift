@@ -31,6 +31,8 @@ public actor APIClient {
         /// The (optional) URLSession delegate that allows you to monitor the underlying URLSession.
         public var sessionDelegate: URLSessionDelegate?
 #endif
+        /// Overrides the default delegate queue.
+        public var delegateQueue: OperationQueue?
 
         /// Initializes the configuration.
         public init(baseURL: URL?, sessionConfiguration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil) {
@@ -53,14 +55,13 @@ public actor APIClient {
     /// Initializes the client with the given configuration.
     public init(configuration: Configuration) {
         self.conf = configuration
-        let queue = OperationQueue()
-        queue.maxConcurrentOperationCount = 1
 #if !os(Linux)
         let delegate = URLSessionProxyDelegate.make(loader: loader, delegate: configuration.sessionDelegate)
 #else
         let delegate = loader
 #endif
-        self.session = URLSession(configuration: configuration.sessionConfiguration, delegate: delegate, delegateQueue: queue)
+        let delegateQueue = configuration.delegateQueue ?? .serial()
+        self.session = URLSession(configuration: configuration.sessionConfiguration, delegate: delegate, delegateQueue: delegateQueue)
         self.delegate = configuration.delegate ?? DefaultAPIClientDelegate()
         self.serializer = Serializer(decoder: configuration.decoder, encoder: configuration.encoder)
     }

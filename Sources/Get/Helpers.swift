@@ -47,6 +47,14 @@ actor Serializer {
     }
 }
 
+extension OperationQueue {
+    static func serial() -> OperationQueue {
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 1
+        return queue
+    }
+}
+
 #if !os(Linux)
 /// Allows users to monitor URLSession.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)

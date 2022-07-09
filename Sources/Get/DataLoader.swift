@@ -85,9 +85,10 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
 extension DataLoader {
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
         if handlers[dataTask]?.delegate?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler) != nil {
-            return
+            // Do nothing, delegate called
+        } else {
+            completionHandler(.allow)
         }
-        completionHandler(.allow)
     }
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome downloadTask: URLSessionDownloadTask) {
