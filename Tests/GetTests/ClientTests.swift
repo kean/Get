@@ -230,6 +230,31 @@ final class APIClientTests: XCTestCase {
         try await client.send(request)
     }
 
+    // MARK: - Configuring Request
+
+    func testConfigureRequest() async throws {
+        // GIVEN
+        let client = makeSUT()
+
+        let url = URL(string: "https://api.github.com/user")!
+        var mock = Mock.get(url: url, json: "user")
+        var request: URLRequest?
+        mock.onRequest = { a, _ in
+            request = a
+        }
+        mock.register()
+
+        // WHEN
+        let response: Response<User> = try await client.send(.get("/user")) {
+            $0.cachePolicy = .reloadIgnoringLocalCacheData
+        }
+
+        // THEN
+        XCTAssertNotNil(request)
+        XCTAssertEqual(request?.cachePolicy, .reloadIgnoringLocalCacheData)
+        XCTAssertEqual(response.value.login, "kean")
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(using baseURL: URL? = URL(string: "https://api.github.com"),

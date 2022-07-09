@@ -60,9 +60,36 @@ public actor APIClient {
         self.serializer = Serializer(decoder: configuration.decoder, encoder: configuration.encoder)
     }
 
-    /// Sends the given request and returns a response with a decoded response value.
-    public func send<T: Decodable>(_ request: Request<T?>, delegate: URLSessionDataDelegate? = nil) async throws -> Response<T?> {
-        try await send(request, delegate: delegate) { data in
+    /// Sends the given request.
+    ///
+    /// - parameters:
+    ///   - request: The request to perform.
+    ///   - delegate: Task-specific delegate.
+    ///   - configure: Modifies the underlying `URLRequest` before sending it.
+    ///
+    /// - returns: A response with a decoded body.
+    public func send<T: Decodable>(
+        _ request: Request<T>,
+        delegate: URLSessionDataDelegate? = nil,
+        configure: ((inout URLRequest) -> Void)? = nil
+    ) async throws -> Response<T> {
+        try await _send(request, delegate: delegate, configure: configure, decode)
+    }
+
+    /// Sends the given request.
+    ///
+    /// - parameters:
+    ///   - request: The request to perform.
+    ///   - delegate: Task-specific delegate.
+    ///   - configure: Modifies the underlying `URLRequest` before sending it.
+    ///
+    /// - returns: A response with a decoded body or `nil` if the data was empty.
+    public func send<T: Decodable>(
+        _ request: Request<T?>,
+        delegate: URLSessionDataDelegate? = nil,
+        configure: ((inout URLRequest) -> Void)? = nil
+    ) async throws -> Response<T?> {
+        try await _send(request, delegate: delegate, configure: configure) { data in
             if data.isEmpty {
                 return nil
             } else {
@@ -71,9 +98,51 @@ public actor APIClient {
         }
     }
 
-    /// Sends the given request and returns a response with a decoded response value.
-    public func send<T: Decodable>(_ request: Request<T>, delegate: URLSessionDataDelegate? = nil) async throws -> Response<T> {
-        try await send(request, delegate: delegate, decode)
+    /// Sends the given request.
+    ///
+    /// - parameters:
+    ///   - request: The request to perform.
+    ///   - delegate: Task-specific delegate.
+    ///   - configure: Modifies the underlying `URLRequest` before sending it.
+    ///
+    /// - returns: A response with an empty value.
+    @discardableResult
+    public func send(
+        _ request: Request<Void>,
+        delegate: URLSessionDataDelegate? = nil,
+        configure: ((inout URLRequest) -> Void)? = nil
+    ) async throws -> Response<Void> {
+        try await _send(request, delegate: delegate, configure: configure) { _ in () }
+    }
+
+    private func _send<T>(
+        _ request: Request<T>,
+        delegate: URLSessionDataDelegate?,
+        configure: ((inout URLRequest) -> Void)?,
+        _ decode: @escaping (Data) async throws -> T
+    ) async throws -> Response<T> {
+        var request = try await makeURLRequest(for: request)
+        configure?(&request)
+        let response = try await _send(request, delegate: delegate)
+        let value = try await decode(response.value)
+        return response.map { _ in value } // Keep metadata
+    }
+
+    private func _send(_ request: URLRequest, delegate: URLSessionDataDelegate?) async throws -> Response<Data> {
+        do {
+            return try await _actuallySend(request, delegate: delegate)
+        } catch {
+            guard try await self.delegate.shouldClientRetry(self, for: request, withError: error) else { throw error }
+            return try await _actuallySend(request, delegate: delegate)
+        }
+    }
+
+    private func _actuallySend(_ request: URLRequest, delegate: URLSessionDataDelegate?) async throws -> Response<Data> {
+        var request = request
+        try await self.delegate.client(self, willSendRequest: &request)
+        let (data, response, metrics) = try await dataLoader.data(for: request, session: session, delegate: delegate)
+        try validate(response: response, data: data)
+        return Response(value: data, data: data, request: request, response: response, metrics: metrics)
     }
 
     private func decode<T: Decodable>(_ data: Data) async throws -> T {
@@ -85,36 +154,6 @@ public actor APIClient {
         } else {
             return try await self.serializer.decode(data)
         }
-    }
-
-    /// Sends the given request.
-    @discardableResult
-    public func send(_ request: Request<Void>, delegate: URLSessionDataDelegate? = nil) async throws -> Response<Void> {
-        try await send(request, delegate: delegate) { _ in () }
-    }
-
-    private func send<T>(_ request: Request<T>, delegate: URLSessionDataDelegate?, _ decode: @escaping (Data) async throws -> T) async throws -> Response<T> {
-        let request = try await makeURLRequest(for: request)
-        let response = try await send(request, delegate: delegate)
-        let value = try await decode(response.value)
-        return response.map { _ in value } // Keep metadata
-    }
-
-    private func send(_ request: URLRequest, delegate: URLSessionDataDelegate?) async throws -> Response<Data> {
-        do {
-            return try await actuallySend(request, delegate: delegate)
-        } catch {
-            guard try await self.delegate.shouldClientRetry(self, for: request, withError: error) else { throw error }
-            return try await actuallySend(request, delegate: delegate)
-        }
-    }
-
-    private func actuallySend(_ request: URLRequest, delegate: URLSessionDataDelegate?) async throws -> Response<Data> {
-        var request = request
-        try await self.delegate.client(self, willSendRequest: &request)
-        let (data, response, metrics) = try await dataLoader.data(for: request, session: session, delegate: delegate)
-        try validate(response: response, data: data)
-        return Response(value: data, data: data, request: request, response: response, metrics: metrics)
     }
 
     private func makeURLRequest<T>(for request: Request<T>) async throws -> URLRequest {

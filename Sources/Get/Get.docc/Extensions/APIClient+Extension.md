@@ -27,7 +27,7 @@ let user: User = try await client.send(.get("/user")).value
 try await client.send(.post("/repos", body: Repo(name: "CreateAPI"))
 ```
 
-The ``send(_:delegate:)-64pdg`` method returns not just the response value, but all of the metadata associated with the request packed in a ``Response`` struct. And o learn more about creating requests, see ``Request``.
+The ``send(_:delegate:configure:)-2ls6m`` method returns not just the response value, but all of the metadata associated with the request packed in a ``Response`` struct. And o learn more about creating requests, see ``Request``.
 
 The response can be any `Decodable` type. The response can also be optional. And if the response type is `Data`, the client simply returns raw response data. If it's a `String`, it returns the response as plain text.
 
@@ -82,6 +82,6 @@ final class YourSessionDelegate: URLSessionTaskDelegate {
 
 ### Sending Requests
 
-- ``send(_:delegate:)-64pdg``
-- ``send(_:delegate:)-g1bj``
-- ``send(_:delegate:)-6xdby``
+- ``send(_:delegate:configure:)-2ls6m``
+- ``send(_:delegate:configure:)-2uc3f``
+- ``send(_:delegate:configure:)-3vh73``
