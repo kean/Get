@@ -5,6 +5,11 @@
 import XCTest
 @testable import Get
 
+import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
 final class APIClientTests: XCTestCase {
 
     // MARK: Basic Requests
