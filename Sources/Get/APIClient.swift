@@ -27,10 +27,8 @@ public actor APIClient {
         public var encoder: JSONEncoder?
         /// The (optional) client delegate.
         public var delegate: APIClientDelegate?
-#if !os(Linux)
         /// The (optional) URLSession delegate that allows you to monitor the underlying URLSession.
         public var sessionDelegate: URLSessionDelegate?
-#endif
         /// Overrides the default delegate queue.
         public var delegateQueue: OperationQueue?
 
