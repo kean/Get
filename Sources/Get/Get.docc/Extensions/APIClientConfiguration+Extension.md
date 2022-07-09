@@ -6,7 +6,7 @@
 
 - ``init(baseURL:sessionConfiguration:delegate:)``
 
-### Instance Properies
+### Instance Properties
 
 - ``baseURL``
 - ``delegate``
