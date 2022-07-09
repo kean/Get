@@ -8,27 +8,37 @@ import Foundation
 import FoundationNetworking
 #endif
 
+/// An HTTP network request.
 public struct Request<Response>: @unchecked Sendable {
+    /// HTTP method, e.g. "GET".
     public var method: String
+    /// Resource path.
     public var path: String
+    /// Request query items.
     public var query: [(String, String?)]?
-    var body: AnyEncodable?
+    /// Request headers to be added to the request.
     public var headers: [String: String]?
+    /// ID provided by the user. Not used by the API client.
     public var id: String?
 
+    let body: AnyEncodable?
+
+    /// Initialiazes the request with the given parameters.
     public init(method: String, path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) {
         self.method = method
         self.path = path
         self.query = query
         self.headers = headers
+        self.body = nil
     }
 
+    /// Initialiazes the request with the given parameters and the request body.
     public init<U: Encodable>(method: String, path: String, query: [(String, String?)]? = nil, body: U?, headers: [String: String]? = nil) {
         self.method = method
         self.path = path
         self.query = query
-        self.body = body.map(AnyEncodable.init)
         self.headers = headers
+        self.body = body.map(AnyEncodable.init)
     }
 
     public static func get(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
