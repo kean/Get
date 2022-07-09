@@ -27,12 +27,12 @@ public actor APIClient {
         public var encoder: JSONEncoder?
         /// The (optional) client delegate.
         public var delegate: APIClientDelegate?
-
 #if !os(Linux)
         /// The (optional) URLSession delegate that allows you to monitor the underlying URLSession.
         public var sessionDelegate: URLSessionDelegate?
 #endif
 
+        /// Initializes the configuration.
         public init(baseURL: URL?, sessionConfiguration: URLSessionConfiguration = .default, delegate: APIClientDelegate? = nil) {
             self.baseURL = baseURL
             self.sessionConfiguration = sessionConfiguration
@@ -123,7 +123,7 @@ public actor APIClient {
     }
 
     private func makeURLRequest<T>(for request: Request<T>) async throws -> URLRequest {
-        let url = try makeURL(for: request)
+        let url = try makeURL(path: request.path, query: request.query)
         var urlRequest = URLRequest(url: url)
         urlRequest.allHTTPHeaderFields = request.headers
         urlRequest.httpMethod = request.method
@@ -135,10 +135,10 @@ public actor APIClient {
         return urlRequest
     }
 
-    private func makeURL<T>(for request: Request<T>) throws -> URL {
-        if let url = try delegate.client(self, makeURLForRequest: request) { return url }
-
-        let path = request.path
+    private func makeURL(path: String, query: [(String, String?)]?) throws -> URL {
+        if let url = try delegate.client(self, makeURLForPath: path, query: query) {
+            return url
+        }
         func makeAbsoluteURL() -> URL? {
             path.starts(with: "/") ? conf.baseURL?.appendingPathComponent(path) : URL(string: path)
         }
@@ -146,7 +146,7 @@ public actor APIClient {
               var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             throw URLError(.badURL)
         }
-        if let query = request.query, !query.isEmpty {
+        if let query = query, !query.isEmpty {
             components.queryItems = query.map(URLQueryItem.init)
         }
         guard let url = components.url else {
@@ -173,14 +173,3 @@ public enum APIError: Error, LocalizedError {
         }
     }
 }
-
-public extension APIClientDelegate {
-    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws {}
-    func shouldClientRetry(_ client: APIClient, for request: URLRequest, withError error: Error) async throws -> Bool { false }
-    func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error {
-        APIError.unacceptableStatusCode(response.statusCode)
-    }
-    func client<T>(_ client: APIClient, makeURLForRequest request: Request<T>) throws -> URL? { nil }
-}
-
-private struct DefaultAPIClientDelegate: APIClientDelegate {}
