@@ -10,7 +10,7 @@ final class APIClientIntegrationTests: XCTestCase {
     func _testGitHubUsersApi() async throws {
         let sut = makeSUT()
         let user = try await sut.send(Paths.users("kean").get).value
-        
+
         XCTAssertEqual(user.login, "kean")
     }
 
@@ -25,5 +25,5 @@ final class APIClientIntegrationTests: XCTestCase {
 
         return client
     }
-    
+
 }

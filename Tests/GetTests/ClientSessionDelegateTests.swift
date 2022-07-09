@@ -12,16 +12,16 @@ final class APIClientSessionDelegateTests: XCTestCase {
         #if os(watchOS)
         throw XCTSkip("Mocker URLProtocol isn't being called for requests on watchOS")
         #endif
-        
+
         // GIVEN
         let (client, delegate) = makeSUT()
 
         let url = URL(string: "https://api.github.com/user")!
         Mock.get(url: url, json: "user").register()
-        
+
         // WHEN
         try await client.send(.get("/user"))
-                                               
+
         // THEN
         XCTAssertEqual(delegate.metrics.count, 1)
         let metrics = try XCTUnwrap(delegate.metrics.first?.value)
@@ -49,7 +49,7 @@ final class APIClientSessionDelegateTests: XCTestCase {
 
 private final class SessionDelegate: NSObject, URLSessionTaskDelegate {
     var metrics: [URLSessionTask: URLSessionTaskMetrics] = [:]
-    
+
     func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
         self.metrics[task] = metrics
     }
