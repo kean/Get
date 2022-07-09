@@ -74,7 +74,7 @@ generate api.github.yaml --output ./OctoKit --module "OctoKit"
 
 | Get  | Date         | Swift | Xcode | Platforms                                            |
 |------|--------------|-------|-------|------------------------------------------------------|
-| 11.0 | [RC1](https://github.com/kean/get/releases/tag/1.0.0-rc.1) | 5.6   | 13.3 | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
+| 1.0 | [RC1](https://github.com/kean/get/releases/tag/1.0.0-rc.1) | 5.6   | 13.3 | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
 | 0.6  | Apr 03, 2022 | 5.5   | 13.2  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
 
 ## License
