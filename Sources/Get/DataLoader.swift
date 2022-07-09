@@ -10,7 +10,6 @@ import FoundationNetworking
 // A simple URLSession wrapper adding async/await APIs compatible with older platforms.
 final class DataLoader: NSObject, URLSessionDataDelegate {
     private var handlers = [URLSessionTask: TaskHandler]()
-    private typealias Completion = (Result<(Data, URLResponse, URLSessionTaskMetrics?), Error>) -> Void
 
     var userSessionDelegate: URLSessionDelegate? {
         didSet {
@@ -29,31 +28,37 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
             box.task?.cancel()
         }, operation: {
             try await withUnsafeThrowingContinuation { continuation in
-                box.task = self.loadData(with: request, session: session, delegate: delegate) { result in
-                    continuation.resume(with: result)
+                let task = session.dataTask(with: request)
+                session.delegateQueue.addOperation {
+                    let handler = DataTaskHandler(delegate: delegate)
+                    handler.completion = continuation.resume(with:)
+                    self.handlers[task] = handler
                 }
+                task.resume()
+                box.task = task
             }
         })
     }
 
-    private func loadData(with request: URLRequest, session: URLSession, delegate: URLSessionDataDelegate?, completion: @escaping Completion) -> URLSessionTask {
-        let task = session.dataTask(with: request)
-        session.delegateQueue.addOperation {
-            self.handlers[task] = TaskHandler(delegate: delegate, completion: completion)
-        }
-        task.resume()
-        return task
-    }
-
-    private final class TaskHandler {
-        let delegate: URLSessionDataDelegate?
-        let completion: Completion
-        var data: Data?
+    private class TaskHandler {
+        let delegate: URLSessionTaskDelegate?
         var metrics: URLSessionTaskMetrics?
 
-        init(delegate: URLSessionDataDelegate?, completion: @escaping Completion) {
+        init(delegate: URLSessionTaskDelegate?) {
             self.delegate = delegate
-            self.completion = completion
+        }
+    }
+
+    private final class DataTaskHandler: TaskHandler {
+        typealias Completion = (Result<(Data, URLResponse, URLSessionTaskMetrics?), Error>) -> Void
+
+        let dataDelegate: URLSessionDataDelegate?
+        var completion: Completion?
+        var data: Data?
+
+        init(delegate: URLSessionDataDelegate?) {
+            self.dataDelegate = delegate
+            super.init(delegate: delegate)
         }
     }
 
@@ -80,7 +85,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
     // MARK: - URLSessionTaskDelegate
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        guard let handler = handlers[task] else { return }
+        guard let handler = handlers[task] else { return assertionFailure() }
         handlers[task] = nil
 #if os(Linux)
         handler.delegate?.urlSession(session, task: task, didCompleteWithError: error)
@@ -89,10 +94,12 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
         handler.delegate?.urlSession?(session, task: task, didCompleteWithError: error)
         userTaskDelegate?.urlSession?(session, task: task, didCompleteWithError: error)
 #endif
-        if let response = task.response, error == nil {
-            handler.completion(.success((handler.data ?? Data(), response, handler.metrics)))
-        } else {
-            handler.completion(.failure(error ?? URLError(.unknown)))
+        if let handler = handler as? DataTaskHandler {
+            if let response = task.response, error == nil {
+                handler.completion?(.success((handler.data ?? Data(), response, handler.metrics)))
+            } else {
+                handler.completion?(.failure(error ?? URLError(.unknown)))
+            }
         }
     }
 
@@ -166,23 +173,23 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
 #if os(Linux)
-        handlers[dataTask]?.delegate?.urlSession(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler) ??
+        (handlers[dataTask] as? DataTaskHandler)?.dataDelegate?.urlSession(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler) ??
         userDataDelegate?.urlSession(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler) ??
         completionHandler(.allow)
 #else
-        handlers[dataTask]?.delegate?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler) ??
+        (handlers[dataTask] as? DataTaskHandler)?.dataDelegate?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler) ??
         userDataDelegate?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler) ??
         completionHandler(.allow)
 #endif
     }
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        guard let handler = handlers[dataTask] else { return }
+        guard let handler = handlers[dataTask] as? DataTaskHandler else { return }
 #if os(Linux)
-        handler.delegate?.urlSession(session, dataTask: dataTask, didReceive: data)
+        handler.dataDelegate?.urlSession(session, dataTask: dataTask, didReceive: data)
         userDataDelegate?.urlSession(session, dataTask: dataTask, didReceive: data)
 #else
-        handler.delegate?.urlSession?(session, dataTask: dataTask, didReceive: data)
+        handler.dataDelegate?.urlSession?(session, dataTask: dataTask, didReceive: data)
         userDataDelegate?.urlSession?(session, dataTask: dataTask, didReceive: data)
 #endif
         if handler.data == nil {
@@ -193,23 +200,23 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
 
 #if !os(Linux)
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome downloadTask: URLSessionDownloadTask) {
-        handlers[dataTask]?.delegate?.urlSession?(session, dataTask: dataTask, didBecome: downloadTask)
+        (handlers[dataTask] as? DataTaskHandler)?.dataDelegate?.urlSession?(session, dataTask: dataTask, didBecome: downloadTask)
         userDataDelegate?.urlSession?(session, dataTask: dataTask, didBecome: downloadTask)
     }
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome streamTask: URLSessionStreamTask) {
-        handlers[dataTask]?.delegate?.urlSession?(session, dataTask: dataTask, didBecome: streamTask)
+        (handlers[dataTask] as? DataTaskHandler)?.dataDelegate?.urlSession?(session, dataTask: dataTask, didBecome: streamTask)
         userDataDelegate?.urlSession?(session, dataTask: dataTask, didBecome: streamTask)
     }
 #endif
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @escaping (CachedURLResponse?) -> Void) {
 #if os(Linux)
-        handlers[dataTask]?.delegate?.urlSession(session, dataTask: dataTask, willCacheResponse: proposedResponse, completionHandler: completionHandler) ??
+        (handlers[dataTask] as? DataTaskHandler)?.dataDelegate?.urlSession(session, dataTask: dataTask, willCacheResponse: proposedResponse, completionHandler: completionHandler) ??
         userDataDelegate?.urlSession(session, dataTask: dataTask, willCacheResponse: proposedResponse, completionHandler: completionHandler)
         completionHandler(proposedResponse)
 #else
-        handlers[dataTask]?.delegate?.urlSession?(session, dataTask: dataTask, willCacheResponse: proposedResponse, completionHandler: completionHandler) ??
+        (handlers[dataTask] as? DataTaskHandler)?.dataDelegate?.urlSession?(session, dataTask: dataTask, willCacheResponse: proposedResponse, completionHandler: completionHandler) ??
         userDataDelegate?.urlSession?(session, dataTask: dataTask, willCacheResponse: proposedResponse, completionHandler: completionHandler) ??
         completionHandler(proposedResponse)
 #endif
