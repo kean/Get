@@ -1,8 +1,8 @@
-# Access Tokens
+# Authentication
 
-Learn how to implement authentication based on access token.
+Learn how to implement authentication using Get.
 
-## Overview
+## Access Tokens
 
 Every authorization system has its quirks. If you use [OAuth 2.0](https://oauth.net/2/) or a similar protocol, you need to send an access token with every request. One of the common ways is by setting an [`"Authorization"`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization) header. ``APIClient`` provides all the necessary hooks to add any authorization mechanism that you need.
 
@@ -44,3 +44,9 @@ final class YourAPIClientDelegate: APIClientDelegate {
 > important: The client might call ``APIClientDelegate/client(_:shouldRetryRequest:attempts:error:)-609zu``  multiple times (once for each failed request). Make sure to coalesce the requests to refresh the token and handle the scenario with an expired refresh token.
 
 > tip: If you are thinking about using auto-retries for connectivity issues, consider using [`waitsForConnectivity`](https://developer.apple.com/documentation/foundation/urlsessionconfiguration/2908812-waitsforconnectivity) instead. If the request does fail with a network issue, it's usually best to communicate an error to the user. With [`NWPathMonitor`](https://developer.apple.com/documentation/network/nwpathmonitor) you can still monitor the connection to your server and retry automatically.
+
+## Server Trust
+
+On top of authorizing the user, many services will also have a way of authorizing the client - your app. If it's an API key, you can set it using the same way as an `"Authorization"` header.
+
+To learn more about Server Trust, see [Performing Manual Server Trust Authentication](https://developer.apple.com/documentation/foundation/url_loading_system/handling_an_authentication_challenge/performing_manual_server_trust_authentication).

@@ -66,10 +66,6 @@ Get is available under the MIT license. See the LICENSE file for more info.
 ### Articles
 
 - <doc:define-api>
+- <doc:authentication>
 - <doc:caching>
 - <doc:integrations>
-
-### Authentication
-
-- <doc:auth-access-tokens>
-- <doc:auth-server-trust>
