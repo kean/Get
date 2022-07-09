@@ -27,4 +27,4 @@ With [CreateAPI](https://github.com/kean/CreateAPI), you can take your backend O
 generate api.github.yaml --output ./OctoKit --module "OctoKit"
 ```
 
-> Check out [OctoKit](https://github.com/kean/OctoKit/blob/main/README.md), which is a GitHub API client generated using [CreateAPI](https://github.com/kean/CreateAPI) that uses [Get](https://github.com/kean/Get) for networking.
+> Check out [App Store Connect Swift SDK](https://github.com/AvdLee/appstoreconnect-swift-sdk) that starting with v2.0 uses [CreateAPI](https://github.com/kean/CreateAPI) for code generation.

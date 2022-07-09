@@ -4,7 +4,7 @@ A modern Swift web API client built using async/await.
 
 ## Overview
 
-Get provides a convenient and clear API for performing network requests.
+A modern Swift web API client built using async/await.
 
 ```swift
 let client = APIClient(baseURL: URL(string: "https://api.github.com"))
@@ -17,6 +17,23 @@ try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 let repos = try await client.send(Paths.users("kean").repos.get)
 ```
 
+Get uses `URLSession` and provides complete access to all of its APIs.
+
+```swift
+// In addition to `APIClientDelegate`, you can also override any methods
+// from `URLSessionDelegate` family of APIs.
+let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
+    $0.sessionDelegate = ...
+}
+
+// You can also provide task-specific delegates and easily change any of
+// the `URLRequest` properties before the request is sent.
+let delegate: URLSessionDataDelegate = ...
+let response = try await client.send(Paths.user.get, delegate: delegate) {
+    $0.cachePolicy = .reloadIgnoringLocalCacheData
+}
+```
+
 ## Sponsors 💖
 
 [Support](https://github.com/sponsors/kean) Get on GitHub Sponsors.
@@ -25,6 +42,7 @@ let repos = try await client.send(Paths.users("kean").repos.get)
 
 | Get | Date       | Swift | Xcode | Platforms                                            |
 |-----|------------|-------|-------|------------------------------------------------------|
+| 11.0 | [RC1](https://github.com/kean/get/releases/tag/1.0.0-rc.1) | 5.6   | 13.3 | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
 | 0.6 | 04/03/2022 | 5.5   | 13.2  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
 | 0.1 | 12/22/2021 | 5.5   | 13.2  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0        |
 
@@ -34,13 +52,13 @@ Get is available under the MIT license. See the LICENSE file for more info.
 
 ## Topics
 
-### API Client
+### Essentials
 
 - ``APIClient``
 - ``APIClientDelegate``
 - ``APIError``
 
-### Sending Requests
+### Requests and Responses
 
 - ``Request``
 - ``Response``
@@ -48,6 +66,10 @@ Get is available under the MIT license. See the LICENSE file for more info.
 ### Articles
 
 - <doc:define-api>
-- <doc:authorization>
 - <doc:caching>
 - <doc:integrations>
+
+### Authentication
+
+- <doc:auth-access-tokens>
+- <doc:auth-server-trust>

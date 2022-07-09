@@ -1,6 +1,6 @@
-# Authorization
+# Access Tokens
 
-Learn how to implement user authorization.
+Learn how to implement authentication based on access token.
 
 ## Overview
 
@@ -44,29 +44,3 @@ final class YourAPIClientDelegate: APIClientDelegate {
 > important: The client might call ``APIClientDelegate/client(_:shouldRetryRequest:attempts:error:)-609zu``  multiple times (once for each failed request). Make sure to coalesce the requests to refresh the token and handle the scenario with an expired refresh token.
 
 > tip: If you are thinking about using auto-retries for connectivity issues, consider using [`waitsForConnectivity`](https://developer.apple.com/documentation/foundation/urlsessionconfiguration/2908812-waitsforconnectivity) instead. If the request does fail with a network issue, it's usually best to communicate an error to the user. With [`NWPathMonitor`](https://developer.apple.com/documentation/network/nwpathmonitor) you can still monitor the connection to your server and retry automatically.
-
-### Client Authorization
-
-On top of authorizing the user, many services will also have a way of authorizing the client. If it's an API key, you can set it using the same way as an `"Authorization"` header. You may also want to [obfuscate](https://nshipster.com/secrets/) it, but keep in mind that client secrecy is impossible.
-
-Another less common approach is [mTLS](https://www.cloudflare.com/learning/access-management/what-is-mutual-tls/) (mutual TLS) where it's not just the server sending a certificate – the client does too. One of the advantages of using certificates is that the secret (private key) never leaves the device.
-
-`URLSession` supports mTLS natively and it's easy to implement, even when using the new `async/await` API (thanks, Apple!).
-
-```swift
-final class YourTaskDelegate: URLSessionTaskDelegate {
-    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge)
-        async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
-        let protectionSpace = challenge.protectionSpace
-        if protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
-            // You'll probably need to create it somewhere else.
-            let credential = URLCredential(identity: ..., certificates: ..., persistence: ...)
-            return (.useCredential, credential)
-        } else {
-            return (.performDefaultHandling, nil)
-        }
-    }
-}
-```
-
-The main challenge with mTLS is getting the private key to the client. You can embed an obfuscated `.p12` file in the app, making it hard to discover, but it's still not impenetrable.

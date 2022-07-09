@@ -19,113 +19,30 @@ try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 let repos = try await client.send(Paths.users("kean").repos.get)
 ```
 
-> Learn about the design of Get and how it leverages async/await in [Web API Client in Swift](https://kean.blog/post/new-api-client).
+Get uses `URLSession` and provides complete access to all of its APIs.
+
+```swift
+// In addition to `APIClientDelegate`, you can also override any methods
+// from `URLSessionDelegate` family of APIs.
+let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
+    $0.sessionDelegate = ...
+}
+
+// You can also provide task-specific delegates and easily change any of
+// the `URLRequest` properties before the request is sent.
+let delegate: URLSessionDataDelegate = ...
+let response = try await client.send(Paths.user.get, delegate: delegate) {
+    $0.cachePolicy = .reloadIgnoringLocalCacheData
+}
+```
+
+## Documentation
+
+Learn how to use Get in [documentation](https://kean-docs.github.io/get/documentation/get/) created using DocC.
 
 ## Sponsors 💖
 
 [Support](https://github.com/sponsors/kean) Get on GitHub Sponsors.
-
-## Usage
-
-### Instantiating a Client
-
-You start by instantiating a client:
-
-```swift
-let client = APIClient(baseURL: URL(string: "https://api.github.com")) 
-```
-
-You can customize the client using `APIClient.Configuration` (see it for a complete list of available options). You can also use a convenience initializer to configure it inline:
-
-```swift
-let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
-    $0.sessionConfiguration.httpAdditionalHeaders = ["UserAgent": "bonjour"]
-    $0.delegate = YourDelegate()
-}
-```
-
-### Creating Requests
-
-A request is represented using a simple `Request<Response>` struct. To create a request, use one of the factory methods:
-
-```swift
-Request<User>.get("/user")
-
-Request<Void>.post("/repos", body: Repo(name: "CreateAPI"))
-
-Request<Repo>.patch(
-    "/repos/octokit",
-    query: [("password", "123456")],
-    body: Repo(access: .public),
-    headers: ["Version": "v2"]
-)
-```
-
-### Sending Requests
-
-To send a request, use a client instantiated earlier:
-
-```swift
-let user: User = try await client.send(.get("/user")).value
-
-try await client.send(.post("/repos", body: Repo(name: "CreateAPI"))
-```
-
-The `send` method returns not just the response value, but all of the metadata associated with the request:
-
-```swift
-public struct Response<T> {
-    public var value: T
-    public var data: Data
-    public var request: URLRequest
-    public var response: URLResponse
-    public var statusCode: Int?
-    public var metrics: URLSessionTaskMetrics?
-}
-```
-
-The response can be any `Decodable` type. The response can also be optional. And if the response type is `Data`, the client simply returns raw response data. If it's a `String`, it returns the response as plain text.
-
-### Client Delegate
-
-One of the ways you can customize the client is by providing a custom delegate implementing `APIClientDelegate` protocol. For example, you can use it to implement an authorization flow.
-
-```swift
-final class AuthorizingDelegate: APIClientDelegate {    
-    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws {
-        request.allHTTPHeaderFields = ["Authorization": "Bearer: \(token)"]
-    }
-    
-    func client(_ client: APIClient, shouldRetryRequest request: URLRequest, attempts: Int, error: Error) async throws -> Bool {
-        if case .unacceptableStatusCode(let statusCode) = (error as? APIError), statusCode == 401, attempts == 1 {
-            return await refreshAccessToken()
-        }
-        return false
-    }
-}
-```
-
-### Session Delegate
-
-`APIClient` provides elegant high-level APIs, but also gives you _complete_ access to the underlying `URLSession` APIs. You can, as shown earlier, change the session configuration, but it doesn't stop there. You can also provide a custom `URLSessionDelegate` and implement only the methods you are interested in – `APIClient` will handle the rest.
-
-```swift
-let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
-    $0.sessionConfiguration.httpAdditionalHeaders = ["UserAgent": "bonjour"]
-    $0.sessionDelegate = YourSessionDelegate()
-}
-
-final class YourSessionDelegate: URLSessionTaskDelegate {
-    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
-        let protectionSpace = challenge.protectionSpace
-        if protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
-            return (.useCredential, URLCredential(...))
-        } else {
-            return (.performDefaultHandling, nil)
-        }
-    }
-}
-```
 
 ## Integrations
 
@@ -154,14 +71,14 @@ With [CreateAPI](https://github.com/kean/CreateAPI), you can take your backend O
 generate api.github.yaml --output ./OctoKit --module "OctoKit"
 ```
 
-> Check out [OctoKit](https://github.com/kean/OctoKit/blob/main/README.md), which is a GitHub API client generated using [CreateAPI](https://github.com/kean/CreateAPI) that uses [Get](https://github.com/kean/Get) for networking.
+> Check out [App Store Connect Swift SDK](https://github.com/AvdLee/appstoreconnect-swift-sdk) that starting with v2.0 uses [CreateAPI](https://github.com/kean/CreateAPI) for code generation.
 
 ## Minimum Requirements
 
-| Get | Date         | Swift | Xcode | Platforms                                            |
-|-----|--------------|-------|-------|------------------------------------------------------|
-| 0.6 | Apr 03, 2022 | 5.5   | 13.2  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
-| 0.1 | Dec 22, 2021 | 5.5   | 13.2  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0        |
+| Get  | Date         | Swift | Xcode | Platforms                                            |
+|------|--------------|-------|-------|------------------------------------------------------|
+| 11.0 | [RC1](https://github.com/kean/get/releases/tag/1.0.0-rc.1) | 5.6   | 13.3 | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
+| 0.6  | Apr 03, 2022 | 5.5   | 13.2  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
 
 ## License
 
