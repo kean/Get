@@ -2,7 +2,7 @@
 
 ### Creating a Client
 
-You start by instantiating a client:
+Start by instantiating a client:
 
 ```swift
 let client = APIClient(baseURL: URL(string: "https://api.github.com")) 
@@ -12,12 +12,12 @@ You can customize the client using `APIClient.Configuration` (see it for a compl
 
 ```swift
 let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
-    $0.sessionConfiguration.httpAdditionalHeaders = ["UserAgent": "bonjour"]
+    $0.sessionConfiguration.httpAdditionalHeaders = ["UserAgent": "hello"]
     $0.delegate = YourDelegate()
 }
 ```
 
-### Sending Requests
+### Sending Requests and Decoding Responses
 
 To send a request, use a client instantiated earlier:
 
@@ -29,9 +29,27 @@ try await client.send(.post("/repos", body: Repo(name: "CreateAPI"))
 
 The ``send(_:delegate:configure:)-2ls6m`` method returns not just the response value, but all of the metadata associated with the request packed in a ``Response`` struct. And o learn more about creating requests, see ``Request``.
 
-The response can be any `Decodable` type. The response can also be optional. And if the response type is `Data`, the client simply returns raw response data. If it's a `String`, it returns the response as plain text.
+The response can be any `Decodable` type. The response can also be optional. If the response is `String`, it returns raw response as a string.
 
 > tip: By default, the request ``Request/path`` is appended to the client's ``APIClient/Configuration/baseURL``. However, if you pass a complete URL, e.g. `"https://api.github.com/user"`, it will be used instead. 
+
+You can also provide task-specific delegates and easily change any of the `URLRequest` properties before the request is sent.
+
+```swift
+let delegate: URLSessionDataDelegate = ...
+let response = try await client.send(Paths.user.get, delegate: delegate) {
+    $0.cachePolicy = .reloadIgnoringLocalCacheData
+}
+```
+
+### Downloading Data
+
+To fetch the response data, use ``data(for:delegate:configure:)-83pkq`` or use ``download(for:delegate:configure:)-68huc`` to download it to the file.
+
+```swift
+let response = try await client.download(for: .get("/user"))
+let url = response.location
+```
 
 ### Client Delegate
 

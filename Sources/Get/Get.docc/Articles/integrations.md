@@ -4,14 +4,11 @@ Learn how to extend ``APIClient`` using third-party frameworks.
 
 ### Pulse
 
-You can easily add logging to your API client using [Pulse](https://github.com/kean/Pulse). It's a one-line setup.
+You can easily add logging to your API client using [Pulse](https://github.com/kean/Pulse). It is a one-line setup.
 
 ```swift
 let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
     $0.sessionDelegate = PulseCore.URLSessionProxyDelegate()
-
-    // If you also have a session delegate, add it to the delegate chain
-    $0.sessionDelegate = PulseCore.URLSessionProxyDelegate(delegate: yourDelegate)
 }
 ```
 

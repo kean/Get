@@ -17,6 +17,8 @@ Request<Repo>.patch(
 )
 ```
 
+> tip: To learn more about defining network requests, see <doc:define-api>.
+
 ## Topics
 
 ### Initializers

@@ -8,7 +8,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// A response with a value and associated metadata.
+/// A response with an associated value and metadata.
 public struct Response<T> {
     /// Decoded response value.
     public var value: T
@@ -23,7 +23,7 @@ public struct Response<T> {
     /// Task metrics collected for the request.
     public var metrics: URLSessionTaskMetrics?
 
-    /// Initializes the request.
+    /// Initializes the response.
     public init(value: T, data: Data, request: URLRequest, response: URLResponse, metrics: URLSessionTaskMetrics? = nil) {
         self.value = value
         self.data = data

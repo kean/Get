@@ -18,8 +18,18 @@ Last-Modified: Mon, 12 Jan 2016 17:45:57 GMT
 ETag: "686897696a7c876b7e"
 ```
 
-This response is cacheable and will be *fresh* for 1 hour. When it becomes *stale*, the client validates it by making a *conditional* request using the `If-Modified-Since` and/or `If-None-Match` headers. If the response is still fresh the server returns status code [`304 Not Modified`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/304) to instruct the client to use cached data, or it would return `200 OK` with a new data otherwise.
+This response is cacheable and will be *fresh* for 1 hour. When it becomes *stale*, the client validates it by making a *conditional* request using the `If-Modified-Since` and/or `If-None-Match` headers. If the response is still fresh the server returns status code [`304 Not Modified`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/304) to instruct the client to use cached data, or it would return `200 OK` with new data otherwise.
 
 > tip: By default, `URLSession` uses `URLCache.shared` with a small disk and memory capacity. You might not know it, but already be taking advantage of HTTP caching.
 
 HTTP caching is a flexible system where both the server and the client get a say over what gets cached and how. With HTTP, a server can set restrictions on which responses are cacheable, set an expiration age for responses, provide validators (`ETag`, `Last-Modified`) to check stale responses, force revalidation on each request, and more.
+
+### Controlling Caching
+
+`URLSession` (and `URLCache`) support HTTP caching out of the box. There is a [set of requirements](https://developer.apple.com/documentation/foundation/nsurlsessiondatadelegate/1411612-urlsession) for a response to be cached. It is not just the server that has control. For example, you can use [`URLRequest.CachePolicy`](https://developer.apple.com/documentation/foundation/nsurlrequest/cachepolicy) to modify caching behavior from the client.
+
+```swift
+let response = try await client.send(API.user.get, delegate: delegate) {
+    $0.cachePolicy = .reloadIgnoringLocalCacheData
+}
+```

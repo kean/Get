@@ -43,10 +43,10 @@ final class YourAPIClientDelegate: APIClientDelegate {
 
 > important: The client might call ``APIClientDelegate/client(_:shouldRetryRequest:attempts:error:)-609zu``  multiple times (once for each failed request). Make sure to coalesce the requests to refresh the token and handle the scenario with an expired refresh token.
 
-> tip: If you are thinking about using auto-retries for connectivity issues, consider using [`waitsForConnectivity`](https://developer.apple.com/documentation/foundation/urlsessionconfiguration/2908812-waitsforconnectivity) instead. If the request does fail with a network issue, it's usually best to communicate an error to the user. With [`NWPathMonitor`](https://developer.apple.com/documentation/network/nwpathmonitor) you can still monitor the connection to your server and retry automatically.
+> tip: If you are thinking about using auto-retries for connectivity issues, consider using [`waitsForConnectivity`](https://developer.apple.com/documentation/foundation/urlsessionconfiguration/2908812-waitsforconnectivity) instead. If the request does fail with a network issue, it is usually best to communicate an error to the user. With [`NWPathMonitor`](https://developer.apple.com/documentation/network/nwpathmonitor) you can still monitor the connection to your server and retry automatically.
 
 ## Server Trust
 
-On top of authorizing the user, many services will also have a way of authorizing the client - your app. If it's an API key, you can set it using the same way as an `"Authorization"` header.
+On top of authorizing the user, many services will also have a way of authorizing the client - your app. If it is an API key, you can set it using the same way as an `"Authorization"` header.
 
 To learn more about Server Trust, see [Performing Manual Server Trust Authentication](https://developer.apple.com/documentation/foundation/url_loading_system/handling_an_authentication_challenge/performing_manual_server_trust_authentication).

@@ -19,7 +19,8 @@ try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 let repos = try await client.send(Paths.users("kean").repos.get)
 ```
 
-Get uses `URLSession` and provides complete access to all of its APIs.
+Get uses `URLSession` and adds a convenient way to decode network responses using `Decodable` and to model requests using `Request` type. 
+ provides complete access to all of its APIs.
 
 ```swift
 // In addition to `APIClientDelegate`, you can also override any methods
@@ -48,14 +49,11 @@ Learn how to use Get in [documentation](https://kean-docs.github.io/get/document
 
 ### Pulse
 
-You can easily add logging to your API client using [Pulse](https://github.com/kean/Pulse). It's a one-line setup.
+You can easily add logging to your API client using [Pulse](https://github.com/kean/Pulse). It requests a single line to setup.
 
 ```swift
 let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
     $0.sessionDelegate = PulseCore.URLSessionProxyDelegate()
-
-    // If you also have a session delegate, add it to the delegate chain
-    $0.sessionDelegate = PulseCore.URLSessionProxyDelegate(delegate: yourDelegate)
 }
 ```
 

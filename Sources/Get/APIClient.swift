@@ -316,9 +316,11 @@ public actor APIClient {
     }
 }
 
+/// Represents an error encountered by the client.
 public enum APIError: Error, LocalizedError {
     case unacceptableStatusCode(Int)
 
+    /// Returns the debug description.
     public var errorDescription: String? {
         switch self {
         case .unacceptableStatusCode(let statusCode):

@@ -1,6 +1,5 @@
 # ``Get/Response``
 
-
 ## Topics
 
 ### Instance Properties
@@ -10,4 +9,5 @@
 - ``request``
 - ``response``
 - ``data``
+- ``location``
 - ``metrics``
