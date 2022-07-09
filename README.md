@@ -38,7 +38,7 @@ let response = try await client.send(Paths.user.get, delegate: delegate) {
 
 ## Documentation
 
-Learn how to use Get in [documentation](https://kean-docs.github.io/get/documentation/get/) created using DocC.
+Learn how to use Get using [documentation](https://kean-docs.github.io/get/documentation/get/) created using DocC.
 
 ## Sponsors 💖
 
