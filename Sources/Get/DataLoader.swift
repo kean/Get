@@ -8,19 +8,22 @@ import FoundationNetworking
 #endif
 
 // A simple URLSession wrapper adding async/await APIs compatible with older platforms.
-final class DataLoader: NSObject, URLSessionDataDelegate {
+final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDelegate {
     private var handlers = [URLSessionTask: TaskHandler]()
 
     var userSessionDelegate: URLSessionDelegate? {
         didSet {
             userTaskDelegate = userSessionDelegate as? URLSessionTaskDelegate
             userDataDelegate = userSessionDelegate as? URLSessionDataDelegate
+            userDownloadDelegate = userSessionDelegate as? URLSessionDownloadDelegate
         }
     }
     private var userTaskDelegate: URLSessionTaskDelegate?
     private var userDataDelegate: URLSessionDataDelegate?
+    private var userDownloadDelegate: URLSessionDownloadDelegate?
 
-    /// Loads data with the given request.
+    private lazy var downloadDirectoryURL = FileManager.default.temporaryDirectory.appendingPathComponent("com.github.kean.get/Downloads/")
+
     func data(for request: URLRequest, session: URLSession, delegate: URLSessionDataDelegate?) async throws -> (Data, URLResponse, URLSessionTaskMetrics?) {
         final class Box { var task: URLSessionTask? }
         let box = Box()
@@ -40,26 +43,23 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
         })
     }
 
-    private class TaskHandler {
-        let delegate: URLSessionTaskDelegate?
-        var metrics: URLSessionTaskMetrics?
-
-        init(delegate: URLSessionTaskDelegate?) {
-            self.delegate = delegate
-        }
-    }
-
-    private final class DataTaskHandler: TaskHandler {
-        typealias Completion = (Result<(Data, URLResponse, URLSessionTaskMetrics?), Error>) -> Void
-
-        let dataDelegate: URLSessionDataDelegate?
-        var completion: Completion?
-        var data: Data?
-
-        init(delegate: URLSessionDataDelegate?) {
-            self.dataDelegate = delegate
-            super.init(delegate: delegate)
-        }
+    func download(for request: URLRequest, session: URLSession, delegate: URLSessionDownloadDelegate?) async throws -> (URL, URLResponse, URLSessionTaskMetrics?) {
+        final class Box { var task: URLSessionTask? }
+        let box = Box()
+        return try await withTaskCancellationHandler(handler: {
+            box.task?.cancel()
+        }, operation: {
+            try await withUnsafeThrowingContinuation { continuation in
+                let task = session.downloadTask(with: request)
+                session.delegateQueue.addOperation {
+                    let handler = DownloadTaskHandler(delegate: delegate)
+                    handler.completion = continuation.resume(with:)
+                    self.handlers[task] = handler
+                }
+                task.resume()
+                box.task = task
+            }
+        })
     }
 
     // MARK: - URLSessionDelegate
@@ -97,6 +97,12 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
         if let handler = handler as? DataTaskHandler {
             if let response = task.response, error == nil {
                 handler.completion?(.success((handler.data ?? Data(), response, handler.metrics)))
+            } else {
+                handler.completion?(.failure(error ?? URLError(.unknown)))
+            }
+        } else if let handler = handler as? DownloadTaskHandler {
+            if let location = handler.location, let response = task.response, error == nil {
+                handler.completion?(.success((location, response, handler.metrics)))
             } else {
                 handler.completion?(.failure(error ?? URLError(.unknown)))
             }
@@ -220,5 +226,62 @@ final class DataLoader: NSObject, URLSessionDataDelegate {
         userDataDelegate?.urlSession?(session, dataTask: dataTask, willCacheResponse: proposedResponse, completionHandler: completionHandler) ??
         completionHandler(proposedResponse)
 #endif
+    }
+
+    // MARK: - URLSessionDownloadDelegate
+
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        let handler = (handlers[downloadTask] as? DownloadTaskHandler)
+        try? FileManager.default.createDirectory(at: downloadDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+        let newLocation = downloadDirectoryURL.appendingPathExtension(location.lastPathComponent)
+        try? FileManager.default.moveItem(at: location, to: newLocation)
+        handler?.location = newLocation
+        handler?.downloadDelegate?.urlSession(session, downloadTask: downloadTask, didFinishDownloadingTo: newLocation)
+        userDownloadDelegate?.urlSession(session, downloadTask: downloadTask, didFinishDownloadingTo: newLocation)
+    }
+
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+        (handlers[downloadTask] as? DownloadTaskHandler)?.downloadDelegate?.urlSession?(session, downloadTask: downloadTask, didWriteData: bytesWritten, totalBytesWritten: totalBytesWritten, totalBytesExpectedToWrite: totalBytesExpectedToWrite)
+        userDownloadDelegate?.urlSession?(session, downloadTask: downloadTask, didWriteData: bytesWritten, totalBytesWritten: totalBytesWritten, totalBytesExpectedToWrite: totalBytesExpectedToWrite)
+    }
+
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset fileOffset: Int64, expectedTotalBytes: Int64) {
+        (handlers[downloadTask] as? DownloadTaskHandler)?.downloadDelegate?.urlSession?(session, downloadTask: downloadTask, didResumeAtOffset: fileOffset, expectedTotalBytes: expectedTotalBytes)
+        userDownloadDelegate?.urlSession?(session, downloadTask: downloadTask, didResumeAtOffset: fileOffset, expectedTotalBytes: expectedTotalBytes)
+    }
+}
+
+private class TaskHandler {
+    let delegate: URLSessionTaskDelegate?
+    var metrics: URLSessionTaskMetrics?
+
+    init(delegate: URLSessionTaskDelegate?) {
+        self.delegate = delegate
+    }
+}
+
+private final class DataTaskHandler: TaskHandler {
+    typealias Completion = (Result<(Data, URLResponse, URLSessionTaskMetrics?), Error>) -> Void
+
+    let dataDelegate: URLSessionDataDelegate?
+    var completion: Completion?
+    var data: Data?
+
+    init(delegate: URLSessionDataDelegate?) {
+        self.dataDelegate = delegate
+        super.init(delegate: delegate)
+    }
+}
+
+private final class DownloadTaskHandler: TaskHandler {
+    typealias Completion = (Result<(URL, URLResponse, URLSessionTaskMetrics?), Error>) -> Void
+
+    let downloadDelegate: URLSessionDownloadDelegate?
+    var completion: Completion?
+    var location: URL?
+
+    init(delegate: URLSessionDownloadDelegate?) {
+        self.downloadDelegate = delegate
+        super.init(delegate: delegate)
     }
 }

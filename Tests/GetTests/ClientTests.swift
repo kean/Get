@@ -213,6 +213,25 @@ final class APIClientTests: XCTestCase {
         }
     }
 
+    // MARK: - Downloads
+
+    func testDownloads() async throws {
+        // GIVEN
+        let client = makeSUT()
+
+        let url = URL(string: "https://api.github.com/user")!
+        Mock.get(url: url, json: "user").register()
+
+        // WHEN
+        let response = try await client.download(.get("/user"))
+
+        // THEN
+        print(response.location)
+        let data = try Data(contentsOf: response.location)
+        let user = try JSONDecoder().decode(User.self, from: data)
+        XCTAssertEqual(user.login, "kean")
+    }
+
     // MARK: - Request Body
 
     func testPassEncodableRequestBody() async throws {
