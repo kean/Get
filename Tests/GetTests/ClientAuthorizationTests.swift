@@ -51,7 +51,7 @@ final class APIClientAuthorizationTests: XCTestCase {
         var mock = Mock(url: url, dataType: .json, statusCode: 401, data: [
             .get: "Unauthorized".data(using: .utf8)!
         ])
-        mock.onRequest = { request, arguments in
+        mock.onRequest = { request, _ in
             XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "token invalid-token")
 
             var mock = Mock.get(url: url, json: "user")

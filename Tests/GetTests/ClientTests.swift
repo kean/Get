@@ -230,6 +230,88 @@ final class APIClientTests: XCTestCase {
         try await client.send(request)
     }
 
+    // MARK: - URLSessionDataDelegate (Per Request)
+
+    func testSettingDelegate() async throws {
+#if os(watchOS)
+        throw XCTSkip("Mocker URLProtocol isn't being called for POST requests on watchOS")
+#endif
+
+        // GIVEN
+        final class MockDelegate: NSObject, URLSessionDataDelegate {
+            var response: URLResponse?
+
+            func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse) async -> URLSession.ResponseDisposition {
+                self.response = response
+                return .cancel
+            }
+        }
+
+        let client = makeSUT()
+        let delegate = MockDelegate()
+
+        let url = URL(string: "https://api.github.com/user")!
+        var mock = Mock(url: url, dataType: .json, statusCode: 200, data: [
+            .post: json(named: "user")
+        ])
+        mock.onRequest = { request, _ in
+            XCTAssertNil(request.httpBody)
+            XCTAssertNil(request.httpBodyStream)
+        }
+        mock.register()
+
+        // WHEN
+        let body: User? = nil
+        let request = Request<Void>.post("/user", body: body)
+        do {
+            try await client.send(request, delegate: delegate)
+            XCTFail("Request was supposed to be cancelled")
+        } catch {
+            // Do nothing
+        }
+
+        // THEN
+        XCTAssertEqual(delegate.response?.url, url)
+    }
+
+    func testSettingDelegateCallbackBased() async throws {
+        // GIVEN
+        final class MockDelegate: NSObject, URLSessionDataDelegate {
+            var response: URLResponse?
+
+            func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+                self.response = response
+                completionHandler(.cancel)
+            }
+        }
+
+        let client = makeSUT()
+        let delegate = MockDelegate()
+
+        let url = URL(string: "https://api.github.com/user")!
+        var mock = Mock(url: url, dataType: .json, statusCode: 200, data: [
+            .post: json(named: "user")
+        ])
+        mock.onRequest = { request, _ in
+            XCTAssertNil(request.httpBody)
+            XCTAssertNil(request.httpBodyStream)
+        }
+        mock.register()
+
+        // WHEN
+        let body: User? = nil
+        let request = Request<Void>.post("/user", body: body)
+        do {
+            try await client.send(request, delegate: delegate)
+            XCTFail("Request was supposed to be cancelled")
+        } catch {
+            // Do nothing
+        }
+
+        // THEN
+        XCTAssertEqual(delegate.response?.url, url)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(using baseURL: URL? = URL(string: "https://api.github.com"),

@@ -66,8 +66,8 @@ public actor APIClient {
     }
 
     /// Sends the given request and returns a response with a decoded response value.
-    public func send<T: Decodable>(_ request: Request<T?>) async throws -> Response<T?> {
-        try await send(request) { data in
+    public func send<T: Decodable>(_ request: Request<T?>, delegate: URLSessionDataDelegate? = nil) async throws -> Response<T?> {
+        try await send(request, delegate: delegate) { data in
             if data.isEmpty {
                 return nil
             } else {
@@ -77,8 +77,8 @@ public actor APIClient {
     }
 
     /// Sends the given request and returns a response with a decoded response value.
-    public func send<T: Decodable>(_ request: Request<T>) async throws -> Response<T> {
-        try await send(request, decode)
+    public func send<T: Decodable>(_ request: Request<T>, delegate: URLSessionDataDelegate? = nil) async throws -> Response<T> {
+        try await send(request, delegate: delegate, decode)
     }
 
     private func decode<T: Decodable>(_ data: Data) async throws -> T {
@@ -94,30 +94,30 @@ public actor APIClient {
 
     /// Sends the given request.
     @discardableResult
-    public func send(_ request: Request<Void>) async throws -> Response<Void> {
-        try await send(request) { _ in () }
+    public func send(_ request: Request<Void>, delegate: URLSessionDataDelegate? = nil) async throws -> Response<Void> {
+        try await send(request, delegate: delegate) { _ in () }
     }
 
-    private func send<T>(_ request: Request<T>, _ decode: @escaping (Data) async throws -> T) async throws -> Response<T> {
+    private func send<T>(_ request: Request<T>, delegate: URLSessionDataDelegate?, _ decode: @escaping (Data) async throws -> T) async throws -> Response<T> {
         let request = try await makeURLRequest(for: request)
-        let response = try await send(request)
+        let response = try await send(request, delegate: delegate)
         let value = try await decode(response.value)
         return response.map { _ in value } // Keep metadata
     }
 
-    private func send(_ request: URLRequest) async throws -> Response<Data> {
+    private func send(_ request: URLRequest, delegate: URLSessionDataDelegate?) async throws -> Response<Data> {
         do {
-            return try await actuallySend(request)
+            return try await actuallySend(request, delegate: delegate)
         } catch {
-            guard try await delegate.shouldClientRetry(self, for: request, withError: error) else { throw error }
-            return try await actuallySend(request)
+            guard try await self.delegate.shouldClientRetry(self, for: request, withError: error) else { throw error }
+            return try await actuallySend(request, delegate: delegate)
         }
     }
 
-    private func actuallySend(_ request: URLRequest) async throws -> Response<Data> {
+    private func actuallySend(_ request: URLRequest, delegate: URLSessionDataDelegate?) async throws -> Response<Data> {
         var request = request
-        try await delegate.client(self, willSendRequest: &request)
-        let (data, response, metrics) = try await loader.data(for: request, session: session)
+        try await self.delegate.client(self, willSendRequest: &request)
+        let (data, response, metrics) = try await loader.data(for: request, session: session, delegate: delegate)
         try validate(response: response, data: data)
         return Response(value: data, data: data, request: request, response: response, metrics: metrics)
     }
