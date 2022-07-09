@@ -182,9 +182,5 @@ extension DataLoader {
             completionHandler(.continueLoading, nil)
         }
     }
-
-    func urlSession(_ session: URLSession, taskIsWaitingForConnectivity task: URLSessionTask) {
-        handlers[task]?.delegate?.urlSession(session, taskIsWaitingForConnectivity: task)
-    }
 }
 #endif
