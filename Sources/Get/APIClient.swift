@@ -167,6 +167,8 @@ public actor APIClient {
     ///   - delegate: Task-specific delegate.
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
     ///
+    /// - important: Make sure to move the downloaded file to a location in your app after the completion.
+    ///
     /// - returns: A response with a location of the downloaded file.
     public func download(
         _ request: Request<Void>,
