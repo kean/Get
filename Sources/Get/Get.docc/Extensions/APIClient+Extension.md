@@ -44,7 +44,7 @@ let response = try await client.send(Paths.user.get, delegate: delegate) {
 
 ### Downloading Data
 
-To fetch the response data, use ``data(for:delegate:configure:)-83pkq`` or use ``download(for:delegate:configure:)-68huc`` to download it to the file.
+To fetch the response data, use ``data(for:delegate:configure:)`` or use ``download(for:delegate:configure:)`` to download it to the file.
 
 ```swift
 let response = try await client.download(for: .get("/user"))
@@ -108,10 +108,8 @@ final class YourSessionDelegate: URLSessionTaskDelegate {
 
 ### Loading Data
 
-- ``data(for:delegate:configure:)-83pkq``
-- ``data(for:delegate:configure:)-t8pp``
+- ``data(for:delegate:configure:)``
 
 ### Downloads
 
-- ``download(for:delegate:configure:)-68huc``
-- ``download(for:delegate:configure:)-3q3o4``
+- ``download(for:delegate:configure:)``
