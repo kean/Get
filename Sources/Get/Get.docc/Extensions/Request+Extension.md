@@ -23,7 +23,6 @@ Request<Repo>.patch(
 
 ### Initializers
 
-- ``init(method:path:query:headers:)``
 - ``init(method:path:query:body:headers:)``
 
 ### Instance Properties
@@ -37,13 +36,9 @@ Request<Repo>.patch(
 ### Type Method
 
 - ``get(_:query:headers:)``
-- ``post(_:query:headers:)``
 - ``post(_:query:body:headers:)``
-- ``put(_:query:headers:)``
 - ``put(_:query:body:headers:)``
-- ``patch(_:query:headers:)``
 - ``patch(_:query:body:headers:)``
-- ``delete(_:query:headers:)``
 - ``delete(_:query:body:headers:)``
 - ``head(_:query:headers:)``
 - ``options(_:query:headers:)``

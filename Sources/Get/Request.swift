@@ -23,17 +23,8 @@ public struct Request<Response>: @unchecked Sendable {
 
     let body: AnyEncodable?
 
-    /// Initialiazes the request with the given parameters.
-    public init(method: String, path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) {
-        self.method = method
-        self.path = path
-        self.query = query
-        self.headers = headers
-        self.body = nil
-    }
-
     /// Initialiazes the request with the given parameters and the request body.
-    public init<U: Encodable>(method: String, path: String, query: [(String, String?)]? = nil, body: U?, headers: [String: String]? = nil) {
+    public init(method: String, path: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) {
         self.method = method
         self.path = path
         self.query = query
@@ -45,35 +36,19 @@ public struct Request<Response>: @unchecked Sendable {
         Request(method: "GET", path: path, query: query, headers: headers)
     }
 
-    public static func post(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "POST", path: path, query: query, headers: headers)
-    }
-
-    public static func post<U: Encodable>(_ path: String, query: [(String, String?)]? = nil, body: U?, headers: [String: String]? = nil) -> Request {
+    public static func post(_ path: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
         Request(method: "POST", path: path, query: query, body: body, headers: headers)
     }
 
-    public static func put(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "PUT", path: path, query: query, headers: headers)
-    }
-
-    public static func put<U: Encodable>(_ path: String, query: [(String, String?)]? = nil, body: U?, headers: [String: String]? = nil) -> Request {
+    public static func put(_ path: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
         Request(method: "PUT", path: path, query: query, body: body, headers: headers)
     }
 
-    public static func patch(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "PATCH", path: path, query: query, headers: headers)
-    }
-
-    public static func patch<U: Encodable>(_ path: String, query: [(String, String?)]? = nil, body: U?, headers: [String: String]? = nil) -> Request {
+    public static func patch(_ path: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
         Request(method: "PATCH", path: path, query: query, body: body, headers: headers)
     }
 
-    public static func delete(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "DELETE", path: path, query: query, headers: headers)
-    }
-
-    public static func delete<U: Encodable>(_ path: String, query: [(String, String?)]? = nil, body: U?, headers: [String: String]? = nil) -> Request {
+    public static func delete(_ path: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
         Request(method: "DELETE", path: path, query: query, body: body, headers: headers)
     }
 
