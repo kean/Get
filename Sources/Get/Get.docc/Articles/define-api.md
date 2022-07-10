@@ -82,6 +82,6 @@ let repos = try await client.send(API.users("kean").repos.get)
 
 This API is visually appealing, but it can be a bit tedious to write and less discoverable than simply listing all available calls.
 
-> important: There are many [suggestions](https://github.com/Moya/Moya/blob/master/docs/Examples/Basic.md) to model APIs using enums. This usually isn't ideal because you are setting yourself for merge conflicts, and it is harder to read and modify than other approaches. When you add a new call, you should only need to make a change in one place.
+> important: There are many [suggestions](https://github.com/Moya/Moya/blob/master/docs/Examples/Basic.md) to model APIs using enums. This usually isn't ideal because you are setting yourself for merge conflicts, and it is harder to read and modify than other approaches. When you add a new call, you should only need to make changes in one place.
 
-> tip: With [CreateAPI](https://github.com/kean/CreateAPI), you can take your backend OpenAPI spec, and generate all of the response entities and even requests for Get ``APIClient`
+> tip: With [CreateAPI](https://github.com/kean/CreateAPI), you can take your backend OpenAPI spec, and generate all of the response entities and even requests for Get ``APIClient``.
