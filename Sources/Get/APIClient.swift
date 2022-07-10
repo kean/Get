@@ -207,14 +207,6 @@ public actor APIClient {
         delegate: URLSessionDownloadDelegate? = nil,
         configure: ((inout URLRequest) -> Void)? = nil
     ) async throws -> Response<URL> {
-        try await _download(request, delegate: delegate, configure: configure)
-    }
-
-    private func _download<T>(
-        _ request: Request<T>,
-        delegate: URLSessionDownloadDelegate?,
-        configure: ((inout URLRequest) -> Void)?
-    ) async throws -> Response<URL> {
         var request = try await makeURLRequest(for: request)
         configure?(&request)
         return try await _download(request, attempts: 1, delegate: delegate)
