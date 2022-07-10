@@ -51,6 +51,10 @@ public protocol APIClientDelegate {
     /// - returns: The URL for the request. Return `nil` to use the default
     /// logic used by client.
     func client(_ client: APIClient, makeURLForPath path: String, query: [(String, String?)]?) throws -> URL?
+
+    // Deprecated in Get 1.0
+    @available(*, deprecated, message: "Please use client(_:shouldRetryRequest:attempts:error:). The current method will no longer work.")
+    func shouldClientRetry(_ client: APIClient, for request: URLRequest, withError error: Error) async throws -> Bool
 }
 
 public extension APIClientDelegate {
@@ -69,6 +73,8 @@ public extension APIClientDelegate {
     func client(_ client: APIClient, makeURLForPath path: String, query: [(String, String?)]?) throws -> URL? {
         nil // Use default handlings
     }
+
+    func shouldClientRetry(_ client: APIClient, for request: URLRequest, withError error: Error) async throws -> Bool { false }
 }
 
 struct DefaultAPIClientDelegate: APIClientDelegate {}
