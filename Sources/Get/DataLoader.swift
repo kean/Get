@@ -22,7 +22,11 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     private var userDataDelegate: URLSessionDataDelegate?
     private var userDownloadDelegate: URLSessionDownloadDelegate?
 
-    private lazy var downloadDirectoryURL = FileManager.default.temporaryDirectory.appendingPathComponent("com.github.kean.get/Downloads/")
+    private static let downloadDirectoryURL: URL = {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("com.github.kean.get/Downloads/")
+        try? FileManager.default.removeItem(at: url)
+        return url
+    }()
 
     func data(for request: URLRequest, session: URLSession, delegate: URLSessionDataDelegate?) async throws -> (Data, URLResponse, URLSessionTaskMetrics?) {
         let box = Box()
@@ -255,8 +259,9 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         let handler = (handlers[downloadTask] as? DownloadTaskHandler)
-        try? FileManager.default.createDirectory(at: downloadDirectoryURL, withIntermediateDirectories: true, attributes: nil)
-        let newLocation = downloadDirectoryURL.appendingPathExtension(location.lastPathComponent)
+        let downloadsURL = DataLoader.downloadDirectoryURL
+        try? FileManager.default.createDirectory(at: downloadsURL, withIntermediateDirectories: true, attributes: nil)
+        let newLocation = downloadsURL.appendingPathExtension(location.lastPathComponent)
         try? FileManager.default.moveItem(at: location, to: newLocation)
         handler?.location = newLocation
         handler?.downloadDelegate?.urlSession(session, downloadTask: downloadTask, didFinishDownloadingTo: newLocation)
