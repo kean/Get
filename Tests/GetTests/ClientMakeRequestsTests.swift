@@ -77,12 +77,12 @@ final class ClientMakeRequestsTests: XCTestCase {
         // WHEN
         let urlRequest = try await client.makeURLRequest(for: request)
 
-        // THEN
+        // THEN default headers are set
         XCTAssertEqual(urlRequest.value(forHTTPHeaderField: "Content-Type"), "application/json")
         XCTAssertEqual(urlRequest.value(forHTTPHeaderField: "Accept"), "application/json")
     }
 
-    func testOverrideAcceptAndContentHeaders() async throws {
+    func testOverrideAcceptAndContentTypeHeaders() async throws {
         // GIVEN
         let request = Request.put("https://example.com/user", body: User(id: 123, login: "kean"), headers: [
             "Content-Type": "application/xml",
@@ -92,8 +92,26 @@ final class ClientMakeRequestsTests: XCTestCase {
         // WHEN
         let urlRequest = try await client.makeURLRequest(for: request)
 
-        // THEN
+        // THEN headers provided by the user are set
         XCTAssertEqual(urlRequest.value(forHTTPHeaderField: "Content-Type"), "application/xml")
         XCTAssertEqual(urlRequest.value(forHTTPHeaderField: "Accept"), "application/xml")
+    }
+
+    func testOverrideAcceptAndContentTypeHeadersUsingSessionConfiguration() async throws {
+        // GIVEN
+        let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
+            $0.sessionConfiguration.httpAdditionalHeaders = [
+                "Content-Type": "application/xml",
+                "Accept": "application/xml"
+            ]
+        }
+        let request = Request.put("https://example.com/user", body: User(id: 123, login: "kean"))
+
+        // WHEN
+        let urlRequest = try await client.makeURLRequest(for: request)
+
+        // THEN headers are set when request is execute by URLSession
+        XCTAssertNil(urlRequest.value(forHTTPHeaderField: "Content-Type"))
+        XCTAssertNil(urlRequest.value(forHTTPHeaderField: "Accept"))
     }
 }
