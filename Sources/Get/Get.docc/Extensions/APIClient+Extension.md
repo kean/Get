@@ -31,8 +31,6 @@ The ``send(_:delegate:configure:)-2ls6m`` method returns not just the response v
 
 The response can be any `Decodable` type. The response can also be optional. If the response is `String`, it returns raw response as a string.
 
-> tip: By default, the request ``Request/path`` is appended to the client's ``APIClient/Configuration-swift.struct/baseURL``. However, if you pass a complete URL, e.g. `"https://api.github.com/user"`, it will be used instead. 
-
 You can also provide task-specific delegates and easily change any of the `URLRequest` properties before the request is sent.
 
 ```swift

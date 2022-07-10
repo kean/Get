@@ -292,7 +292,7 @@ public actor APIClient {
         for request: Request<T>,
         _ configure: ((inout URLRequest) -> Void)?
     ) async throws -> URLRequest {
-        let url = try makeURL(path: request.path, query: request.query)
+        let url = try makeURL(url: request.url, query: request.query)
         var urlRequest = URLRequest(url: url)
         urlRequest.allHTTPHeaderFields = request.headers
         urlRequest.httpMethod = request.method
@@ -307,13 +307,13 @@ public actor APIClient {
         return urlRequest
     }
 
-    private func makeURL(path: String, query: [(String, String?)]?) throws -> URL {
-        if let url = try delegate.client(self, makeURLForPath: path, query: query) {
+    private func makeURL(url: String, query: [(String, String?)]?) throws -> URL {
+        if let url = try delegate.client(self, makeURLForPath: url, query: query) {
             return url
         }
         func makeAbsoluteURL() -> URL? {
-            let isRelative = path.starts(with: "/") || URL(string: path)?.scheme == nil
-            return isRelative ? configuration.baseURL?.appendingPathComponent(path) : URL(string: path)
+            let isRelative = url.starts(with: "/") || URL(string: url)?.scheme == nil
+            return isRelative ? configuration.baseURL?.appendingPathComponent(url) : URL(string: url)
         }
         guard let url = makeAbsoluteURL(),
               var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {

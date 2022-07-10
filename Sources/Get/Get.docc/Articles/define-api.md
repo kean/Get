@@ -8,12 +8,10 @@ For smaller apps, using ``APIClient`` directly without creating an API definitio
 
 ## Creating Requests
 
-The best way to create requests is by using its factory methods: 
+A request is represented using a simple `Request<Response>` struct. To create a request, use one of the factory methods:
 
 ```swift
 Request<User>.get("/user")
-
-Request<Void>.post("/repos", body: Repo(name: "CreateAPI"))
 
 Request<Repo>.patch(
     "/repos/octokit",
@@ -21,9 +19,20 @@ Request<Repo>.patch(
     body: Repo(access: .public),
     headers: ["Version": "v2"]
 )
+
+// Defaults to `Void` as a response
+Request.post("/repos", body: Repo(name: "CreateAPI"))
 ```
 
-However, there are also initializers available that accept HTTP method as one of the parameters.
+> tip: To learn more about defining network requests, see <doc:define-api>.
+
+You can also use an initializer to create requests:
+
+```swift
+Request(url: "/repos/octokit", query: [("password", "123456")])
+```
+
+> tip: If the request's ``Request/url`` represents a relative URL, e.g. `"/user/repos"`, then it is appended to the client's ``APIClient/Configuration-swift.struct/baseURL``. If pass an absolute URL, e.g. `"https://api.github.com/user"`, it will be used as-is.
 
 ## Modeling APIs as Operations
 

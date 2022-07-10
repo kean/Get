@@ -20,16 +20,24 @@ Request.post("/repos", body: Repo(name: "CreateAPI"))
 
 > tip: To learn more about defining network requests, see <doc:define-api>.
 
+You can also use an initializer to create requests:
+
+```swift
+Request(url: "/repos/octokit", query: [("password", "123456")])
+```
+
+> tip: If the request's ``Request/url`` represents a relative URL, e.g. `"/user/repos"`, then it is appended to the client's ``APIClient/Configuration-swift.struct/baseURL``. If pass an absolute URL, e.g. `"https://api.github.com/user"`, it will be used as-is.
+
 ## Topics
 
 ### Initializers
 
-- ``init(method:path:query:body:headers:)``
+- ``init(method:url:query:body:headers:)``
 
 ### Instance Properties
 
 - ``method``
-- ``path``
+- ``url``
 - ``query``
 - ``headers``
 - ``id``
