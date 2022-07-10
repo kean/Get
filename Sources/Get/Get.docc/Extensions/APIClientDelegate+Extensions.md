@@ -9,5 +9,10 @@
 
 ### Error Handling and Retries
 
-- ``client(_:didReceiveInvalidResponse:data:)-463ia``
+- ``client(_:validateResponse:data:request:)-2aica``
 - ``client(_:shouldRetryRequest:attempts:error:)-4loyw``
+
+### Deprecated
+
+- ``client(_:didReceiveInvalidResponse:data:)-463ia``
+- ``shouldClientRetry(_:for:withError:)-550vh``

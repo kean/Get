@@ -19,17 +19,18 @@ public protocol APIClientDelegate {
     ///   - request: The request about to be sent. Can be modified
     func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws
 
-    /// Gets called when the request fails with an HTTP status code outside of
-    /// the `200..<300` range.
+    /// Validates response for the given request.
     ///
     /// - parameters:
     ///   - client: The client that sent the request.
     ///   - response: The response with an invalid status code.
     ///   - data: Body of the response, if any.
+    ///   - request: Failing request.
     ///
-    /// - returns: Error to be returned to the user. By default, returns
-    /// ``APIError/unacceptableStatusCode(_:)``.
-    func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error
+    /// - throws: An error to be returned to the user. By default, throws
+    /// ``APIError/unacceptableStatusCode(_:)`` if the code is outside of
+    /// the `200..<300` range.
+    func client(_ client: APIClient, validateResponse response: HTTPURLResponse, data: Data, request: URLRequest) throws
 
     /// Gets called after failure.  Only one retry attempt is allowed.
     ///
@@ -53,7 +54,11 @@ public protocol APIClientDelegate {
     func client(_ client: APIClient, makeURLForPath path: String, query: [(String, String?)]?) throws -> URL?
 
     // Deprecated in Get 1.0
-    @available(*, deprecated, message: "Please use client(_:shouldRetryRequest:attempts:error:). The current method will no longer work.")
+    @available(*, deprecated, message: "Please implement client(_:validateResponse:data:request:) instead. The current method is no longer used.")
+    func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error
+
+    // Deprecated in Get 1.0
+    @available(*, deprecated, message: "Please use client(_:shouldRetryRequest:attempts:error:). The current method is no longer used.")
     func shouldClientRetry(_ client: APIClient, for request: URLRequest, withError error: Error) async throws -> Bool
 }
 
@@ -64,6 +69,11 @@ public extension APIClientDelegate {
 
     func client(_ client: APIClient, shouldRetryRequest request: URLRequest, attempts: Int, error: Error) async throws -> Bool {
         false // Disabled by default
+    }
+
+    func client(_ client: APIClient, validateResponse response: HTTPURLResponse, data: Data, request: URLRequest) throws {
+        guard !(200..<300).contains(response.statusCode) else { return }
+        throw APIError.unacceptableStatusCode(response.statusCode)
     }
 
     func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error {

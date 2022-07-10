@@ -141,7 +141,7 @@ public actor APIClient {
         let request = try await makeURLRequest(for: request, configure)
         return try await performWithRetries(request: request) { request in
             let (data, response, metrics) = try await dataLoader.data(for: request, session: session, delegate: delegate)
-            try validate(response: response, data: data)
+            try validate(response: response, data: data, request: request)
             let value = try await decode(data)
             return Response(value: value, data: data, request: request, response: response, metrics: metrics)
         }
@@ -208,8 +208,9 @@ public actor APIClient {
     ) async throws -> Response<URL> {
         try await performWithRetries(request: request) { request in
             let (location, response, metrics) = try await dataLoader.download(for: request, session: session, delegate: delegate)
-            try validate(response: response, data: Data())
-            return Response(value: location, data: Data(), request: request, response: response, metrics: metrics)
+            let data = Data() // Data is downloaded to file instead
+            try validate(response: response, data: data, request: request)
+            return Response(value: location, data: data, request: request, response: response, metrics: metrics)
         }
     }
 
@@ -263,7 +264,7 @@ public actor APIClient {
     ) async throws -> Response<T> {
         try await performWithRetries(request: request) { request in
             let (data, response, metrics) = try await dataLoader.upload(for: request, fromFile: fileURL, session: session, delegate: delegate)
-            try validate(response: response, data: data)
+            try validate(response: response, data: data, request: request)
             let value = try await decode(data)
             return Response(value: value, data: data, request: request, response: response, metrics: metrics)
         }
@@ -335,11 +336,9 @@ public actor APIClient {
         return url
     }
 
-    private func validate(response: URLResponse, data: Data) throws {
+    private func validate(response: URLResponse, data: Data, request: URLRequest) throws {
         guard let httpResponse = response as? HTTPURLResponse else { return }
-        if !(200..<300).contains(httpResponse.statusCode) {
-            throw delegate.client(self, didReceiveInvalidResponse: httpResponse, data: data)
-        }
+        try delegate.client(self, validateResponse: httpResponse, data: data, request: request)
     }
 }
 

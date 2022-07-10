@@ -111,8 +111,9 @@ private final class GitHubAPIClientDelegate: APIClientDelegate {
         return false
     }
 
-    func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error {
-        GitHubError.unacceptableStatusCode(response.statusCode)
+    func client(_ client: APIClient, validateResponse response: HTTPURLResponse, data: Data?, request: URLRequest) throws {
+        guard !(200..<300).contains(response.statusCode) else { return }
+        throw GitHubError.unacceptableStatusCode(response.statusCode)
     }
 }
 
