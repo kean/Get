@@ -225,13 +225,16 @@ final class APIClientTests: XCTestCase {
         let client = makeSUT()
 
         let url = URL(string: "https://api.github.com/user")!
-        Mock.get(url: url, json: "user").register()
+        Mock(url: url, dataType: .json, statusCode: 200, data: [
+            .post: json(named: "user")
+        ]).register()
 
         // WHEN
-        let response = try await client.data(for: .get("/user"))
+
+        let fileURL = try XCTUnwrap(Bundle.module.url(forResource: "user", withExtension: "json"))
+        let user: User = try await client.upload(for: .post("/user"), fromFile: fileURL).value
 
         // THEN
-        let user = try JSONDecoder().decode(User.self, from: response.data)
         XCTAssertEqual(user.login, "kean")
     }
 
@@ -254,6 +257,24 @@ final class APIClientTests: XCTestCase {
         XCTAssertEqual(user.login, "kean")
     }
 #endif
+
+    // MARK: - Uploads
+
+    func testUpload() async throws {
+        // GIVEN
+        let client = makeSUT()
+
+        let url = URL(string: "https://api.github.com/user")!
+        Mock.get(url: url, json: "user").register()
+
+        // WHEN
+        let response = try await client.download(for: .get("/user"))
+
+        // THEN
+        let data = try Data(contentsOf: response.location)
+        let user = try JSONDecoder().decode(User.self, from: data)
+        XCTAssertEqual(user.login, "kean")
+    }
 
     // MARK: - Request Body
 

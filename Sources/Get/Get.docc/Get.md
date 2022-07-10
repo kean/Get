@@ -34,6 +34,8 @@ let response = try await client.send(Paths.user.get, delegate: delegate) {
 }
 ```
 
+In addition to sending quick requests, Get also supports downloads, uploads from file, authentication, auto-retries, logging, and more.
+
 ## Sponsors 💖
 
 [Support](https://github.com/sponsors/kean) Get on GitHub Sponsors.

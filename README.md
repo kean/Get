@@ -36,6 +36,8 @@ let response = try await client.send(Paths.user.get, delegate: delegate) {
 }
 ```
 
+In addition to sending quick requests, Get also supports downloads, uploads from file, authentication, auto-retries, logging, and more.
+
 ## Documentation
 
 Learn how to use Get by going through the [documentation](https://kean-docs.github.io/get/documentation/get/) created using DocC.

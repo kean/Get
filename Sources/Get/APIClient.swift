@@ -135,25 +135,12 @@ public actor APIClient {
         configure: ((inout URLRequest) -> Void)?,
         _ decode: @escaping (Data) async throws -> U
     ) async throws -> Response<U> {
-        var request = try await makeURLRequest(for: request)
-        configure?(&request)
-        let response = try await _send(request, attempts: 1, delegate: delegate)
-        let value = try await decode(response.value)
-        return response.map { _ in value } // Keep metadata
-    }
-
-    private func _send(_ request: URLRequest, attempts: Int, delegate: URLSessionDataDelegate?) async throws -> Response<Data> {
-        do {
-            var request = request
-            try await self.delegate.client(self, willSendRequest: &request)
+        let request = try await makeURLRequest(for: request, configure)
+        return try await performWithRetries(request: request) { request in
             let (data, response, metrics) = try await dataLoader.data(for: request, session: session, delegate: delegate)
             try validate(response: response, data: data)
-            return Response(value: data, data: data, request: request, response: response, metrics: metrics)
-        } catch {
-            guard try await self.delegate.client(self, shouldRetryRequest: request, attempts: attempts, error: error) else {
-                throw error
-            }
-            return try await _send(request, attempts: attempts + 1, delegate: delegate)
+            let value = try await decode(data)
+            return Response(value: value, data: data, request: request, response: response, metrics: metrics)
         }
     }
 
@@ -207,8 +194,7 @@ public actor APIClient {
         delegate: URLSessionDownloadDelegate? = nil,
         configure: ((inout URLRequest) -> Void)? = nil
     ) async throws -> Response<URL> {
-        var request = try await makeURLRequest(for: request)
-        configure?(&request)
+        let request = try await makeURLRequest(for: request, configure)
         return try await _download(request, attempts: 1, delegate: delegate)
     }
 
@@ -217,25 +203,92 @@ public actor APIClient {
         attempts: Int,
         delegate: URLSessionDownloadDelegate?
     ) async throws -> Response<URL> {
-        do {
-            var request = request
-            try await self.delegate.client(self, willSendRequest: &request)
+        try await performWithRetries(request: request) { request in
             let (location, response, metrics) = try await dataLoader.download(for: request, session: session, delegate: delegate)
             try validate(response: response, data: Data())
             return Response(value: location, data: Data(), request: request, response: response, metrics: metrics)
-        } catch {
-            guard try await self.delegate.client(self, shouldRetryRequest: request, attempts: attempts, error: error) else {
-                throw error
-            }
-            return try await _download(request, attempts: attempts + 1, delegate: delegate)
         }
     }
 
 #endif
 
+    // MARK: Upload
+
+    /// Convenience method to upload data from the file.
+    ///
+    /// - parameters:
+    ///   - request: The URLRequest for which to upload data.
+    ///   - fileURL: File to upload.
+    ///   - delegate: Task-specific delegate.
+    ///   - configure: Modifies the underlying `URLRequest` before sending it.
+    ///
+    /// Returns decoded response.
+    public func upload<T: Decodable>(
+        for request: Request<T>,
+        fromFile fileURL: URL,
+        delegate: URLSessionTaskDelegate? = nil,
+        configure: ((inout URLRequest) -> Void)? = nil
+    ) async throws -> Response<T> {
+        let request = try await makeURLRequest(for: request, configure)
+        return try await _upload(request, fromFile: fileURL, delegate: delegate, decode)
+    }
+
+    /// Convenience method to upload data from the file.
+    ///
+    /// - parameters:
+    ///   - request: The URLRequest for which to upload data.
+    ///   - fileURL: File to upload.
+    ///   - delegate: Task-specific delegate.
+    ///   - configure: Modifies the underlying `URLRequest` before sending it.
+    ///
+    /// Returns decoded response.
+    public func upload(
+        for request: Request<Void>,
+        fromFile fileURL: URL,
+        delegate: URLSessionTaskDelegate? = nil,
+        configure: ((inout URLRequest) -> Void)? = nil
+    ) async throws -> Response<Void> {
+        let request = try await makeURLRequest(for: request, configure)
+        return try await _upload(request, fromFile: fileURL, delegate: delegate, { _ in () })
+    }
+
+    private func _upload<T>(
+        _ request: URLRequest,
+        fromFile fileURL: URL,
+        delegate: URLSessionTaskDelegate? = nil,
+        _ decode: @escaping (Data) async throws -> T
+    ) async throws -> Response<T> {
+        try await performWithRetries(request: request) { request in
+            let (data, response, metrics) = try await dataLoader.upload(for: request, fromFile: fileURL, session: session, delegate: delegate)
+            try validate(response: response, data: data)
+            let value = try await decode(data)
+            return Response(value: value, data: data, request: request, response: response, metrics: metrics)
+        }
+    }
+
     // MARK: Helpers
 
-    private func makeURLRequest<T>(for request: Request<T>) async throws -> URLRequest {
+    private func performWithRetries<T>(
+        request: URLRequest,
+        attempts: Int = 1,
+        send: (URLRequest) async throws -> T
+    ) async throws -> T {
+        do {
+            var request = request
+            try await self.delegate.client(self, willSendRequest: &request)
+            return try await send(request)
+        } catch {
+            guard try await self.delegate.client(self, shouldRetryRequest: request, attempts: attempts, error: error) else {
+                throw error
+            }
+            return try await performWithRetries(request: request, attempts: attempts + 1, send: send)
+        }
+    }
+
+    private func makeURLRequest<T>(
+        for request: Request<T>,
+        _ configure: ((inout URLRequest) -> Void)?
+    ) async throws -> URLRequest {
         let url = try makeURL(path: request.path, query: request.query)
         var urlRequest = URLRequest(url: url)
         urlRequest.allHTTPHeaderFields = request.headers
@@ -247,6 +300,7 @@ public actor APIClient {
             urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
         urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+        configure?(&urlRequest)
         return urlRequest
     }
 
@@ -255,7 +309,8 @@ public actor APIClient {
             return url
         }
         func makeAbsoluteURL() -> URL? {
-            (path.starts(with: "/") || URL(string: path)?.scheme == nil) ? conf.baseURL?.appendingPathComponent(path) : URL(string: path)
+            let isRelative = path.starts(with: "/") || URL(string: path)?.scheme == nil
+            return isRelative ? conf.baseURL?.appendingPathComponent(path) : URL(string: path)
         }
         guard let url = makeAbsoluteURL(),
               var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
