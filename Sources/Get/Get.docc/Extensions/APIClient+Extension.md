@@ -27,7 +27,7 @@ let user: User = try await client.send(.get("/user")).value
 try await client.send(.post("/repos", body: Repo(name: "CreateAPI"))
 ```
 
-The ``send(_:delegate:configure:)-2ls6m`` method returns not just the response value, but all of the metadata associated with the request packed in a ``Response`` struct. And o learn more about creating requests, see ``Request``.
+The ``send(_:delegate:configure:)-3t9w0`` method returns not just the response value, but all of the metadata associated with the request packed in a ``Response`` struct. And o learn more about creating requests, see ``Request``.
 
 The response can be any `Decodable` type. The response can also be optional. If the response is `String`, it returns raw response as a string.
 
@@ -42,14 +42,14 @@ let response = try await client.send(Paths.user.get, delegate: delegate) {
 
 ### Downloading and Uploading Data
 
-To fetch the response data, use ``data(for:delegate:configure:)`` or use ``download(for:delegate:configure:)`` to download it to the file.
+To fetch the response data, use ``data(for:delegate:configure:)`` and decode data using your preferred method or use ``download(for:delegate:configure:)`` to download it to the file.
 
 ```swift
 let response = try await client.download(for: .get("/user"))
 let url = response.location
 ```
 
-``APIClient`` also provides a convenience method ``upload(for:fromFile:delegate:configure:)-5w52n`` for uploading data from a file:
+``APIClient`` also provides a convenience method ``upload(for:fromFile:delegate:configure:)-y3l9`` for uploading data from a file:
 
 ```swift
 try await client.upload(for: .post("/avatar"), fromFile: fileURL)
@@ -111,9 +111,9 @@ final class YourSessionDelegate: URLSessionTaskDelegate {
 
 ### Sending Requests
 
-- ``send(_:delegate:configure:)-2ls6m``
-- ``send(_:delegate:configure:)-2uc3f``
-- ``send(_:delegate:configure:)-3vh73``
+- ``send(_:delegate:configure:)-3t9w0``
+- ``send(_:delegate:configure:)-81caz``
+- ``send(_:delegate:configure:)-2mbhr``
 
 ### Loading Data
 
@@ -125,5 +125,5 @@ final class YourSessionDelegate: URLSessionTaskDelegate {
 
 ### Uploads
 
-- ``upload(for:fromFile:delegate:configure:)-5w52n``
-- ``upload(for:fromFile:delegate:configure:)-5iex0``
+- ``upload(for:fromFile:delegate:configure:)-y3l9``
+- ``upload(for:fromFile:delegate:configure:)-2q1yx``

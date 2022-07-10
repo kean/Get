@@ -88,7 +88,7 @@ public actor APIClient {
     public func send<T: Decodable>(
         _ request: Request<T>,
         delegate: URLSessionDataDelegate? = nil,
-        configure: ((inout URLRequest) -> Void)? = nil
+        configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<T> {
         try await _send(request, delegate: delegate, configure: configure, decode)
     }
@@ -104,7 +104,7 @@ public actor APIClient {
     public func send<T: Decodable>(
         _ request: Request<T?>,
         delegate: URLSessionDataDelegate? = nil,
-        configure: ((inout URLRequest) -> Void)? = nil
+        configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<T?> {
         try await _send(request, delegate: delegate, configure: configure) { data in
             if data.isEmpty {
@@ -127,7 +127,7 @@ public actor APIClient {
     public func send(
         _ request: Request<Void>,
         delegate: URLSessionDataDelegate? = nil,
-        configure: ((inout URLRequest) -> Void)? = nil
+        configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<Void> {
         try await _send(request, delegate: delegate, configure: configure) { _ in () }
     }
@@ -135,7 +135,7 @@ public actor APIClient {
     private func _send<T, U>(
         _ request: Request<T>,
         delegate: URLSessionDataDelegate?,
-        configure: ((inout URLRequest) -> Void)?,
+        configure: ((inout URLRequest) throws -> Void)?,
         _ decode: @escaping (Data) async throws -> U
     ) async throws -> Response<U> {
         let request = try await makeURLRequest(for: request, configure)
@@ -173,7 +173,7 @@ public actor APIClient {
     public func data<T>(
         for request: Request<T>,
         delegate: URLSessionDataDelegate? = nil,
-        configure: ((inout URLRequest) -> Void)? = nil
+        configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<Data> {
         try await _send(request, delegate: delegate, configure: configure) { $0 }
     }
@@ -195,7 +195,7 @@ public actor APIClient {
     public func download<T>(
         for request: Request<T>,
         delegate: URLSessionDownloadDelegate? = nil,
-        configure: ((inout URLRequest) -> Void)? = nil
+        configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<URL> {
         let request = try await makeURLRequest(for: request, configure)
         return try await performWithRetries(request: request) { request in
@@ -223,7 +223,7 @@ public actor APIClient {
         for request: Request<T>,
         fromFile fileURL: URL,
         delegate: URLSessionTaskDelegate? = nil,
-        configure: ((inout URLRequest) -> Void)? = nil
+        configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<T> {
         let request = try await makeURLRequest(for: request, configure)
         return try await _upload(request, fromFile: fileURL, delegate: delegate, decode)
@@ -242,7 +242,7 @@ public actor APIClient {
         for request: Request<Void>,
         fromFile fileURL: URL,
         delegate: URLSessionTaskDelegate? = nil,
-        configure: ((inout URLRequest) -> Void)? = nil
+        configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<Void> {
         let request = try await makeURLRequest(for: request, configure)
         return try await _upload(request, fromFile: fileURL, delegate: delegate, { _ in () })
@@ -290,7 +290,7 @@ public actor APIClient {
 
     private func makeURLRequest<T>(
         for request: Request<T>,
-        _ configure: ((inout URLRequest) -> Void)?
+        _ configure: ((inout URLRequest) throws -> Void)?
     ) async throws -> URLRequest {
         let url = try makeURL(url: request.url, query: request.query)
         var urlRequest = URLRequest(url: url)
@@ -309,7 +309,9 @@ public actor APIClient {
             session.configuration.httpAdditionalHeaders?["Accept"] == nil {
             urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
         }
-        configure?(&urlRequest)
+        if let configure = configure {
+            try configure(&urlRequest)
+        }
         return urlRequest
     }
 

@@ -44,11 +44,3 @@ extension InputStream {
         return data
     }
 }
-
-extension XCTestCase {
-    func trackForMemoryLeak(_ instance: AnyObject, file: StaticString = #filePath, line: UInt = #line) {
-        addTeardownBlock { [weak instance] in
-            XCTAssertNil(instance, file: file, line: line)
-        }
-    }
-}

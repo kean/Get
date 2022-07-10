@@ -11,6 +11,13 @@ import FoundationNetworking
 #endif
 
 final class APIClientTests: XCTestCase {
+    var client: APIClient!
+
+    override func setUp() {
+        super.setUp()
+
+        self.client = .github()
+    }
 
     // MARK: Basic Requests
 
@@ -18,8 +25,6 @@ final class APIClientTests: XCTestCase {
     // You can define the requests inline instead.
     func testDefiningRequestInline() async throws {
         // GIVEN
-        let client = makeSUT()
-
         let url = URL(string: "https://api.github.com/user")!
         Mock.get(url: url, json: "user").register()
 
@@ -32,8 +37,6 @@ final class APIClientTests: XCTestCase {
 
     func testResponseMetadata() async throws {
         // GIVEN
-        let client = makeSUT()
-
         let url = URL(string: "https://api.github.com/user")!
         Mock.get(url: url, json: "user").register()
 
@@ -55,8 +58,6 @@ final class APIClientTests: XCTestCase {
 
     func testCancellingRequests() async throws {
         // Given
-        let client = makeSUT()
-
         let url = URL(string: "https://api.github.com/users/kean")!
         var mock = Mock.get(url: url, json: "user")
         mock.delay = DispatchTimeInterval.seconds(60)
@@ -85,8 +86,6 @@ final class APIClientTests: XCTestCase {
     // func value(for:) -> Decodable
     func testResponseDecodable() async throws {
         // GIVEN
-        let client = makeSUT()
-
         let url = URL(string: "https://api.github.com/user")!
         Mock.get(url: url, json: "user").register()
 
@@ -100,8 +99,6 @@ final class APIClientTests: XCTestCase {
     // func value(for:) -> Decodable
     func testResponseDecodableOptional() async throws {
         // GIVEN
-        let client = makeSUT()
-
         let url = URL(string: "https://api.github.com/user")!
         Mock(url: url, dataType: .html, statusCode: 200, data: [
             .get: Data()
@@ -117,8 +114,6 @@ final class APIClientTests: XCTestCase {
     // func value(for:) -> Decodable
     func testResponseEmpty() async throws {
         // GIVEN
-        let client = makeSUT()
-
         let url = URL(string: "https://api.github.com/user")!
         Mock(url: url, dataType: .html, statusCode: 200, data: [
             .get: Data()
@@ -131,8 +126,6 @@ final class APIClientTests: XCTestCase {
     // func value(for:) -> Data
     func testResponseData() async throws {
         // GIVEN
-        let client = makeSUT()
-
         let url = URL(string: "https://api.github.com/user")!
         Mock(url: url, dataType: .html, statusCode: 200, data: [
             .get: "<h>Hello</h>".data(using: .utf8)!
@@ -148,8 +141,6 @@ final class APIClientTests: XCTestCase {
     // func value(for:) -> String
     func testResponeString() async throws {
         // GIVEN
-        let client = makeSUT()
-
         let url = URL(string: "https://api.github.com/user")!
         Mock(url: url, dataType: .json, statusCode: 200, data: [
             .get: "hello".data(using: .utf8)!
@@ -168,8 +159,6 @@ final class APIClientTests: XCTestCase {
 #endif
 
         // GIVEN
-        let client = makeSUT()
-
         let url = URL(string: "https://api.github.com/user")!
         Mock(url: url, dataType: .json, statusCode: 200, data: [
             .post: json(named: "user")
@@ -222,8 +211,6 @@ final class APIClientTests: XCTestCase {
 
     func testFetchData() async throws {
         // GIVEN
-        let client = makeSUT()
-
         let url = URL(string: "https://api.github.com/user")!
         Mock.get(url: url, json: "user").register()
 
@@ -240,8 +227,6 @@ final class APIClientTests: XCTestCase {
 #if !os(Linux)
     func testDownloads() async throws {
         // GIVEN
-        let client = makeSUT()
-
         let url = URL(string: "https://api.github.com/user")!
         Mock.get(url: url, json: "user").register()
 
@@ -259,8 +244,6 @@ final class APIClientTests: XCTestCase {
 
     func testUpload() async throws {
         // GIVEN
-        let client = makeSUT()
-
         let url = URL(string: "https://api.github.com/user")!
         Mock(url: url, dataType: .json, statusCode: 200, data: [
             .post: json(named: "user")
@@ -283,8 +266,6 @@ final class APIClientTests: XCTestCase {
 #endif
 
         // GIVEN
-        let client = makeSUT()
-
         let url = URL(string: "https://api.github.com/user")!
         var mock = Mock(url: url, dataType: .json, statusCode: 200, data: [
             .post: json(named: "user")
@@ -312,8 +293,6 @@ final class APIClientTests: XCTestCase {
 #endif
 
         // GIVEN
-        let client = makeSUT()
-
         let url = URL(string: "https://api.github.com/user")!
         var mock = Mock(url: url, dataType: .json, statusCode: 200, data: [
             .post: json(named: "user")
@@ -330,12 +309,39 @@ final class APIClientTests: XCTestCase {
         try await client.send(request)
     }
 
+    func testPassingCustomBody() async throws {
+#if os(watchOS)
+        throw XCTSkip("Mocker URLProtocol isn't being called for POST requests on watchOS")
+#endif
+
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        var mock = Mock(url: url, dataType: .json, statusCode: 200, data: [
+            .post: json(named: "user")
+        ])
+        mock.onRequest = { request, i in
+            guard let body = request.httpBody ?? request.httpBodyStream?.data,
+                  let json = try? JSONSerialization.jsonObject(with: body, options: []),
+                  let user = json as? [String: Any] else {
+                return XCTFail()
+            }
+            // THEN
+            XCTAssertEqual(user["id"] as? Int, 1)
+            XCTAssertEqual(user["login"] as? String, "kean")
+        }
+        mock.register()
+
+        // WHEN/THEN
+        try await client.send(.post("/user")) {
+            let user = User(id: 1, login: "kean")
+            $0.httpBody = try JSONEncoder().encode(user)
+        }
+    }
+
     // MARK: - Configuring Request
 
     func testConfigureRequest() async throws {
         // GIVEN
-        let client = makeSUT()
-
         let url = URL(string: "https://api.github.com/user")!
         var mock = Mock.get(url: url, json: "user")
         var request: URLRequest?
@@ -353,15 +359,5 @@ final class APIClientTests: XCTestCase {
         XCTAssertNotNil(request)
         XCTAssertEqual(request?.cachePolicy, .reloadIgnoringLocalCacheData)
         XCTAssertEqual(response.value.login, "kean")
-    }
-
-    // MARK: - Helpers
-
-    private func makeSUT(using baseURL: URL? = URL(string: "https://api.github.com"),
-                         file: StaticString = #filePath,
-                         line: UInt = #line) -> APIClient {
-        let client = APIClient.github()
-        trackForMemoryLeak(client, file: file, line: line)
-        return client
     }
 }
