@@ -188,22 +188,6 @@ public actor APIClient {
         try await _send(request, delegate: delegate, configure: configure) { $0 }
     }
 
-    /// Fetches the data for the given request.
-    ///
-    /// - parameters:
-    ///   - request: The request to perform.
-    ///   - delegate: Task-specific delegate.
-    ///   - configure: Modifies the underlying `URLRequest` before sending it.
-    ///
-    /// - returns: A response with a raw response data.
-    public func data(
-        for request: Request<Data>,
-        delegate: URLSessionDataDelegate? = nil,
-        configure: ((inout URLRequest) -> Void)? = nil
-    ) async throws -> Response<Data> {
-        try await _send(request, delegate: delegate, configure: configure) { $0 }
-    }
-
 #if !os(Linux)
 
     // MARK: Downloads
@@ -222,32 +206,6 @@ public actor APIClient {
         for request: Request<T>,
         delegate: URLSessionDownloadDelegate? = nil,
         configure: ((inout URLRequest) -> Void)? = nil
-    ) async throws -> Response<URL> {
-        try await _download(request, delegate: delegate, configure: configure)
-    }
-
-    /// Downloads the data for the given request.
-    ///
-    /// - parameters:
-    ///   - request: The request to perform.
-    ///   - delegate: Task-specific delegate.
-    ///   - configure: Modifies the underlying `URLRequest` before sending it.
-    ///
-    /// - important: Make sure to move the downloaded file to a location in your app after the completion.
-    ///
-    /// - returns: A response with a location of the downloaded file.
-    public func download(
-        for request: Request<URL>,
-        delegate: URLSessionDownloadDelegate? = nil,
-        configure: ((inout URLRequest) -> Void)? = nil
-    ) async throws -> Response<URL> {
-        try await _download(request, delegate: delegate, configure: configure)
-    }
-
-    private func _download<T>(
-        _ request: Request<T>,
-        delegate: URLSessionDownloadDelegate?,
-        configure: ((inout URLRequest) -> Void)?
     ) async throws -> Response<URL> {
         var request = try await makeURLRequest(for: request)
         configure?(&request)
