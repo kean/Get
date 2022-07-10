@@ -43,6 +43,28 @@ final class ClientMakeRequestsTests: XCTestCase {
         XCTAssertEqual(urlRequest.url?.absoluteString, "https://api.github.com/user")
     }
 
+    func testRelativePathEmpty() async throws {
+        // GIVEN
+        let request = Request.get("")
+
+        // WHEN
+        let urlRequest = try await client.makeURLRequest(for: request)
+
+        // THEN
+        XCTAssertEqual(urlRequest.url?.absoluteString, "https://api.github.com/")
+    }
+
+    func testRelativePathRoot() async throws {
+        // GIVEN
+        let request = Request.get("/")
+
+        // WHEN
+        let urlRequest = try await client.makeURLRequest(for: request)
+
+        // THEN
+        XCTAssertEqual(urlRequest.url?.absoluteString, "https://api.github.com/")
+    }
+
     // MARK: - Absolute Paths
 
     func testAbsolutePaths() async throws {

@@ -318,6 +318,7 @@ public actor APIClient {
             return url
         }
         func makeURLComponents() -> URLComponents? {
+            let url = url.isEmpty ? "/" : url
             let isRelative = url.starts(with: "/") || URL(string: url)?.scheme == nil
             if isRelative {
                 let url = URL(string: url, relativeTo: configuration.baseURL)
