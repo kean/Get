@@ -31,7 +31,13 @@ public struct Request<Response>: @unchecked Sendable {
     let body: AnyEncodable?
 
     /// Initialiazes the request with the given parameters and the request body.
-    public init(method: String = "GET", url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) {
+    public init(
+        method: String = "GET",
+        url: String,
+        query: [(String, String?)]? = nil,
+        body: Encodable? = nil,
+        headers: [String: String]? = nil
+    ) {
         self.method = method
         self.url = url
         self.query = query

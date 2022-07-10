@@ -308,9 +308,13 @@ public actor APIClient {
             urlRequest.httpBody = try await Task.detached { [encoder] in
                 try encoder.encode(body)
             }.value
-            urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            if urlRequest.value(forHTTPHeaderField: "Content-Type") == nil {
+                urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            }
         }
-        urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+        if urlRequest.value(forHTTPHeaderField: "Accept") == nil {
+            urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+        }
         configure?(&urlRequest)
         return urlRequest
     }
