@@ -8,7 +8,7 @@ Start by instantiating a client:
 let client = APIClient(baseURL: URL(string: "https://api.github.com")) 
 ```
 
-You can customize the client using `APIClient.Configuration` (see it for a complete list of available options). You can also use a convenience initializer to configure it inline:
+You can customize the client using ``APIClient/Configuration-swift.struct`` or use a convenience initializer to configure it inline:
 
 ```swift
 let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
@@ -31,7 +31,7 @@ The ``send(_:delegate:configure:)-2ls6m`` method returns not just the response v
 
 The response can be any `Decodable` type. The response can also be optional. If the response is `String`, it returns raw response as a string.
 
-> tip: By default, the request ``Request/path`` is appended to the client's ``APIClient/Configuration/baseURL``. However, if you pass a complete URL, e.g. `"https://api.github.com/user"`, it will be used instead. 
+> tip: By default, the request ``Request/path`` is appended to the client's ``APIClient/Configuration-swift.struct/baseURL``. However, if you pass a complete URL, e.g. `"https://api.github.com/user"`, it will be used instead. 
 
 You can also provide task-specific delegates and easily change any of the `URLRequest` properties before the request is sent.
 
@@ -54,7 +54,7 @@ let url = response.location
 ``APIClient`` also provides a convenience method ``upload(for:fromFile:delegate:configure:)-5w52n`` for uploading data from a file:
 
 ```swift
-try await clien.upload(for: .post("/avatar"), fromFile: fileURL)
+try await client.upload(for: .post("/avatar"), fromFile: fileURL)
 ```
 
 ### Client Delegate
@@ -104,7 +104,12 @@ final class YourSessionDelegate: URLSessionTaskDelegate {
 
 - ``init(baseURL:_:)``
 - ``init(configuration:)``
-- ``Configuration``
+- ``Configuration-swift.struct``
+
+### Instance Properties
+
+- ``configuration-swift.property``
+- ``session``
 
 ### Sending Requests
 

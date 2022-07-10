@@ -9,8 +9,11 @@ import FoundationNetworking
 
 /// Performs network requests constructed using ``Request``.
 public actor APIClient {
-    private let conf: Configuration
-    private let session: URLSession
+    /// The configuration with which the client was initialized with.
+    public let configuration: Configuration
+    /// The underlying `URLSession` instance.
+    public let session: URLSession
+
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
     private let delegate: APIClientDelegate
@@ -63,7 +66,7 @@ public actor APIClient {
 
     /// Initializes the client with the given configuration.
     public init(configuration: Configuration) {
-        self.conf = configuration
+        self.configuration = configuration
         let delegateQueue = configuration.sessionDelegateQueue ?? .serial()
         self.session = URLSession(configuration: configuration.sessionConfiguration, delegate: dataLoader, delegateQueue: delegateQueue)
         self.dataLoader.userSessionDelegate = configuration.sessionDelegate
@@ -310,7 +313,7 @@ public actor APIClient {
         }
         func makeAbsoluteURL() -> URL? {
             let isRelative = path.starts(with: "/") || URL(string: path)?.scheme == nil
-            return isRelative ? conf.baseURL?.appendingPathComponent(path) : URL(string: path)
+            return isRelative ? configuration.baseURL?.appendingPathComponent(path) : URL(string: path)
         }
         guard let url = makeAbsoluteURL(),
               var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
