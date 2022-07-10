@@ -198,15 +198,7 @@ public actor APIClient {
         configure: ((inout URLRequest) -> Void)? = nil
     ) async throws -> Response<URL> {
         let request = try await makeURLRequest(for: request, configure)
-        return try await _download(request, attempts: 1, delegate: delegate)
-    }
-
-    private func _download(
-        _ request: URLRequest,
-        attempts: Int,
-        delegate: URLSessionDownloadDelegate?
-    ) async throws -> Response<URL> {
-        try await performWithRetries(request: request) { request in
+        return try await performWithRetries(request: request) { request in
             let (location, response, metrics) = try await dataLoader.download(for: request, session: session, delegate: delegate)
             let data = Data() // Data is downloaded to file instead
             try validate(response: response, data: data, request: request)
