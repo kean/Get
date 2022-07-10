@@ -31,7 +31,9 @@ public struct Request<Response>: @unchecked Sendable {
         self.headers = headers
         self.body = body.map(AnyEncodable.init)
     }
+}
 
+extension Request {
     public static func get(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
         Request(method: "GET", path: path, query: query, headers: headers)
     }

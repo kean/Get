@@ -278,10 +278,10 @@ public actor APIClient {
     ) async throws -> T {
         do {
             var request = request
-            try await self.delegate.client(self, willSendRequest: &request)
+            try await delegate.client(self, willSendRequest: &request)
             return try await send(request)
         } catch {
-            guard try await self.delegate.client(self, shouldRetryRequest: request, attempts: attempts, error: error) else {
+            guard try await delegate.client(self, shouldRetryRequest: request, attempts: attempts, error: error) else {
                 throw error
             }
             return try await performWithRetries(request: request, attempts: attempts + 1, send: send)
