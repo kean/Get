@@ -355,65 +355,6 @@ final class APIClientTests: XCTestCase {
         XCTAssertEqual(response.value.login, "kean")
     }
 
-    // MARK: - Absolute and Relative Paths
-
-    func testRelativePaths() async throws {
-        // GIVEN
-        let client = makeSUT()
-
-        let url = URL(string: "https://api.github.com/user")!
-        Mock.get(url: url, json: "user").register()
-
-        // WHEN/THEN
-        do {
-            _ = try await client.send(.get("/user")) {
-                XCTAssertEqual($0.url, URL(string: "https://api.github.com/user"))
-            }
-        } catch { /* Do nothing */ }
-
-        do {
-            _ = try await client.send(.get("user")) {
-                XCTAssertEqual($0.url, URL(string: "https://api.github.com/user"))
-            }
-        } catch { /* Do nothing */ }
-    }
-
-    func testRelativePathsSlash() async throws {
-        // GIVEN
-        let client = makeSUT(using: URL(string: "https://api.github.com/"))
-
-        let url = URL(string: "https://api.github.com/user")!
-        Mock.get(url: url, json: "user").register()
-
-        // WHEN/THEN
-        do {
-            _ = try await client.send(.get("/user")) {
-                XCTAssertEqual($0.url, URL(string: "https://api.github.com/user"))
-            }
-        } catch { /* Do nothing */ }
-
-        do {
-            _ = try await client.send(.get("user")) {
-                XCTAssertEqual($0.url, URL(string: "https://api.github.com/user"))
-            }
-        } catch { /* Do nothing */ }
-    }
-
-    func testAbsolutePaths() async throws {
-        // GIVEN
-        let client = makeSUT()
-
-        let url = URL(string: "https://api.github.com/user")!
-        Mock.get(url: url, json: "user").register()
-
-        // WHEN
-        do {
-            _ = try await client.send(.get("https://example.com/user")) {
-                XCTAssertEqual($0.url, URL(string: "https://example.com/user"))
-            }
-        } catch { /* Do nothing */ }
-    }
-
     // MARK: - Helpers
 
     private func makeSUT(using baseURL: URL? = URL(string: "https://api.github.com"),
