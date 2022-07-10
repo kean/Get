@@ -255,6 +255,26 @@ final class APIClientTests: XCTestCase {
     }
 #endif
 
+    // MARK: - Uploads
+
+    func testUpload() async throws {
+        // GIVEN
+        let client = makeSUT()
+
+        let url = URL(string: "https://api.github.com/user")!
+        Mock(url: url, dataType: .json, statusCode: 200, data: [
+            .post: json(named: "user")
+        ]).register()
+
+        // WHEN
+
+        let fileURL = try XCTUnwrap(Bundle.module.url(forResource: "user", withExtension: "json"))
+        let user: User = try await client.upload(for: .post("/user"), fromFile: fileURL).value
+
+        // THEN
+        XCTAssertEqual(user.login, "kean")
+    }
+
     // MARK: - Request Body
 
     func testPassEncodableRequestBody() async throws {

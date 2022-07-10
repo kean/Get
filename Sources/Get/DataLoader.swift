@@ -25,7 +25,6 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     private lazy var downloadDirectoryURL = FileManager.default.temporaryDirectory.appendingPathComponent("com.github.kean.get/Downloads/")
 
     func data(for request: URLRequest, session: URLSession, delegate: URLSessionDataDelegate?) async throws -> (Data, URLResponse, URLSessionTaskMetrics?) {
-        final class Box { var task: URLSessionTask? }
         let box = Box()
         return try await withTaskCancellationHandler(handler: {
             box.task?.cancel()
@@ -44,7 +43,6 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     }
 
     func download(for request: URLRequest, session: URLSession, delegate: URLSessionDownloadDelegate?) async throws -> (URL, URLResponse, URLSessionTaskMetrics?) {
-        final class Box { var task: URLSessionTask? }
         let box = Box()
         return try await withTaskCancellationHandler(handler: {
             box.task?.cancel()
@@ -60,6 +58,28 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
                 box.task = task
             }
         })
+    }
+
+    func upload(for request: URLRequest, fromFile fileURL: URL, session: URLSession, delegate: URLSessionTaskDelegate? = nil) async throws -> (Data, URLResponse, URLSessionTaskMetrics?) {
+        let box = Box()
+        return try await withTaskCancellationHandler(handler: {
+            box.task?.cancel()
+        }, operation: {
+            try await withUnsafeThrowingContinuation { continuation in
+                let task = session.uploadTask(with: request, fromFile: fileURL)
+                session.delegateQueue.addOperation {
+                    let handler = DataTaskHandler(delegate: delegate)
+                    handler.completion = continuation.resume(with:)
+                    self.handlers[task] = handler
+                }
+                task.resume()
+                box.task = task
+            }
+        })
+    }
+
+    private final class Box {
+        var task: URLSessionTask?
     }
 
     // MARK: - URLSessionDelegate
@@ -94,18 +114,21 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
         handler.delegate?.urlSession?(session, task: task, didCompleteWithError: error)
         userTaskDelegate?.urlSession?(session, task: task, didCompleteWithError: error)
 #endif
-        if let handler = handler as? DataTaskHandler {
+        switch handler {
+        case let handler as DataTaskHandler:
             if let response = task.response, error == nil {
                 handler.completion?(.success((handler.data ?? Data(), response, handler.metrics)))
             } else {
                 handler.completion?(.failure(error ?? URLError(.unknown)))
             }
-        } else if let handler = handler as? DownloadTaskHandler {
+        case let handler as DownloadTaskHandler:
             if let location = handler.location, let response = task.response, error == nil {
                 handler.completion?(.success((location, response, handler.metrics)))
             } else {
                 handler.completion?(.failure(error ?? URLError(.unknown)))
             }
+        default:
+            break
         }
     }
 
@@ -277,8 +300,8 @@ private final class DataTaskHandler: TaskHandler {
     var completion: Completion?
     var data: Data?
 
-    init(delegate: URLSessionDataDelegate?) {
-        self.dataDelegate = delegate
+    override init(delegate: URLSessionTaskDelegate?) {
+        self.dataDelegate = delegate as? URLSessionDataDelegate
         super.init(delegate: delegate)
     }
 }

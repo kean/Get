@@ -31,10 +31,6 @@ public struct Response<T> {
         self.response = response
         self.metrics = metrics
     }
-
-    func map<U>(_ closure: (T) -> U) -> Response<U> {
-        Response<U>(value: closure(value), data: data, request: request, response: response, metrics: metrics)
-    }
 }
 
 extension Response where T == URL {

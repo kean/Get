@@ -42,13 +42,19 @@ let response = try await client.send(Paths.user.get, delegate: delegate) {
 }
 ```
 
-### Downloading Data
+### Downloading and Uploading Data
 
 To fetch the response data, use ``data(for:delegate:configure:)`` or use ``download(for:delegate:configure:)`` to download it to the file.
 
 ```swift
 let response = try await client.download(for: .get("/user"))
 let url = response.location
+```
+
+``APIClient`` also provides a convenience method ``upload(for:fromFile:delegate:configure:)-5w52n`` for uploading data from a file:
+
+```swift
+try await clien.upload(for: .post("/avatar"), fromFile: fileURL)
 ```
 
 ### Client Delegate
@@ -113,3 +119,8 @@ final class YourSessionDelegate: URLSessionTaskDelegate {
 ### Downloads
 
 - ``download(for:delegate:configure:)``
+
+### Uploads
+
+- ``upload(for:fromFile:delegate:configure:)-5w52n``
+- ``upload(for:fromFile:delegate:configure:)-5iex0``

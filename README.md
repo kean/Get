@@ -36,6 +36,8 @@ let response = try await client.send(Paths.user.get, delegate: delegate) {
 }
 ```
 
+In addition to sending quick requests, Get also supports downloads, uploads from file, authentication, auto-retries, logging, and more.
+
 ## Documentation
 
 Learn how to use Get by going through the [documentation](https://kean-docs.github.io/get/documentation/get/) created using DocC.
@@ -69,6 +71,16 @@ generate api.github.yaml --output ./OctoKit --module "OctoKit"
 ```
 
 > Check out [App Store Connect Swift SDK](https://github.com/AvdLee/appstoreconnect-swift-sdk) that starting with v2.0 uses [CreateAPI](https://github.com/kean/CreateAPI) for code generation.
+
+### Other Extensions
+
+Get is a lean framework with a lot of flexibility and customization points. It makes it very easy to learn and use, but for certain features, you'll need to install additional modules.
+
+- [URLQueryEncoder](https://github.com/CreateAPI/URLQueryEncoder) – URL query encoder with support for all OpenAPI serialization options
+- [swift-multipart-formdata](https://github.com/FelixHerrmann/swift-multipart-formdata) - build `multipart/form-data` in a type-safe way
+- [NaiveDate](https://github.com/CreateAPI/NaiveDate) – working with dates ignoring time zones
+
+Because Get provides complete access to the underlying `URLSession`, it's easy to use it with almost any framework that extends networking on Apple platforms.
 
 ## Minimum Requirements
 
