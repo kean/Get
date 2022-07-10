@@ -288,6 +288,13 @@ public actor APIClient {
         }
     }
 
+    // MARK: Making Requests
+
+    /// Creates `URLRequest` for the given request.
+    public func makeURLRequest<T>(for request: Request<T>) async throws -> URLRequest {
+        try await makeURLRequest(for: request, { _ in })
+    }
+
     private func makeURLRequest<T>(
         for request: Request<T>,
         _ configure: ((inout URLRequest) -> Void)?
