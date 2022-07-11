@@ -69,6 +69,34 @@ final class APIClientAuthorizationTests: XCTestCase {
         // WHEN
         try await client.send(.get("/user"))
     }
+
+    func testFailingWillSendRequestDoesntTriggerRetry() async throws {
+        // GIVEN
+        struct WillSendFailed: Error {}
+
+        class MockFailingDelegate: APIClientDelegate {
+            func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws {
+                throw WillSendFailed()
+            }
+
+            func client(_ client: APIClient, shouldRetry task: URLSessionTask, error: Error, attempts: Int) async throws -> Bool {
+                XCTFail()
+                return false
+            }
+        }
+
+        let delegate = MockFailingDelegate()
+        client = .mock {
+            $0.delegate = delegate
+        }
+
+        // WHEN
+        do {
+            try await client.send(.get("/user"))
+        } catch {
+            print(error)
+        }
+    }
 }
 
 private final class MockAuthorizingDelegate: APIClientDelegate {

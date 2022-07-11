@@ -90,7 +90,7 @@ public actor APIClient {
         delegate: URLSessionDataDelegate? = nil,
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<T> {
-        try await _send(request, delegate: delegate, configure: configure, decode)
+        try await _send(request, delegate, configure, decode)
     }
 
     /// Sends the given request.
@@ -107,13 +107,13 @@ public actor APIClient {
         delegate: URLSessionDataDelegate? = nil,
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<Void> {
-        try await _send(request, delegate: delegate, configure: configure) { _ in () }
+        try await _send(request, delegate, configure) { _ in () }
     }
 
     private func _send<T, U>(
         _ request: Request<T>,
-        delegate: URLSessionDataDelegate?,
-        configure: ((inout URLRequest) throws -> Void)?,
+        _ delegate: URLSessionDataDelegate?,
+        _ configure: ((inout URLRequest) throws -> Void)?,
         _ decode: @escaping (Data) async throws -> U
     ) async throws -> Response<U> {
         let request = try await makeURLRequest(for: request, configure)
@@ -147,7 +147,7 @@ public actor APIClient {
         delegate: URLSessionDataDelegate? = nil,
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<Data> {
-        try await _send(request, delegate: delegate, configure: configure) { $0 }
+        try await _send(request, delegate, configure) { $0 }
     }
 
 #if !os(Linux)
@@ -329,7 +329,6 @@ public actor APIClient {
             return try await send()
         } catch {
             guard let error = error as? DataLoaderError else {
-                assertionFailure()
                 throw error
             }
             guard try await delegate.client(self, shouldRetry: error.task, error: error.error, attempts: attempts) else {
