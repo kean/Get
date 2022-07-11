@@ -46,6 +46,9 @@ public struct Request<Response>: @unchecked Sendable {
     }
 }
 
+// These methods are defined separately to prevent constructing invalid requests
+// at compile-time. For example, "GET" requests can't have an HTTP body, and it is
+// reflected in the API.
 extension Request {
     public static func get(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
         Request(method: "GET", url: url, query: query, headers: headers)
