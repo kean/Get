@@ -29,13 +29,15 @@ public struct Request<Response>: @unchecked Sendable {
         url: String,
         query: [(String, String?)]? = nil,
         body: Encodable? = nil,
-        headers: [String: String]? = nil
+        headers: [String: String]? = nil,
+        id: String? = nil
     ) {
         self.method = method
         self.url = url
         self.query = query
         self.headers = headers
         self.body = body
+        self.id = id
     }
 }
 
