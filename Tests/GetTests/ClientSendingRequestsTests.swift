@@ -252,6 +252,29 @@ final class ClientSendingRequestsTests: XCTestCase {
         }
     }
 
+    func testDecodingFailureDoesntStartRetry() async throws {
+        // GIVEN
+        final class RetryingDelegate: APIClientDelegate {
+            func client(_ client: APIClient, shouldRetry task: URLSessionTask, error: Error, attempts: Int) async throws -> Bool {
+                XCTFail("Retries are not expected to be called")
+                return false
+            }
+        }
+
+        let url = URL(string: "https://api.github.com/user")!
+        Mock(url: url, dataType: .json, statusCode: 200, data: [
+            .get: "invalid-response".data(using: .utf8)!
+        ]).register()
+
+        // WHEN
+        do {
+            let _: User = try await client.send(.get("/user")).value
+            XCTFail()
+        } catch {
+            XCTAssertTrue(error is DecodingError)
+        }
+    }
+
     // MARK: - Fetching Data
 
     func testFetchData() async throws {

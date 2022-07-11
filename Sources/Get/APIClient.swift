@@ -90,7 +90,9 @@ public actor APIClient {
         delegate: URLSessionDataDelegate? = nil,
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<T> {
-        try await _send(request, delegate, configure, decode)
+        let response = try await data(for: request, delegate: delegate, configure: configure)
+        let value: T = try await decode(response.data)
+        return response.map { _ in value }
     }
 
     /// Sends the given request.
@@ -107,32 +109,10 @@ public actor APIClient {
         delegate: URLSessionDataDelegate? = nil,
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<Void> {
-        try await _send(request, delegate, configure) { _ in () }
+        try await data(for: request, delegate: delegate, configure: configure).map { _ in () }
     }
 
-    private func _send<T, U>(
-        _ request: Request<T>,
-        _ delegate: URLSessionDataDelegate?,
-        _ configure: ((inout URLRequest) throws -> Void)?,
-        _ decode: @escaping (Data) async throws -> U
-    ) async throws -> Response<U> {
-        let request = try await makeURLRequest(for: request, configure)
-        return try await performWithRetries {
-            var request = request
-            try await self.delegate.client(self, willSendRequest: &request)
-            let task = session.dataTask(with: request)
-            do {
-                let response = try await dataLoader.startDataTask(task, session: session, delegate: delegate)
-                try validate(response)
-                let value = try await decode(response.data)
-                return response.map { _ in value }
-            } catch {
-                throw DataLoaderError(task: task, error: error)
-            }
-        }
-    }
-
-    // MARK: Fetch Data
+    // MARK: Fetching Data
 
     /// Fetches data for the given request.
     ///
@@ -147,7 +127,19 @@ public actor APIClient {
         delegate: URLSessionDataDelegate? = nil,
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<Data> {
-        try await _send(request, delegate, configure) { $0 }
+        let request = try await makeURLRequest(for: request, configure)
+        return try await performWithRetries {
+            var request = request
+            try await self.delegate.client(self, willSendRequest: &request)
+            let task = session.dataTask(with: request)
+            do {
+                let response = try await dataLoader.startDataTask(task, session: session, delegate: delegate)
+                try validate(response)
+                return response
+            } catch {
+                throw DataLoaderError(task: task, error: error)
+            }
+        }
     }
 
 #if !os(Linux)

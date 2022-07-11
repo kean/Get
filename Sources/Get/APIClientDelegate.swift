@@ -32,7 +32,11 @@ public protocol APIClientDelegate {
     /// the `200..<300` range.
     func client(_ client: APIClient, validateResponse response: HTTPURLResponse, data: Data, task: URLSessionTask) throws
 
-    /// Gets called after failure.  Only one retry attempt is allowed.
+    /// Gets called after a networking failure. Only one retry attempt is allowed.
+    ///
+    /// - important: This method will only be called for network requests, but not for
+    /// response body decoding failures or failures with creating requests using
+    /// ``client(_:makeURLForPath:query:)-2geir`` and ``client(_:willSendRequest:)-2d1ke``.
     ///
     /// - parameters:
     ///   - client: The client that sent the request.
