@@ -10,7 +10,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-final class APIClientTests: XCTestCase {
+final class ClientSendingRequestsTests: XCTestCase {
     var client: APIClient!
 
     override func setUp() {
@@ -47,7 +47,7 @@ final class APIClientTests: XCTestCase {
         // request, and more
         XCTAssertEqual(response.value.login, "kean")
         XCTAssertEqual(response.data.count, 1321)
-        XCTAssertEqual(response.request.url, url)
+        XCTAssertEqual(response.originalRequest?.url, url)
         XCTAssertEqual(response.statusCode, 200)
 #if !os(Linux)
         let metrics = try XCTUnwrap(response.metrics)
@@ -359,5 +359,24 @@ final class APIClientTests: XCTestCase {
         XCTAssertNotNil(request)
         XCTAssertEqual(request?.cachePolicy, .reloadIgnoringLocalCacheData)
         XCTAssertEqual(response.value.login, "kean")
+    }
+
+    func testSetHTTPAdditionalHeaders() async throws {
+        // GIVEN
+        client = .github {
+            $0.sessionConfiguration.httpAdditionalHeaders = [
+                "x-custom-field": "1"
+            ]
+        }
+
+        let url = URL(string: "https://api.github.com/user")!
+        Mock.get(url: url, json: "user").register()
+
+        // WHEN
+        let response = try await client.send(.get("/user"))
+
+        // THEN
+        XCTAssertNil(response.originalRequest?.value(forHTTPHeaderField: "x-custom-field"))
+        XCTAssertEqual(response.currentRequest?.value(forHTTPHeaderField: "x-custom-field"), "1")
     }
 }

@@ -15,20 +15,25 @@ public struct Response<T> {
     /// Original response data.
     public var data: Data
     /// Original request.
-    public var request: URLRequest
+    public var originalRequest: URLRequest? { task.originalRequest }
+    /// The URL request object currently being handled by the task. May be
+    /// different from the original request.
+    public var currentRequest: URLRequest? { task.currentRequest }
     /// Original response.
     public var response: URLResponse
     /// Response HTTP status code.
     public var statusCode: Int? { (response as? HTTPURLResponse)?.statusCode }
+    /// Completed task.
+    public var task: URLSessionTask
     /// Task metrics collected for the request.
     public var metrics: URLSessionTaskMetrics?
 
     /// Initializes the response.
-    public init(value: T, data: Data, request: URLRequest, response: URLResponse, metrics: URLSessionTaskMetrics? = nil) {
+    public init(value: T, data: Data, response: URLResponse, task: URLSessionTask, metrics: URLSessionTaskMetrics? = nil) {
         self.value = value
         self.data = data
-        self.request = request
         self.response = response
+        self.task = task
         self.metrics = metrics
     }
 }

@@ -67,7 +67,6 @@ public extension APIClientDelegate {
         // Do nothing
     }
 
-
     func client(_ client: APIClient, shouldRetry task: URLSessionTask, error: Error, attempts: Int) async throws -> Bool {
         false // Disabled by default
     }
