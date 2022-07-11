@@ -76,8 +76,9 @@ public extension APIClientDelegate {
     }
 
     func client(_ client: APIClient, validateResponse response: HTTPURLResponse, data: Data, task: URLSessionTask) throws {
-        guard !(200..<300).contains(response.statusCode) else { return }
-        throw APIError.unacceptableStatusCode(response.statusCode)
+        guard (200..<300).contains(response.statusCode) else {
+            throw APIError.unacceptableStatusCode(response.statusCode)
+        }
     }
 
     func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error {

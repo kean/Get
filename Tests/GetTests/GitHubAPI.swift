@@ -112,8 +112,9 @@ private final class GitHubAPIClientDelegate: APIClientDelegate {
     }
 
     func client(_ client: APIClient, validateResponse response: HTTPURLResponse, data: Data, task: URLSessionTask) throws {
-        guard !(200..<300).contains(response.statusCode) else { return }
-        throw GitHubError.unacceptableStatusCode(response.statusCode)
+        guard (200..<300).contains(response.statusCode) else {
+            throw GitHubError.unacceptableStatusCode(response.statusCode)
+        }
     }
 }
 
