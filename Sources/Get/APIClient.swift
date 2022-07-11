@@ -107,11 +107,7 @@ public actor APIClient {
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<T?> {
         try await _send(request, delegate: delegate, configure: configure) { data in
-            if data.isEmpty {
-                return nil
-            } else {
-                return try await self.decode(data)
-            }
+            data.isEmpty ? nil : try await self.decode(data)
         }
     }
 
@@ -139,7 +135,7 @@ public actor APIClient {
         _ decode: @escaping (Data) async throws -> U
     ) async throws -> Response<U> {
         let request = try await makeURLRequest(for: request, configure)
-        return try await performWithRetries(request: request) { request in
+        return try await performWithRetries(request) { request in
             let task = session.dataTask(with: request)
             do {
                 let (data, response, metrics) = try await dataLoader.startDataTask(task, session: session, delegate: delegate)
@@ -149,19 +145,6 @@ public actor APIClient {
             } catch {
                 throw DataLoaderError(task: task, error: error)
             }
-        }
-    }
-
-    private func decode<T: Decodable>(_ data: Data) async throws -> T {
-        if T.self == Data.self {
-            return data as! T
-        } else if T.self == String.self {
-            guard let string = String(data: data, encoding: .utf8) else { throw URLError(.badServerResponse) }
-            return string as! T
-        } else {
-            return try await Task.detached { [decoder] in
-                try decoder.decode(T.self, from: data)
-            }.value
         }
     }
 
@@ -203,7 +186,7 @@ public actor APIClient {
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<URL> {
         let request = try await makeURLRequest(for: request, configure)
-        return try await performWithRetries(request: request) { request in
+        return try await performWithRetries(request) { request in
             let task = session.downloadTask(with: request)
             do {
                 let (location, response, metrics) = try await dataLoader.starDownloadTask(task, session: session, delegate: delegate)
@@ -264,7 +247,7 @@ public actor APIClient {
         delegate: URLSessionTaskDelegate? = nil,
         _ decode: @escaping (Data) async throws -> T
     ) async throws -> Response<T> {
-        try await performWithRetries(request: request) { request in
+        try await performWithRetries(request) { request in
             let task = session.uploadTask(with: request, fromFile: fileURL)
             do {
                 let (data, response, metrics) = try await dataLoader.startUploadTask(task, session: session, delegate: delegate)
@@ -280,7 +263,7 @@ public actor APIClient {
     // MARK: Helpers
 
     private func performWithRetries<T>(
-        request: URLRequest,
+        _ request: URLRequest,
         attempts: Int = 1,
         send: (URLRequest) async throws -> T
     ) async throws -> T {
@@ -296,7 +279,7 @@ public actor APIClient {
             guard try await delegate.client(self, shouldRetry: error.task, error: error.error, attempts: attempts) else {
                 throw error.error
             }
-            return try await performWithRetries(request: request, attempts: attempts + 1, send: send)
+            return try await performWithRetries(request, attempts: attempts + 1, send: send)
         }
     }
 
@@ -358,6 +341,21 @@ public actor APIClient {
             throw URLError(.badURL)
         }
         return url
+    }
+
+    private func decode<T: Decodable>(_ data: Data) async throws -> T {
+        if T.self == Data.self {
+            return data as! T
+        } else if T.self == String.self {
+            guard let string = String(data: data, encoding: .utf8) else {
+                throw URLError(.badServerResponse)
+            }
+            return string as! T
+        } else {
+            return try await Task.detached { [decoder] in
+                try decoder.decode(T.self, from: data)
+            }.value
+        }
     }
 
     private func validate(response: URLResponse, data: Data, task: URLSessionTask) throws {

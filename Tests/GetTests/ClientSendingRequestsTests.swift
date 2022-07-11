@@ -19,7 +19,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         self.client = .github()
     }
 
-    // MARK: Basic Requests
+    // MARK: - Basic Requests
 
     // You don't need to provide a predefined list of resources in your app.
     // You can define the requests inline instead.
@@ -56,6 +56,26 @@ final class ClientSendingRequestsTests: XCTestCase {
 #endif
     }
 
+    func testFailingRequest() async throws {
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        Mock(url: url, dataType: .json, statusCode: 500, data: [
+            .get: "nope".data(using: .utf8)!
+        ]).register()
+
+        // WHEN
+        do {
+            try await client.send(.get("/user"))
+        } catch {
+            // THEN
+            let error = try XCTUnwrap(error as? APIError)
+            switch error {
+            case .unacceptableStatusCode(let code):
+                XCTAssertEqual(code, 500)
+            }
+        }
+    }
+
     func testCancellingRequests() async throws {
         // Given
         let url = URL(string: "https://api.github.com/users/kean")!
@@ -81,7 +101,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         }
     }
 
-    // MARK: Response Types
+    // MARK: - Response Types
 
     // func value(for:) -> Decodable
     func testResponseDecodable() async throws {
@@ -109,6 +129,18 @@ final class ClientSendingRequestsTests: XCTestCase {
 
         // THEN returns decoded JSON
         XCTAssertNil(user)
+    }
+
+    func testResponseDecodableOptionalNotNil() async throws {
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        Mock.get(url: url, json: "user").register()
+
+        // WHEN
+        let user: User? = try await client.send(.get("/user")).value
+
+        // THEN returns decoded JSON
+        XCTAssertEqual(user?.login, "kean")
     }
 
     // func value(for:) -> Decodable

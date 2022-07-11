@@ -12,6 +12,10 @@ import FoundationNetworking
 public struct Response<T> {
     /// Decoded response value.
     public var value: T
+    /// Original response.
+    public var response: URLResponse
+    /// Response HTTP status code.
+    public var statusCode: Int? { (response as? HTTPURLResponse)?.statusCode }
     /// Original response data.
     public var data: Data
     /// Original request.
@@ -19,10 +23,6 @@ public struct Response<T> {
     /// The URL request object currently being handled by the task. May be
     /// different from the original request.
     public var currentRequest: URLRequest? { task.currentRequest }
-    /// Original response.
-    public var response: URLResponse
-    /// Response HTTP status code.
-    public var statusCode: Int? { (response as? HTTPURLResponse)?.statusCode }
     /// Completed task.
     public var task: URLSessionTask
     /// Task metrics collected for the request.
@@ -39,6 +39,8 @@ public struct Response<T> {
 }
 
 extension Response where T == URL {
+    /// The location of the downloaded file. Only applicable for requests
+    /// performed using ``APIClient/download(for:delegate:configure:)``.
     public var location: URL { value }
 }
 

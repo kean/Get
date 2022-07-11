@@ -5,9 +5,11 @@
 ### Instance Properties
 
 - ``value``
-- ``statusCode``
-- ``request``
-- ``response``
-- ``data``
 - ``location``
+- ``response``
+- ``statusCode``
+- ``data``
+- ``originalRequest``
+- ``currentRequest``
+- ``task``
 - ``metrics``
