@@ -1,10 +1,10 @@
 # ``Get``
 
-A modern Swift web API client built using async/await.
+A lean Swift web API client built using async/await.
 
 ## Overview
 
-A modern Swift web API client built using async/await.
+Get provides a clear and convenient API for modeling network requests using `Request<Response>` type. And its `APIClient` makes it easy to execute these requests and decode the responses.
 
 ```swift
 let client = APIClient(baseURL: URL(string: "https://api.github.com"))
@@ -17,9 +17,7 @@ try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 let repos = try await client.send(Paths.users("kean").repos.get)
 ```
 
-Get provides a clear and convenient API for modelling network requests using `Request<Response>` type. And its `APIClient` makes it easy to execute these requests and decode the responses.
-
-The client uses `URLSession` for networking and provides complete access to all the `URLSession` APIs.
+The client uses `URLSession` for networking and provides complete access to all the `URLSession` APIs. It is designed with "less is more" idea in mind, not introducing any unnecessary abstractions on top of native APIs, making it easy to learn.
 
 ```swift
 // In addition to `APIClientDelegate`, you can also override any methods
