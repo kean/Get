@@ -16,14 +16,9 @@ let client = APIClient(baseURL: URL(string: "https://api.github.com"))
 // Using the client directly
 let user: User = try await client.send(.get("/user")).value
 try await client.send(.post("/user/emails", body: ["kean@example.com"]))
-
-// Using the API definition generated with CreateAPI
-let repos = try await client.send(Paths.users("kean").repos.get)
 ```
 
-Get provides a clear and convenient API for modeling network requests using `Request<Response>` type. And its `APIClient` makes it easy to execute these requests and decode the responses.
-
-The client uses `URLSession` for networking and provides complete access to all the `URLSession` APIs. It is designed with "less is more" idea in mind, not introducing any unnecessary abstractions on top of native APIs, making it easy to learn.
+The client uses `URLSession` for networking and provides complete access to all its APIs. It is designed with "less is more" idea in mind, not introducing any unnecessary abstractions on top of native APIs.
 
 ```swift
 // In addition to `APIClientDelegate`, you can also override any methods
@@ -40,7 +35,7 @@ let response = try await client.send(Paths.user.get, delegate: delegate) {
 }
 ```
 
-In addition to sending quick requests, it also supports downloads to files, uploads from files, authentication, auto-retries, logging, and more.
+In addition to sending quick requests, it also supports downloading data to a file, uploading from a file, authentication, auto-retries, logging, and more.
 
 ## Documentation
 
@@ -89,7 +84,7 @@ Get is a lean framework with a lot of flexibility and customization points. It m
 
 | Get  | Date         | Swift | Xcode | Platforms                                            |
 |------|--------------|-------|-------|------------------------------------------------------|
-| 1.0 | [RC2](https://github.com/kean/get/releases/tag/1.0.0-rc.2) | 5.6   | 13.3 | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
+| 1.0 | [RC3](https://github.com/kean/get/releases/tag/1.0.0-rc.3) | 5.6   | 13.3 | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
 
 ## License
 

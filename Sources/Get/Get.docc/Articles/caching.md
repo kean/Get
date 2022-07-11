@@ -1,6 +1,6 @@
 # Caching
 
-Learn how Get caches data.
+Learn how the framework caches data.
 
 ## Overview
 

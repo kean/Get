@@ -18,7 +18,7 @@ With Pulse, you can inspect logs directly on your device – and it supports _al
 
 ### CreateAPI
 
-With [CreateAPI](https://github.com/kean/CreateAPI), you can take your backend OpenAPI spec, and generate all of the response entities and even requests for Get ``APIClient``.
+With [CreateAPI](https://github.com/kean/CreateAPI), you can take your backend OpenAPI spec, and generate all of the response entities and even requests for ``APIClient``.
 
 ```swift
 generate api.github.yaml --output ./OctoKit --module "OctoKit"

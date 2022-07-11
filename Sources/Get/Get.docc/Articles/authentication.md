@@ -1,6 +1,6 @@
 # Authentication
 
-Learn how to implement authentication using Get.
+Learn how to implement authentication.
 
 ## Access Tokens
 
