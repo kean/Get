@@ -16,7 +16,7 @@ final class ClientMiscTests: XCTestCase {
         _ = APIClient(baseURL: nil)
         _ = APIClient(baseURL: URL(string: "https://api.github.com"))
         _ = APIClient(baseURL: URL(string: "https://api.github.com")) {
-            $0.sessionConfiguration.allowsConstrainedNetworkAccess = false
+            $0.sessionConfiguration.httpAdditionalHeaders = ["x-test": "1"]
         }
         _ = APIClient(configuration: .init(baseURL: URL(string: "https://api.github.com")))
     }

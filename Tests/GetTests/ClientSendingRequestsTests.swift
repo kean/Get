@@ -393,6 +393,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         XCTAssertEqual(response.value.login, "kean")
     }
 
+#if !os(Linux) // This doesn't work on Linux
     func testSetHTTPAdditionalHeaders() async throws {
         // GIVEN
         client = .github {
@@ -411,4 +412,5 @@ final class ClientSendingRequestsTests: XCTestCase {
         XCTAssertNil(response.originalRequest?.value(forHTTPHeaderField: "x-custom-field"))
         XCTAssertEqual(response.currentRequest?.value(forHTTPHeaderField: "x-custom-field"), "1")
     }
+#endif
 }
