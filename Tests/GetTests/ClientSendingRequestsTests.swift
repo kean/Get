@@ -10,7 +10,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-final class APIClientTests: XCTestCase {
+final class ClientSendingRequestsTests: XCTestCase {
     var client: APIClient!
 
     override func setUp() {
@@ -19,7 +19,7 @@ final class APIClientTests: XCTestCase {
         self.client = .github()
     }
 
-    // MARK: Basic Requests
+    // MARK: - Basic Requests
 
     // You don't need to provide a predefined list of resources in your app.
     // You can define the requests inline instead.
@@ -47,13 +47,33 @@ final class APIClientTests: XCTestCase {
         // request, and more
         XCTAssertEqual(response.value.login, "kean")
         XCTAssertEqual(response.data.count, 1321)
-        XCTAssertEqual(response.request.url, url)
+        XCTAssertEqual(response.originalRequest?.url, url)
         XCTAssertEqual(response.statusCode, 200)
 #if !os(Linux)
         let metrics = try XCTUnwrap(response.metrics)
         let transaction = try XCTUnwrap(metrics.transactionMetrics.first)
         XCTAssertEqual(transaction.request.url, URL(string: "https://api.github.com/user")!)
 #endif
+    }
+
+    func testFailingRequest() async throws {
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        Mock(url: url, dataType: .json, statusCode: 500, data: [
+            .get: "nope".data(using: .utf8)!
+        ]).register()
+
+        // WHEN
+        do {
+            try await client.send(.get("/user"))
+        } catch {
+            // THEN
+            let error = try XCTUnwrap(error as? APIError)
+            switch error {
+            case .unacceptableStatusCode(let code):
+                XCTAssertEqual(code, 500)
+            }
+        }
     }
 
     func testCancellingRequests() async throws {
@@ -81,7 +101,7 @@ final class APIClientTests: XCTestCase {
         }
     }
 
-    // MARK: Response Types
+    // MARK: - Response Types
 
     // func value(for:) -> Decodable
     func testResponseDecodable() async throws {
@@ -109,6 +129,18 @@ final class APIClientTests: XCTestCase {
 
         // THEN returns decoded JSON
         XCTAssertNil(user)
+    }
+
+    func testResponseDecodableOptionalNotNil() async throws {
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        Mock.get(url: url, json: "user").register()
+
+        // WHEN
+        let user: User? = try await client.send(.get("/user")).value
+
+        // THEN returns decoded JSON
+        XCTAssertEqual(user?.login, "kean")
     }
 
     // func value(for:) -> Decodable
@@ -174,7 +206,7 @@ final class APIClientTests: XCTestCase {
     func testRetries() async throws {
         // GIVEN
         final class RetryingDelegate: APIClientDelegate {
-            func client(_ client: APIClient, shouldRetryRequest request: URLRequest, attempts: Int, error: Error) async throws -> Bool {
+            func client(_ client: APIClient, shouldRetry task: URLSessionTask, error: Error, attempts: Int) async throws -> Bool {
                 attempts < 3
             }
         }
@@ -360,4 +392,25 @@ final class APIClientTests: XCTestCase {
         XCTAssertEqual(request?.cachePolicy, .reloadIgnoringLocalCacheData)
         XCTAssertEqual(response.value.login, "kean")
     }
+
+#if !os(Linux) // This doesn't work on Linux
+    func testSetHTTPAdditionalHeaders() async throws {
+        // GIVEN
+        client = .github {
+            $0.sessionConfiguration.httpAdditionalHeaders = [
+                "x-custom-field": "1"
+            ]
+        }
+
+        let url = URL(string: "https://api.github.com/user")!
+        Mock.get(url: url, json: "user").register()
+
+        // WHEN
+        let response = try await client.send(.get("/user"))
+
+        // THEN
+        XCTAssertNil(response.originalRequest?.value(forHTTPHeaderField: "x-custom-field"))
+        XCTAssertEqual(response.currentRequest?.value(forHTTPHeaderField: "x-custom-field"), "1")
+    }
+#endif
 }

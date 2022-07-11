@@ -24,11 +24,11 @@ final class YourAPIClientDelegate: APIClientDelegate {
 
 ### Refreshing Tokens
 
-If your access tokens are short-lived, it is important to implement a proper refresh flow. ``APIClientDelegate`` provides a method for that too: ``APIClientDelegate/client(_:shouldRetryRequest:attempts:error:)-609zu``.
+If your access tokens are short-lived, it is important to implement a proper refresh flow. ``APIClientDelegate`` provides a method for that too: ``APIClientDelegate/clshoul`.
 
 ```swift
 final class YourAPIClientDelegate: APIClientDelegate {
-    func client(_ client: APIClient, shouldRetryRequest request: URLRequest, attempts: Int, error: Error) async throws -> Bool {
+    func client(_ client: APIClient, shouldRetry task: URLSessionTask, error: Error, attempts: Int) async throws -> Bool
         if case .unacceptableStatusCode(let code) = (error as? APIError), code == 401, attempts = =1 {
             return await refreshAccessToken()
         }
@@ -41,7 +41,7 @@ final class YourAPIClientDelegate: APIClientDelegate {
 }
 ```
 
-> important: The client might call ``APIClientDelegate/client(_:shouldRetryRequest:attempts:error:)-609zu``  multiple times (once for each failed request). Make sure to coalesce the requests to refresh the token and handle the scenario with an expired refresh token.
+> important: The client might call ``APIClientDelegate/client(_:shouldRetry:error:attempts:)-6tv21``  multiple times (once for each failed request). Make sure to coalesce the requests to refresh the token and handle the scenario with an expired refresh token.
 
 > tip: If you are thinking about using auto-retries for connectivity issues, consider using [`waitsForConnectivity`](https://developer.apple.com/documentation/foundation/urlsessionconfiguration/2908812-waitsforconnectivity) instead. If the request does fail with a network issue, it is usually best to communicate an error to the user. With [`NWPathMonitor`](https://developer.apple.com/documentation/network/nwpathmonitor) you can still monitor the connection to your server and retry automatically.
 
