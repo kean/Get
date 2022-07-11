@@ -30,7 +30,7 @@ public protocol APIClientDelegate {
     /// - throws: An error to be returned to the user. By default, throws
     /// ``APIError/unacceptableStatusCode(_:)`` if the code is outside of
     /// the `200..<300` range.
-    func client(_ client: APIClient, validateResponse response: HTTPURLResponse, data: Data, request: URLRequest) throws
+    func client(_ client: APIClient, validateResponse response: HTTPURLResponse, data: Data, task: URLSessionTask) throws
 
     /// Gets called after failure.  Only one retry attempt is allowed.
     ///
@@ -72,7 +72,7 @@ public extension APIClientDelegate {
         false // Disabled by default
     }
 
-    func client(_ client: APIClient, validateResponse response: HTTPURLResponse, data: Data, request: URLRequest) throws {
+    func client(_ client: APIClient, validateResponse response: HTTPURLResponse, data: Data, task: URLSessionTask) throws {
         guard !(200..<300).contains(response.statusCode) else { return }
         throw APIError.unacceptableStatusCode(response.statusCode)
     }

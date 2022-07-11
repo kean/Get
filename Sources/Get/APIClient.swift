@@ -143,7 +143,7 @@ public actor APIClient {
             let task = session.dataTask(with: request)
             do {
                 let (data, response, metrics) = try await dataLoader.startDataTask(task, session: session, delegate: delegate)
-                try validate(response: response, data: data, request: request)
+                try validate(response: response, data: data, task: task)
                 let value = try await decode(data)
                 return Response(value: value, data: data, request: request, response: response, metrics: metrics)
             } catch {
@@ -208,7 +208,7 @@ public actor APIClient {
             do {
                 let (location, response, metrics) = try await dataLoader.starDownloadTask(task, session: session, delegate: delegate)
                 let data = Data() // Data is downloaded to file instead
-                try validate(response: response, data: data, request: request)
+                try validate(response: response, data: data, task: task)
                 return Response(value: location, data: data, request: request, response: response, metrics: metrics)
             } catch {
                 throw DataLoaderError(task: task, error: error)
@@ -268,7 +268,7 @@ public actor APIClient {
             let task = session.uploadTask(with: request, fromFile: fileURL)
             do {
                 let (data, response, metrics) = try await dataLoader.startUploadTask(task, session: session, delegate: delegate)
-                try validate(response: response, data: data, request: request)
+                try validate(response: response, data: data, task: task)
                 let value = try await decode(data)
                 return Response(value: value, data: data, request: request, response: response, metrics: metrics)
             } catch {
@@ -360,9 +360,9 @@ public actor APIClient {
         return url
     }
 
-    private func validate(response: URLResponse, data: Data, request: URLRequest) throws {
+    private func validate(response: URLResponse, data: Data, task: URLSessionTask) throws {
         guard let httpResponse = response as? HTTPURLResponse else { return }
-        try delegate.client(self, validateResponse: httpResponse, data: data, request: request)
+        try delegate.client(self, validateResponse: httpResponse, data: data, task: task)
     }
 }
 
