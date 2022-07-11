@@ -11,9 +11,10 @@ A lean Swift web API client built using async/await.
 Get provides a clear and convenient API for modeling network requests using `Request<Response>` type. And its `APIClient` makes it easy to execute these requests and decode the responses.
 
 ```swift
+// Create a client
 let client = APIClient(baseURL: URL(string: "https://api.github.com"))
 
-// Using the client directly
+// Start sending requests
 let user: User = try await client.send(.get("/user")).value
 try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 ```
