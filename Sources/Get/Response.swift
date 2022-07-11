@@ -11,22 +11,22 @@ import FoundationNetworking
 /// A response with an associated value and metadata.
 public struct Response<T> {
     /// Decoded response value.
-    public var value: T
+    public let value: T
     /// Original response.
-    public var response: URLResponse
+    public let response: URLResponse
     /// Response HTTP status code.
     public var statusCode: Int? { (response as? HTTPURLResponse)?.statusCode }
     /// Original response data.
-    public var data: Data
+    public let data: Data
     /// Original request.
     public var originalRequest: URLRequest? { task.originalRequest }
     /// The URL request object currently being handled by the task. May be
     /// different from the original request.
     public var currentRequest: URLRequest? { task.currentRequest }
     /// Completed task.
-    public var task: URLSessionTask
+    public let task: URLSessionTask
     /// Task metrics collected for the request.
-    public var metrics: URLSessionTaskMetrics?
+    public let metrics: URLSessionTaskMetrics?
 
     /// Initializes the response.
     public init(value: T, data: Data, response: URLResponse, task: URLSessionTask, metrics: URLSessionTaskMetrics? = nil) {
@@ -35,6 +35,11 @@ public struct Response<T> {
         self.response = response
         self.task = task
         self.metrics = metrics
+    }
+
+    /// Returns a response containing the mapped value.
+    public func map<U>(_ closure: (T) throws -> U) rethrows -> Response<U> {
+        Response<U>(value: try closure(value), data: data, response: response, task: task, metrics: metrics)
     }
 }
 

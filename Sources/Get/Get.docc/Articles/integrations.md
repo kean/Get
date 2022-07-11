@@ -30,6 +30,7 @@ generate api.github.yaml --output ./OctoKit --module "OctoKit"
 
 Get is a lean framework with a lot of flexibility and customization points. It makes it very easy to learn and use, but for certain features, you'll need to install additional modules.
 
-- [URLQueryEncoder](https://github.com/CreateAPI/URLQueryEncoder) – URL query encoder with support for all OpenAPI serialization options
-- [swift-multipart-formdata](https://github.com/FelixHerrmann/swift-multipart-formdata) - build `multipart/form-data` in a type-safe way
-- [NaiveDate](https://github.com/CreateAPI/NaiveDate) – working with dates ignoring time zones
+- [Mocker](https://github.com/WeTransfer/Mocker) – mocking network requests for testing purposes
+- [URLQueryEncoder](https://github.com/CreateAPI/URLQueryEncoder) – URL query encoder working with`Codable` support
+- [MultipartFormDataKit](https://github.com/Kuniwak/MultipartFormDataKit) – adds support for `multipart/form-data`
+- [NaiveDate](https://github.com/CreateAPI/NaiveDate) – working with dates without timezones

@@ -13,7 +13,7 @@ final class APIClientSessionDelegateTests: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        self.client = .github {
+        self.client = .mock {
             $0.sessionDelegate = delegate
         }
     }
@@ -28,7 +28,7 @@ final class APIClientSessionDelegateTests: XCTestCase {
         queue.setSpecific(key: queueKey, value: ())
         sessionDelegateQueue.underlyingQueue = queue
 
-        self.client = .github {
+        self.client = .mock {
             $0.sessionDelegate = delegate
             $0.sessionDelegateQueue = sessionDelegateQueue
         }
@@ -70,11 +70,22 @@ final class APIClientSessionDelegateTests: XCTestCase {
         XCTAssertEqual(transaction.request.url, URL(string: "https://api.github.com/user")!)
     }
 
+    func testInvalidateSession() async throws {
+        let expectation = self.expectation(description: "didBecomeInvalid")
+        delegate.onDidBecomeInvalid = { _ in
+            expectation.fulfill()
+        }
+
+        await client.session.invalidateAndCancel()
+
+        wait(for: [expectation], timeout: 2)
+    }
+
     // MARK: - Per-Task Delegate
 
     func testSettingDelegate() async throws {
         // GIVEN
-        self.client = .github()
+        self.client = .mock()
 
         final class MockDelegate: NSObject, URLSessionDataDelegate {
             var response: URLResponse?
@@ -104,7 +115,7 @@ final class APIClientSessionDelegateTests: XCTestCase {
 
     func testSettingDelegateCallbackBased() async throws {
         // GIVEN
-        self.client = .github()
+        self.client = .mock()
 
         final class MockDelegate: NSObject, URLSessionDataDelegate {
             var response: URLResponse?
@@ -162,6 +173,12 @@ final class APIClientSessionDelegateTests: XCTestCase {
 private final class SessionDelegate: NSObject, URLSessionTaskDelegate {
     var metrics: [URLSessionTask: URLSessionTaskMetrics] = [:]
     var onMetrics: ((URLSessionTaskMetrics) -> Void)?
+
+    var onDidBecomeInvalid: ((Error?) -> Void)?
+
+    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
+        onDidBecomeInvalid?(error)
+    }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
         self.onMetrics?(metrics)

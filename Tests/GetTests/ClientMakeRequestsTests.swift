@@ -16,7 +16,7 @@ final class ClientMakeRequestsTests: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        client = .github()
+        client = .mock()
     }
 
     // MARK: - Relative Paths

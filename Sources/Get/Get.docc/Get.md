@@ -17,7 +17,9 @@ try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 let repos = try await client.send(Paths.users("kean").repos.get)
 ```
 
-Get provides a convenient way to decode network responses using `Decodable` and to model requests using `Request` type. It uses `URLSession` for networking and provides complete access to all of `URLSession` APIs.
+Get provides a clear and convenient API for modelling network requests using `Request<Response>` type. And its `APIClient` makes it easy to execute these requests and decode the responses.
+
+The client uses `URLSession` for networking and provides complete access to all the `URLSession` APIs.
 
 ```swift
 // In addition to `APIClientDelegate`, you can also override any methods

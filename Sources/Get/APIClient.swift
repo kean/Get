@@ -23,7 +23,7 @@ public actor APIClient {
     public struct Configuration {
         /// A base URL. For example, `"https://api.github.com"`.
         public var baseURL: URL?
-        /// The (optional) client delegate.
+        /// The client delegate. The client holds a strong reference to it.
         public var delegate: APIClientDelegate?
         /// By default, `URLSessionConfiguration.default`.
         public var sessionConfiguration: URLSessionConfiguration = .default
@@ -31,9 +31,9 @@ public actor APIClient {
         public var sessionDelegate: URLSessionDelegate?
         /// Overrides the default delegate queue.
         public var sessionDelegateQueue: OperationQueue?
-        /// By default, uses decoder with `.iso8601` date decoding strategy.
+        /// By default, uses `.iso8601` date decoding strategy.
         public var decoder: JSONDecoder
-        /// By default, uses encoder with `.iso8601` date encoding strategy.
+        /// By default, uses `.iso8601` date encoding strategy.
         public var encoder: JSONEncoder
 
         /// Initializes the configuration.
@@ -77,7 +77,7 @@ public actor APIClient {
 
     // MARK: Sending Requests
 
-    /// Sends the given request.
+    /// Sends the given request and returns a decoded response.
     ///
     /// - parameters:
     ///   - request: The request to perform.
@@ -91,24 +91,6 @@ public actor APIClient {
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<T> {
         try await _send(request, delegate: delegate, configure: configure, decode)
-    }
-
-    /// Sends the given request.
-    ///
-    /// - parameters:
-    ///   - request: The request to perform.
-    ///   - delegate: A task-specific delegate.
-    ///   - configure: Modifies the underlying `URLRequest` before sending it.
-    ///
-    /// - returns: A response with a decoded body or `nil` if the data was empty.
-    public func send<T: Decodable>(
-        _ request: Request<T?>,
-        delegate: URLSessionDataDelegate? = nil,
-        configure: ((inout URLRequest) throws -> Void)? = nil
-    ) async throws -> Response<T?> {
-        try await _send(request, delegate: delegate, configure: configure) { data in
-            data.isEmpty ? nil : try await self.decode(data)
-        }
     }
 
     /// Sends the given request.
@@ -152,7 +134,7 @@ public actor APIClient {
 
     // MARK: Fetch Data
 
-    /// Fetches the data for the given request.
+    /// Fetches data for the given request.
     ///
     /// - parameters:
     ///   - request: The request to perform.
@@ -219,7 +201,7 @@ public actor APIClient {
 
     // MARK: Upload
 
-    /// Convenience method to upload data from the file.
+    /// Convenience method to upload data from a file.
     ///
     /// - parameters:
     ///   - request: The URLRequest for which to upload data.
@@ -238,7 +220,7 @@ public actor APIClient {
         return try await _upload(request, fromFile: fileURL, delegate: delegate, decode)
     }
 
-    /// Convenience method to upload data from the file.
+    /// Convenience method to upload data from a file.
     ///
     /// - parameters:
     ///   - request: The URLRequest for which to upload data.
@@ -263,13 +245,19 @@ public actor APIClient {
         delegate: URLSessionTaskDelegate? = nil,
         _ decode: @escaping (Data) async throws -> T
     ) async throws -> Response<T> {
-        var request = request
-        try await self.delegate.client(self, willSendRequest: &request)
-        let task = session.uploadTask(with: request, fromFile: fileURL)
-        let (data, response, metrics) = try await dataLoader.startUploadTask(task, session: session, delegate: delegate)
-        try validate(response: response, data: data, task: task)
-        let value = try await decode(data)
-        return Response(value: value, data: data, response: response, task: task, metrics: metrics)
+        try await performWithRetries {
+            var request = request
+            try await self.delegate.client(self, willSendRequest: &request)
+            let task = session.uploadTask(with: request, fromFile: fileURL)
+            do {
+                let (data, response, metrics) = try await dataLoader.startUploadTask(task, session: session, delegate: delegate)
+                try validate(response: response, data: data, task: task)
+                let value = try await decode(data)
+                return Response(value: value, data: data, response: response, task: task, metrics: metrics)
+            } catch {
+                throw DataLoaderError(task: task, error: error)
+            }
+        }
     }
 
     // MARK: Making Requests

@@ -6,7 +6,7 @@ import XCTest
 import Get
 
 extension APIClient {
-    static func github(_ configure: (inout APIClient.Configuration) -> Void = { _ in }) -> APIClient {
+    static func mock(_ configure: (inout APIClient.Configuration) -> Void = { _ in }) -> APIClient {
         APIClient(baseURL: URL(string: "https://api.github.com")) {
             $0.sessionConfiguration.protocolClasses = [MockingURLProtocol.self]
             $0.sessionConfiguration.urlCache = nil

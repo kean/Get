@@ -16,7 +16,7 @@ final class ClientSendingRequestsTests: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        self.client = .github()
+        self.client = .mock()
     }
 
     // MARK: - Basic Requests
@@ -76,6 +76,20 @@ final class ClientSendingRequestsTests: XCTestCase {
         }
     }
 
+    func testSendingRequestWithInvalidURL() async throws {
+        // GIVEN
+        let request = Request<Void>(url: "https://api.github.com  ---invalid")
+
+        // WHEN
+        do {
+            try await client.send(request)
+        } catch {
+            // THEN
+            let error = try XCTUnwrap(error as? URLError)
+            XCTAssertEqual(error.code, .badURL)
+        }
+    }
+
     func testCancellingRequests() async throws {
         // Given
         let url = URL(string: "https://api.github.com/users/kean")!
@@ -114,21 +128,6 @@ final class ClientSendingRequestsTests: XCTestCase {
 
         // THEN returns decoded JSON
         XCTAssertEqual(user.login, "kean")
-    }
-
-    // func value(for:) -> Decodable
-    func testResponseDecodableOptional() async throws {
-        // GIVEN
-        let url = URL(string: "https://api.github.com/user")!
-        Mock(url: url, dataType: .html, statusCode: 200, data: [
-            .get: Data()
-        ]).register()
-
-        // WHEN
-        let user: User? = try await client.send(.get("/user")).value
-
-        // THEN returns decoded JSON
-        XCTAssertNil(user)
     }
 
     func testResponseDecodableOptionalNotNil() async throws {
@@ -201,6 +200,20 @@ final class ClientSendingRequestsTests: XCTestCase {
         try await client.send(request)
     }
 
+    func testChangingResponseType() async throws {
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        Mock.get(url: url, json: "user").register()
+
+        let request = Request<User>.get("/user")
+
+        // WHEN
+        let string = try await client.send(request.withResponse(String.self)).value
+
+        // THEN
+        XCTAssertTrue(string.contains(#""login": "kean"#))
+    }
+
     // MARK: - Retries
 
     func testRetries() async throws {
@@ -211,7 +224,7 @@ final class ClientSendingRequestsTests: XCTestCase {
             }
         }
 
-        let client = APIClient.github {
+        let client = APIClient.mock {
             $0.delegate = RetryingDelegate()
         }
 
@@ -396,7 +409,7 @@ final class ClientSendingRequestsTests: XCTestCase {
 #if !os(Linux) // This doesn't work on Linux
     func testSetHTTPAdditionalHeaders() async throws {
         // GIVEN
-        client = .github {
+        client = .mock {
             $0.sessionConfiguration.httpAdditionalHeaders = [
                 "x-custom-field": "1"
             ]

@@ -46,7 +46,7 @@ To fetch the response data, use ``data(for:delegate:configure:)`` and decode dat
 
 ```swift
 let response = try await client.download(for: .get("/user"))
-let url = response.location
+let fileURL = response.location
 ```
 
 ``APIClient`` also provides a convenience method ``upload(for:fromFile:delegate:configure:)-y3l9`` for uploading data from a file:
@@ -112,7 +112,6 @@ final class YourSessionDelegate: URLSessionTaskDelegate {
 ### Sending Requests
 
 - ``send(_:delegate:configure:)-3t9w0``
-- ``send(_:delegate:configure:)-81caz``
 - ``send(_:delegate:configure:)-2mbhr``
 
 ### Loading Data

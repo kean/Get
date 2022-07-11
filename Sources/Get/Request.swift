@@ -39,6 +39,11 @@ public struct Request<Response>: @unchecked Sendable {
         self.body = body
         self.id = id
     }
+
+    /// Changes the respones type keeping the rest of the request parameters.
+    public func withResponse<T>(_ type: T.Type) -> Request<T> {
+        Request<T>(method: method, url: url, query: query, body: body, headers: headers, id: id)
+    }
 }
 
 extension Request {

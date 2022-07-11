@@ -8,7 +8,7 @@ import FoundationNetworking
 #endif
 
 // A simple URLSession wrapper adding async/await APIs compatible with older platforms.
-final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDelegate {
+final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDelegate, @unchecked Sendable {
     private var handlers = [URLSessionTask: TaskHandler]()
 
     var userSessionDelegate: URLSessionDelegate? {
@@ -29,9 +29,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     }()
 
     func startDataTask(_ task: URLSessionDataTask, session: URLSession, delegate: URLSessionDataDelegate?) async throws -> (Data, URLResponse, URLSessionTaskMetrics?) {
-        try await withTaskCancellationHandler(handler: {
-            task.cancel()
-        }, operation: {
+        try await withTaskCancellationHandler(handler: { task.cancel() }) {
             try await withUnsafeThrowingContinuation { continuation in
                 session.delegateQueue.addOperation {
                     let handler = DataTaskHandler(delegate: delegate)
@@ -40,13 +38,11 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
                 }
                 task.resume()
             }
-        })
+        }
     }
 
     func startDownloadTask(_ task: URLSessionDownloadTask, session: URLSession, delegate: URLSessionDownloadDelegate?) async throws -> (URL, URLResponse, URLSessionTaskMetrics?) {
-        try await withTaskCancellationHandler(handler: {
-            task.cancel()
-        }, operation: {
+        try await withTaskCancellationHandler(handler: { task.cancel() }) {
             try await withUnsafeThrowingContinuation { continuation in
                 session.delegateQueue.addOperation {
                     let handler = DownloadTaskHandler(delegate: delegate)
@@ -55,13 +51,11 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
                 }
                 task.resume()
             }
-        })
+        }
     }
 
     func startUploadTask(_ task: URLSessionUploadTask, session: URLSession, delegate: URLSessionTaskDelegate?) async throws -> (Data, URLResponse, URLSessionTaskMetrics?) {
-        try await withTaskCancellationHandler(handler: {
-            task.cancel()
-        }, operation: {
+        try await withTaskCancellationHandler(handler: { task.cancel() }) {
             try await withUnsafeThrowingContinuation { continuation in
                 session.delegateQueue.addOperation {
                     let handler = DataTaskHandler(delegate: delegate)
@@ -70,7 +64,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
                 }
                 task.resume()
             }
-        })
+        }
     }
 
     // MARK: - URLSessionDelegate
@@ -275,6 +269,8 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
 #endif
     }
 }
+
+// MARK: - TaskHandlers
 
 private class TaskHandler {
     let delegate: URLSessionTaskDelegate?

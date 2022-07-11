@@ -8,7 +8,7 @@ import XCTest
 final class APIClientIntegrationTests: XCTestCase {
 
     func _testGitHubUsersApi() async throws {
-        let client = APIClient.github()
+        let client = APIClient.mock()
         let user = try await client.send(Paths.users("kean").get).value
         XCTAssertEqual(user.login, "kean")
     }

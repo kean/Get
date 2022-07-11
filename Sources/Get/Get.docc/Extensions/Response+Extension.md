@@ -13,3 +13,7 @@
 - ``currentRequest``
 - ``task``
 - ``metrics``
+
+### Methods
+
+- ``map(_:)``

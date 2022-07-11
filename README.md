@@ -15,11 +15,13 @@ let client = APIClient(baseURL: URL(string: "https://api.github.com"))
 let user: User = try await client.send(.get("/user")).value
 try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 
-// Using an API definition generated with CreateAPI
+// Using the API definition generated with CreateAPI
 let repos = try await client.send(Paths.users("kean").repos.get)
 ```
 
-Get provides a convenient way to decode network responses using `Decodable` and to model requests using `Request` type. It uses `URLSession` for networking and provides complete access to all the `URLSession` APIs.
+Get provides a clear and convenient API for modelling network requests using `Request<Response>` type. And its `APIClient` makes it easy to execute these requests and decode the responses.
+
+The client uses `URLSession` for networking and provides complete access to all the `URLSession` APIs.
 
 ```swift
 // In addition to `APIClientDelegate`, you can also override any methods
@@ -36,7 +38,7 @@ let response = try await client.send(Paths.user.get, delegate: delegate) {
 }
 ```
 
-In addition to sending quick requests, Get also supports downloads, uploads from file, authentication, auto-retries, logging, and more.
+In addition to sending quick requests, it also supports downloads to files, uploads from files, authentication, auto-retries, logging, and more.
 
 ## Documentation
 
@@ -76,16 +78,16 @@ generate api.github.yaml --output ./OctoKit --module "OctoKit"
 
 Get is a lean framework with a lot of flexibility and customization points. It makes it very easy to learn and use, but for certain features, you'll need to install additional modules.
 
-- [URLQueryEncoder](https://github.com/CreateAPI/URLQueryEncoder) – URL query encoder with support for all OpenAPI serialization options
-- [swift-multipart-formdata](https://github.com/FelixHerrmann/swift-multipart-formdata) - build `multipart/form-data` in a type-safe way
-- [NaiveDate](https://github.com/CreateAPI/NaiveDate) – working with dates ignoring time zones
+- [Mocker](https://github.com/WeTransfer/Mocker) – mocking network requests for testing purposes
+- [URLQueryEncoder](https://github.com/CreateAPI/URLQueryEncoder) – URL query encoder working with`Codable` support
+- [MultipartFormDataKit](https://github.com/Kuniwak/MultipartFormDataKit) – adds support for `multipart/form-data`
+- [NaiveDate](https://github.com/CreateAPI/NaiveDate) – working with dates without timezones
 
 ## Minimum Requirements
 
 | Get  | Date         | Swift | Xcode | Platforms                                            |
 |------|--------------|-------|-------|------------------------------------------------------|
 | 1.0 | [RC2](https://github.com/kean/get/releases/tag/1.0.0-rc.2) | 5.6   | 13.3 | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
-| 0.6  | Apr 03, 2022 | 5.5   | 13.2  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
 
 ## License
 

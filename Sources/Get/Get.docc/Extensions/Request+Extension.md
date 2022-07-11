@@ -18,7 +18,7 @@ Request<Repo>.patch(
 Request.post("/repos", body: Repo(name: "CreateAPI"))
 ```
 
-> tip: To learn more about defining network requests, see <doc:define-api>.
+> tip: If the request's ``Request/url`` represents a relative URL, e.g. `"/user/repos"`, then it is appended to the client's ``APIClient/Configuration-swift.struct/baseURL``. If pass an absolute URL, e.g. `"https://api.github.com/user"`, it will be used as-is.
 
 You can also use an initializer to create requests:
 
@@ -26,13 +26,23 @@ You can also use an initializer to create requests:
 Request(url: "/repos/octokit", query: [("password", "123456")])
 ```
 
-> tip: If the request's ``Request/url`` represents a relative URL, e.g. `"/user/repos"`, then it is appended to the client's ``APIClient/Configuration-swift.struct/baseURL``. If pass an absolute URL, e.g. `"https://api.github.com/user"`, it will be used as-is.
+There is also a way to change the response type of the existing request. Let's say you want to decode the response using a different `Decodable` model or maybe you want to get the raw response `String`.
+
+```swift
+let request = Request<User>.get("/user")
+
+// Returns response as a raw `String`
+let response = try await client.send(request.withResponse(String.self))
+```
+
+> tip: To learn more about defining network requests, see <doc:define-api>.
+
 
 ## Topics
 
 ### Initializers
 
-- ``init(method:url:query:body:headers:)``
+- ``init(method:url:query:body:headers:id:)``
 
 ### Instance Properties
 
@@ -42,6 +52,10 @@ Request(url: "/repos/octokit", query: [("password", "123456")])
 - ``body``
 - ``headers``
 - ``id``
+
+### Changing Response Type
+
+- ``withResponse(_:)``
 
 ### Factory Methods
 

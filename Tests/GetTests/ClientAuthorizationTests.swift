@@ -15,7 +15,7 @@ final class APIClientAuthorizationTests: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        client = APIClient.github {
+        client = APIClient.mock {
             $0.delegate = delegate
         }
     }
