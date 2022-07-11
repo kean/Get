@@ -16,20 +16,12 @@ public struct Request<Response>: @unchecked Sendable {
     public var url: String
     /// Request query items.
     public var query: [(String, String?)]?
+    /// Request body.
+    public let body: Encodable?
     /// Request headers to be added to the request.
     public var headers: [String: String]?
     /// ID provided by the user. Not used by the API client.
     public var id: String?
-
-    // Deprecated in Get 1.0
-    @available(*, deprecated, message: "Rename to url.")
-    public var path: String {
-        get { url }
-        set { url = newValue }
-    }
-
-    /// Request body.
-    public let body: Encodable?
 
     /// Initialiazes the request with the given parameters and the request body.
     public init(
