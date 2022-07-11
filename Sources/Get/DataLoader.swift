@@ -311,9 +311,19 @@ private final class DownloadTaskHandler: TaskHandler {
     }
 }
 
+// MARK: - Helpers
+
 struct DataLoaderError: Error {
     let task: URLSessionTask
     let error: Error
+}
+
+struct AnyEncodable: Encodable {
+    let value: Encodable
+
+    func encode(to encoder: Encoder) throws {
+        try value.encode(to: encoder)
+    }
 }
 
 extension OperationQueue {

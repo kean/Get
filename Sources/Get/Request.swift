@@ -28,7 +28,8 @@ public struct Request<Response>: @unchecked Sendable {
         set { url = newValue }
     }
 
-    let body: AnyEncodable?
+    /// Request body.
+    public let body: Encodable?
 
     /// Initialiazes the request with the given parameters and the request body.
     public init(
@@ -42,7 +43,7 @@ public struct Request<Response>: @unchecked Sendable {
         self.url = url
         self.query = query
         self.headers = headers
-        self.body = body.map(AnyEncodable.init)
+        self.body = body
     }
 }
 
@@ -111,17 +112,5 @@ extension Request where Response == Void {
 
     public static func trace(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
         Request(method: "TRACE", url: url, query: query, headers: headers)
-    }
-}
-
-struct AnyEncodable: Encodable {
-    private let value: Encodable
-
-    init(_ value: Encodable) {
-        self.value = value
-    }
-
-    func encode(to encoder: Encoder) throws {
-        try value.encode(to: encoder)
     }
 }

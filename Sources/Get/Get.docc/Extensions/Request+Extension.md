@@ -39,6 +39,7 @@ Request(url: "/repos/octokit", query: [("password", "123456")])
 - ``method``
 - ``url``
 - ``query``
+- ``body``
 - ``headers``
 - ``id``
 

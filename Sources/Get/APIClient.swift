@@ -289,7 +289,7 @@ public actor APIClient {
         urlRequest.httpMethod = request.method
         if let body = request.body {
             urlRequest.httpBody = try await Task.detached { [encoder] in
-                try encoder.encode(body)
+                try encoder.encode(AnyEncodable(value: body))
             }.value
             if urlRequest.value(forHTTPHeaderField: "Content-Type") == nil &&
                 session.configuration.httpAdditionalHeaders?["Content-Type"] == nil {
