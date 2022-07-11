@@ -5,6 +5,10 @@
 import XCTest
 import Get
 
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
 func checkSample01() {
     final class ClientDelegate: APIClientDelegate {
         private var accessToken: String = ""
