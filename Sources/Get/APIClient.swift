@@ -207,8 +207,9 @@ public actor APIClient {
         delegate: URLSessionTaskDelegate? = nil,
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<T> {
-        let request = try await makeURLRequest(for: request, configure)
-        return try await _upload(request, fromFile: fileURL, delegate: delegate, decode)
+        let response = try await _upload(for: request, fromFile: fileURL, delegate: delegate, configure: configure)
+        let value: T = try await decode(response.data)
+        return response.map { _ in value }
     }
 
     /// Convenience method to upload data from a file.
@@ -226,25 +227,24 @@ public actor APIClient {
         delegate: URLSessionTaskDelegate? = nil,
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<Void> {
-        let request = try await makeURLRequest(for: request, configure)
-        return try await _upload(request, fromFile: fileURL, delegate: delegate, { _ in () })
+        try await _upload(for: request, fromFile: fileURL, delegate: delegate, configure: configure).map { _ in () }
     }
 
     private func _upload<T>(
-        _ request: URLRequest,
+        for request: Request<T>,
         fromFile fileURL: URL,
-        delegate: URLSessionTaskDelegate? = nil,
-        _ decode: @escaping (Data) async throws -> T
-    ) async throws -> Response<T> {
-        try await performWithRetries {
+        delegate: URLSessionTaskDelegate?,
+        configure: ((inout URLRequest) throws -> Void)?
+    ) async throws -> Response<Data> {
+        let request = try await makeURLRequest(for: request, configure)
+        return try await performWithRetries {
             var request = request
             try await self.delegate.client(self, willSendRequest: &request)
             let task = session.uploadTask(with: request, fromFile: fileURL)
             do {
                 let response = try await dataLoader.startUploadTask(task, session: session, delegate: delegate)
                 try validate(response)
-                let value = try await decode(response.data)
-                return response.map { _ in value }
+                return response
             } catch {
                 throw DataLoaderError(task: task, error: error)
             }
