@@ -67,7 +67,7 @@ Get is available under the MIT license. See the LICENSE file for more info.
 
 ### Articles
 
-- <doc:define-api>
 - <doc:authentication>
 - <doc:caching>
+- <doc:define-api>
 - <doc:integrations>
