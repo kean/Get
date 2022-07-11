@@ -28,7 +28,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
         return url
     }()
 
-    func startDataTask(_ task: URLSessionDataTask, session: URLSession, delegate: URLSessionDataDelegate?) async throws -> (Data, URLResponse, URLSessionTaskMetrics?) {
+    func startDataTask(_ task: URLSessionDataTask, session: URLSession, delegate: URLSessionDataDelegate?) async throws -> Response<Data> {
         try await withTaskCancellationHandler(handler: { task.cancel() }) {
             try await withUnsafeThrowingContinuation { continuation in
                 session.delegateQueue.addOperation {
@@ -41,7 +41,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
         }
     }
 
-    func startDownloadTask(_ task: URLSessionDownloadTask, session: URLSession, delegate: URLSessionDownloadDelegate?) async throws -> (URL, URLResponse, URLSessionTaskMetrics?) {
+    func startDownloadTask(_ task: URLSessionDownloadTask, session: URLSession, delegate: URLSessionDownloadDelegate?) async throws -> Response<URL> {
         try await withTaskCancellationHandler(handler: { task.cancel() }) {
             try await withUnsafeThrowingContinuation { continuation in
                 session.delegateQueue.addOperation {
@@ -54,7 +54,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
         }
     }
 
-    func startUploadTask(_ task: URLSessionUploadTask, session: URLSession, delegate: URLSessionTaskDelegate?) async throws -> (Data, URLResponse, URLSessionTaskMetrics?) {
+    func startUploadTask(_ task: URLSessionUploadTask, session: URLSession, delegate: URLSessionTaskDelegate?) async throws -> Response<Data> {
         try await withTaskCancellationHandler(handler: { task.cancel() }) {
             try await withUnsafeThrowingContinuation { continuation in
                 session.delegateQueue.addOperation {
@@ -102,13 +102,16 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
         switch handler {
         case let handler as DataTaskHandler:
             if let response = task.response, error == nil {
-                handler.completion?(.success((handler.data ?? Data(), response, handler.metrics)))
+                let data = handler.data ?? Data()
+                let response = Response(value: data, data: data, response: response, task: task, metrics: handler.metrics)
+                handler.completion?(.success(response))
             } else {
                 handler.completion?(.failure(error ?? URLError(.unknown)))
             }
         case let handler as DownloadTaskHandler:
             if let location = handler.location, let response = task.response, error == nil {
-                handler.completion?(.success((location, response, handler.metrics)))
+                let response = Response(value: location, data: Data(), response: response, task: task, metrics: handler.metrics)
+                handler.completion?(.success(response))
             } else {
                 handler.completion?(.failure(error ?? URLError(.unknown)))
             }
@@ -282,7 +285,7 @@ private class TaskHandler {
 }
 
 private final class DataTaskHandler: TaskHandler {
-    typealias Completion = (Result<(Data, URLResponse, URLSessionTaskMetrics?), Error>) -> Void
+    typealias Completion = (Result<Response<Data>, Error>) -> Void
 
     let dataDelegate: URLSessionDataDelegate?
     var completion: Completion?
@@ -295,7 +298,7 @@ private final class DataTaskHandler: TaskHandler {
 }
 
 private final class DownloadTaskHandler: TaskHandler {
-    typealias Completion = (Result<(URL, URLResponse, URLSessionTaskMetrics?), Error>) -> Void
+    typealias Completion = (Result<Response<URL>, Error>) -> Void
 
     let downloadDelegate: URLSessionDownloadDelegate?
     var completion: Completion?
