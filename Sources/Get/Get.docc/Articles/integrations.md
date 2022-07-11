@@ -33,5 +33,3 @@ Get is a lean framework with a lot of flexibility and customization points. It m
 - [URLQueryEncoder](https://github.com/CreateAPI/URLQueryEncoder) – URL query encoder with support for all OpenAPI serialization options
 - [swift-multipart-formdata](https://github.com/FelixHerrmann/swift-multipart-formdata) - build `multipart/form-data` in a type-safe way
 - [NaiveDate](https://github.com/CreateAPI/NaiveDate) – working with dates ignoring time zones
-
-Because Get provides complete access to the underlying `URLSession`, it's easy to use it with almost any framework that extends networking on Apple platforms.

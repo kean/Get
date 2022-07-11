@@ -19,7 +19,7 @@ try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 let repos = try await client.send(Paths.users("kean").repos.get)
 ```
 
-Get provides a convenient way to decode network responses using `Decodable` and to model requests using `Request` type. It uses `URLSession` for networking and provides complete access to all the `URLSession` APIs to enable advanced use-cases.
+Get provides a convenient way to decode network responses using `Decodable` and to model requests using `Request` type. It uses `URLSession` for networking and provides complete access to all the `URLSession` APIs.
 
 ```swift
 // In addition to `APIClientDelegate`, you can also override any methods
@@ -79,8 +79,6 @@ Get is a lean framework with a lot of flexibility and customization points. It m
 - [URLQueryEncoder](https://github.com/CreateAPI/URLQueryEncoder) – URL query encoder with support for all OpenAPI serialization options
 - [swift-multipart-formdata](https://github.com/FelixHerrmann/swift-multipart-formdata) - build `multipart/form-data` in a type-safe way
 - [NaiveDate](https://github.com/CreateAPI/NaiveDate) – working with dates ignoring time zones
-
-Because Get provides complete access to the underlying `URLSession`, it's easy to use it with almost any framework that extends networking on Apple platforms.
 
 ## Minimum Requirements
 
