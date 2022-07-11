@@ -174,7 +174,7 @@ final class APIClientTests: XCTestCase {
     func testRetries() async throws {
         // GIVEN
         final class RetryingDelegate: APIClientDelegate {
-            func client(_ client: APIClient, shouldRetryRequest request: URLRequest, attempts: Int, error: Error) async throws -> Bool {
+            func client(_ client: APIClient, shouldRetry task: URLSessionTask, error: Error, attempts: Int) async throws -> Bool {
                 attempts < 3
             }
         }

@@ -10,7 +10,7 @@
 ### Error Handling and Retries
 
 - ``client(_:validateResponse:data:request:)-2aica``
-- ``client(_:shouldRetryRequest:attempts:error:)-4loyw``
+- ``client(_:shouldRetry:error:attempts:)-6tv21``
 
 ### Deprecated
 

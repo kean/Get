@@ -81,7 +81,7 @@ public actor APIClient {
     ///
     /// - parameters:
     ///   - request: The request to perform.
-    ///   - delegate: Task-specific delegate.
+    ///   - delegate: A task-specific delegate.
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
     ///
     /// - returns: A response with a decoded body.
@@ -97,7 +97,7 @@ public actor APIClient {
     ///
     /// - parameters:
     ///   - request: The request to perform.
-    ///   - delegate: Task-specific delegate.
+    ///   - delegate: A task-specific delegate.
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
     ///
     /// - returns: A response with a decoded body or `nil` if the data was empty.
@@ -119,7 +119,7 @@ public actor APIClient {
     ///
     /// - parameters:
     ///   - request: The request to perform.
-    ///   - delegate: Task-specific delegate.
+    ///   - delegate: A task-specific delegate.
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
     ///
     /// - returns: A response with an empty value.
@@ -140,10 +140,15 @@ public actor APIClient {
     ) async throws -> Response<U> {
         let request = try await makeURLRequest(for: request, configure)
         return try await performWithRetries(request: request) { request in
-            let (data, response, metrics) = try await dataLoader.data(for: request, session: session, delegate: delegate)
-            try validate(response: response, data: data, request: request)
-            let value = try await decode(data)
-            return Response(value: value, data: data, request: request, response: response, metrics: metrics)
+            let task = session.dataTask(with: request)
+            do {
+                let (data, response, metrics) = try await dataLoader.startDataTask(task, session: session, delegate: delegate)
+                try validate(response: response, data: data, request: request)
+                let value = try await decode(data)
+                return Response(value: value, data: data, request: request, response: response, metrics: metrics)
+            } catch {
+                throw DataLoaderError(task: task, error: error)
+            }
         }
     }
 
@@ -166,7 +171,7 @@ public actor APIClient {
     ///
     /// - parameters:
     ///   - request: The request to perform.
-    ///   - delegate: Task-specific delegate.
+    ///   - delegate: A task-specific delegate.
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
     ///
     /// - returns: A response with a raw response data.
@@ -182,16 +187,16 @@ public actor APIClient {
 
     // MARK: Downloads
 
-    /// Downloads the data for the given request.
+    /// Downloads the requested data to a file.
     ///
     /// - parameters:
-    ///   - request: The request to perform.
-    ///   - delegate: Task-specific delegate.
+    ///   - request: A request object that provides the URL and other parameters.
+    ///   - delegate: A task-specific delegate.
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
     ///
-    /// - important: Make sure to move the downloaded file to a location in your app after the completion.
-    ///
-    /// - returns: A response with a location of the downloaded file.
+    /// - returns: A response with the location of the downloaded file. The file
+    /// will not be removed automatically until the app restarts. Make sure to
+    /// move the file to a known location in your app.
     public func download<T>(
         for request: Request<T>,
         delegate: URLSessionDownloadDelegate? = nil,
@@ -199,10 +204,15 @@ public actor APIClient {
     ) async throws -> Response<URL> {
         let request = try await makeURLRequest(for: request, configure)
         return try await performWithRetries(request: request) { request in
-            let (location, response, metrics) = try await dataLoader.download(for: request, session: session, delegate: delegate)
-            let data = Data() // Data is downloaded to file instead
-            try validate(response: response, data: data, request: request)
-            return Response(value: location, data: data, request: request, response: response, metrics: metrics)
+            let task = session.downloadTask(with: request)
+            do {
+                let (location, response, metrics) = try await dataLoader.starDownloadTask(task, session: session, delegate: delegate)
+                let data = Data() // Data is downloaded to file instead
+                try validate(response: response, data: data, request: request)
+                return Response(value: location, data: data, request: request, response: response, metrics: metrics)
+            } catch {
+                throw DataLoaderError(task: task, error: error)
+            }
         }
     }
 
@@ -215,7 +225,7 @@ public actor APIClient {
     /// - parameters:
     ///   - request: The URLRequest for which to upload data.
     ///   - fileURL: File to upload.
-    ///   - delegate: Task-specific delegate.
+    ///   - delegate: A task-specific delegate.
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
     ///
     /// Returns decoded response.
@@ -234,7 +244,7 @@ public actor APIClient {
     /// - parameters:
     ///   - request: The URLRequest for which to upload data.
     ///   - fileURL: File to upload.
-    ///   - delegate: Task-specific delegate.
+    ///   - delegate: A task-specific delegate.
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
     ///
     /// Returns decoded response.
@@ -255,10 +265,15 @@ public actor APIClient {
         _ decode: @escaping (Data) async throws -> T
     ) async throws -> Response<T> {
         try await performWithRetries(request: request) { request in
-            let (data, response, metrics) = try await dataLoader.upload(for: request, fromFile: fileURL, session: session, delegate: delegate)
-            try validate(response: response, data: data, request: request)
-            let value = try await decode(data)
-            return Response(value: value, data: data, request: request, response: response, metrics: metrics)
+            let task = session.uploadTask(with: request, fromFile: fileURL)
+            do {
+                let (data, response, metrics) = try await dataLoader.startUploadTask(task, session: session, delegate: delegate)
+                try validate(response: response, data: data, request: request)
+                let value = try await decode(data)
+                return Response(value: value, data: data, request: request, response: response, metrics: metrics)
+            } catch {
+                throw DataLoaderError(task: task, error: error)
+            }
         }
     }
 
@@ -274,8 +289,12 @@ public actor APIClient {
             try await delegate.client(self, willSendRequest: &request)
             return try await send(request)
         } catch {
-            guard try await delegate.client(self, shouldRetryRequest: request, attempts: attempts, error: error) else {
+            guard let error = error as? DataLoaderError else {
+                assertionFailure()
                 throw error
+            }
+            guard try await delegate.client(self, shouldRetry: error.task, error: error.error, attempts: attempts) else {
+                throw error.error
             }
             return try await performWithRetries(request: request, attempts: attempts + 1, send: send)
         }

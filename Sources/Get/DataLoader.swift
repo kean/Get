@@ -28,62 +28,49 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
         return url
     }()
 
-    func data(for request: URLRequest, session: URLSession, delegate: URLSessionDataDelegate?) async throws -> (Data, URLResponse, URLSessionTaskMetrics?) {
-        let box = Box()
-        return try await withTaskCancellationHandler(handler: {
-            box.task?.cancel()
+    func startDataTask(_ task: URLSessionDataTask, session: URLSession, delegate: URLSessionDataDelegate?) async throws -> (Data, URLResponse, URLSessionTaskMetrics?) {
+        try await withTaskCancellationHandler(handler: {
+            task.cancel()
         }, operation: {
             try await withUnsafeThrowingContinuation { continuation in
-                let task = session.dataTask(with: request)
                 session.delegateQueue.addOperation {
                     let handler = DataTaskHandler(delegate: delegate)
                     handler.completion = continuation.resume(with:)
                     self.handlers[task] = handler
                 }
                 task.resume()
-                box.task = task
             }
         })
     }
 
-    func download(for request: URLRequest, session: URLSession, delegate: URLSessionDownloadDelegate?) async throws -> (URL, URLResponse, URLSessionTaskMetrics?) {
-        let box = Box()
-        return try await withTaskCancellationHandler(handler: {
-            box.task?.cancel()
+    func starDownloadTask(_ task: URLSessionDownloadTask, session: URLSession, delegate: URLSessionDownloadDelegate?) async throws -> (URL, URLResponse, URLSessionTaskMetrics?) {
+        try await withTaskCancellationHandler(handler: {
+            task.cancel()
         }, operation: {
             try await withUnsafeThrowingContinuation { continuation in
-                let task = session.downloadTask(with: request)
                 session.delegateQueue.addOperation {
                     let handler = DownloadTaskHandler(delegate: delegate)
                     handler.completion = continuation.resume(with:)
                     self.handlers[task] = handler
                 }
                 task.resume()
-                box.task = task
             }
         })
     }
 
-    func upload(for request: URLRequest, fromFile fileURL: URL, session: URLSession, delegate: URLSessionTaskDelegate? = nil) async throws -> (Data, URLResponse, URLSessionTaskMetrics?) {
-        let box = Box()
-        return try await withTaskCancellationHandler(handler: {
-            box.task?.cancel()
+    func startUploadTask(_ task: URLSessionUploadTask, session: URLSession, delegate: URLSessionTaskDelegate?) async throws -> (Data, URLResponse, URLSessionTaskMetrics?) {
+        try await withTaskCancellationHandler(handler: {
+            task.cancel()
         }, operation: {
             try await withUnsafeThrowingContinuation { continuation in
-                let task = session.uploadTask(with: request, fromFile: fileURL)
                 session.delegateQueue.addOperation {
                     let handler = DataTaskHandler(delegate: delegate)
                     handler.completion = continuation.resume(with:)
                     self.handlers[task] = handler
                 }
                 task.resume()
-                box.task = task
             }
         })
-    }
-
-    private final class Box {
-        var task: URLSessionTask?
     }
 
     // MARK: - URLSessionDelegate
@@ -322,6 +309,11 @@ private final class DownloadTaskHandler: TaskHandler {
         self.downloadDelegate = delegate
         super.init(delegate: delegate)
     }
+}
+
+struct DataLoaderError: Error {
+    let task: URLSessionTask
+    let error: Error
 }
 
 extension OperationQueue {
