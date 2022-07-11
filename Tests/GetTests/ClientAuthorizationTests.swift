@@ -115,7 +115,8 @@ private final class MockAuthorizingDelegate: APIClientDelegate {
     }
 
     func client(_ client: APIClient, shouldRetry task: URLSessionTask, error: Error, attempts: Int) async throws -> Bool {
-        if case .unacceptableStatusCode(let statusCode) = (error as? APIError), statusCode == 401 {
+        if case .unacceptableStatusCode(let statusCode) = error as? APIError,
+           statusCode == 401, attempts == 1 {
             token = try await tokenRefresher.refreshToken()
             return true
         }

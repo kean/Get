@@ -11,8 +11,10 @@ Every authorization system has its quirks. If you use [OAuth 2.0](https://oauth.
 While you can provide authorization headers in individual requests, a common approach is to set them in a centralized place. The ``APIClientDelegate/client(_:willSendRequest:)-8orzl`` delegate method is a good place to do it.
 
 ```swift
-final class YourAPIClientDelegate: APIClientDelegate {
-    func client(_ client: APIClient, willSendRequest request: inout URLRequest) {
+final class ClientDelegate: APIClientDelegate {
+    private var accessToken: String = ""
+
+    func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws {
         request.setValue("Bearer: \(accessToken)", forHTTPHeaderField: "Authorization")
     }
 }
@@ -27,16 +29,18 @@ final class YourAPIClientDelegate: APIClientDelegate {
 If your access tokens are short-lived, it is important to implement a proper refresh flow. ``APIClientDelegate`` provides a method for that too: ``APIClientDelegate/clshoul`.
 
 ```swift
-final class YourAPIClientDelegate: APIClientDelegate {
-    func client(_ client: APIClient, shouldRetry task: URLSessionTask, error: Error, attempts: Int) async throws -> Bool
-        if case .unacceptableStatusCode(let code) = (error as? APIError), code == 401, attempts = =1 {
-            return await refreshAccessToken()
+final class ClientDelegate: APIClientDelegate {
+    func client(_ client: APIClient, shouldRetry task: URLSessionTask, error: Error, attempts: Int) async throws -> Bool {
+        if case .unacceptableStatusCode(let statusCode) = error as? APIError,
+           statusCode == 401, attempts == 1 {
+            accessToken = try await refreshAccessToken()
+            return true
         }
         return false
     }
-    
-    private func refreshAccessToken() async -> Bool {
-        // TODO: Refresh access token
+
+    private func refreshAccessToken() async throws -> String {
+        fatalError("Not implemented")
     }
 }
 ```
