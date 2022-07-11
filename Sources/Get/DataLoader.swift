@@ -43,7 +43,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
         })
     }
 
-    func starDownloadTask(_ task: URLSessionDownloadTask, session: URLSession, delegate: URLSessionDownloadDelegate?) async throws -> (URL, URLResponse, URLSessionTaskMetrics?) {
+    func startDownloadTask(_ task: URLSessionDownloadTask, session: URLSession, delegate: URLSessionDownloadDelegate?) async throws -> (URL, URLResponse, URLSessionTaskMetrics?) {
         try await withTaskCancellationHandler(handler: {
             task.cancel()
         }, operation: {
