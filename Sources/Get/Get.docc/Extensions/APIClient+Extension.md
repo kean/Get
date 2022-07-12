@@ -19,7 +19,7 @@ let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
 
 ### Sending Requests and Decoding Responses
 
-To send a request, use the client's ``send(_:delegate:configure:)-2mbhr`` method:
+To send a request, use ``send(_:delegate:configure:)-2mbhr`` that accepts ``Request`` as its primary parameter. The request can be configured ``Request/query``, ``Request/headers``, ``Request/body``. 
 
 ```swift
 let user: User = try await client.send(.get("/user")).value
@@ -44,6 +44,12 @@ let delegate: URLSessionDataDelegate = ...
 _ = try await client.send(.get("/user"), delegate: delegate) {
     $0.cachePolicy = .reloadIgnoringLocalCacheData
 }
+```
+
+To pass data to the server, simply set it as the request ``Request/body`` which is then encoded as JSON. But if you pass `Data`, it's sent as is, and if you pass `String`, it's encoded using UTF8.
+
+```swift
+try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 ```
 
 ### Uploading Data
