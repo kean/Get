@@ -24,11 +24,11 @@ With [CreateAPI](https://github.com/kean/CreateAPI), you can take your backend O
 generate api.github.yaml --output ./OctoKit --module "OctoKit"
 ```
 
-> Check out [App Store Connect Swift SDK](https://github.com/AvdLee/appstoreconnect-swift-sdk) that starting with v2.0 uses [CreateAPI](https://github.com/kean/CreateAPI) for code generation.
+> Check out [App Store Connect Swift SDK](https://github.com/AvdLee/appstoreconnect-swift-sdk) that uses [CreateAPI](https://github.com/kean/CreateAPI) for code generation.
 
 ### Other Extensions
 
-Get is a lean framework with a lot of flexibility and customization points. It makes it very easy to learn and use, but for certain features, you'll need to install additional modules.
+Get is a lean framework with a lot of flexibility and customization points. It makes it very easy to learn and use, but you'll need to install additional modules for certain features.
 
 - [Mocker](https://github.com/WeTransfer/Mocker) – mocking network requests for testing purposes
 - [URLQueryEncoder](https://github.com/CreateAPI/URLQueryEncoder) – URL query encoder with `Codable` support

@@ -111,6 +111,8 @@ final class SessionDelegate: URLSessionTaskDelegate {
 }
 ```
 
+> tip: The framework deliverately doesn't provide unnecessary abstractions on top of the existing native `URLSession` APIs. To learn more about customizing caching and redirect behavior, handling authentication challenges, evaluating server trust, resuming downloads, and more, see [URL Loading System](https://developer.apple.com/documentation/foundation/url_loading_system). 
+
 ## Topics
 
 ### Creating a Client

@@ -19,7 +19,7 @@ let user: User = try await client.send(.get("/user")).value
 try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 ```
 
-The client uses `URLSession` for networking and provides complete access to all its APIs. It is designed with "less is more" idea in mind, not introducing any unnecessary abstractions on top of native APIs.
+The client uses `URLSession` for networking and provides complete access to all its APIs. It is designed with the "less is more" idea in mind and doesn't introduce any unnecessary abstractions on top of native APIs.
 
 ```swift
 // In addition to `APIClientDelegate`, you can also override any methods
@@ -41,6 +41,8 @@ In addition to sending quick requests, it also supports downloading data to a fi
 ## Documentation
 
 Learn how to use Get by going through the [documentation](https://kean-docs.github.io/get/documentation/get/) created using DocC.
+
+To learn more about `URLSession`, see [URL Loading System](https://developer.apple.com/documentation/foundation/url_loading_system).
 
 ## Sponsors 💖
 
@@ -70,11 +72,11 @@ With [CreateAPI](https://github.com/kean/CreateAPI), you can take your backend O
 generate api.github.yaml --output ./OctoKit --module "OctoKit"
 ```
 
-> Check out [App Store Connect Swift SDK](https://github.com/AvdLee/appstoreconnect-swift-sdk) that starting with v2.0 uses [CreateAPI](https://github.com/kean/CreateAPI) for code generation.
+> Check out [App Store Connect Swift SDK](https://github.com/AvdLee/appstoreconnect-swift-sdk) that uses [CreateAPI](https://github.com/kean/CreateAPI) for code generation.
 
 ### Other Extensions
 
-Get is a lean framework with a lot of flexibility and customization points. It makes it very easy to learn and use, but for certain features, you'll need to install additional modules.
+Get is a lean framework with a lot of flexibility and customization points. It makes it very easy to learn and use, but you'll need to install additional modules for certain features.
 
 - [Mocker](https://github.com/WeTransfer/Mocker) – mocking network requests for testing purposes
 - [URLQueryEncoder](https://github.com/CreateAPI/URLQueryEncoder) – URL query encoder with `Codable` support

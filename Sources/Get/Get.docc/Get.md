@@ -15,7 +15,7 @@ let user: User = try await client.send(.get("/user")).value
 try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 ```
 
-The client uses `URLSession` for networking and provides complete access to all the `URLSession` APIs. It is designed with "less is more" idea in mind, not introducing any unnecessary abstractions on top of native APIs, making it easy to learn.
+The client uses `URLSession` for networking and provides complete access to all its APIs. It is designed with the "less is more" idea in mind and doesn't introduce any unnecessary abstractions on top of native APIs.
 
 ```swift
 // In addition to `APIClientDelegate`, you can also override any methods
