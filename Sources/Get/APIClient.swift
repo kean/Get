@@ -7,8 +7,6 @@ import Foundation
 import FoundationNetworking
 #endif
 
-import SwiftUI
-
 /// Performs network requests constructed using ``Request``.
 public actor APIClient {
     /// The configuration with which the client was initialized with.
