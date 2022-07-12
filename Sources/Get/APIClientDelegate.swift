@@ -36,7 +36,7 @@ public protocol APIClientDelegate {
     ///
     /// - important: This method will only be called for network requests, but not for
     /// response body decoding failures or failures with creating requests using
-    /// ``client(_:makeURLForPath:query:)-2geir`` and ``client(_:willSendRequest:)-2d1ke``.
+    /// ``client(_:makeURLFor:query:)-9bylj`` and ``client(_:willSendRequest:)-2d1ke``.
     ///
     /// - parameters:
     ///   - client: The client that sent the request.
@@ -51,11 +51,12 @@ public protocol APIClientDelegate {
     ///
     /// - parameters:
     ///   - client: The client that sends the request.
+    ///   - url: The URL passed by the client.
     ///   - request: The request about to be sent.
     ///
     /// - returns: The URL for the request. Return `nil` to use the default
     /// logic used by client.
-    func client(_ client: APIClient, makeURLForPath path: String, query: [(String, String?)]?) throws -> URL?
+    func client(_ client: APIClient, makeURLFor url: String, query: [(String, String?)]?) throws -> URL?
 
     // Deprecated in Get 1.0
     @available(*, deprecated, message: "Please implement client(_:validateResponse:data:request:) instead. The current method is no longer used.")
@@ -85,7 +86,7 @@ public extension APIClientDelegate {
         APIError.unacceptableStatusCode(response.statusCode)
     }
 
-    func client(_ client: APIClient, makeURLForPath path: String, query: [(String, String?)]?) throws -> URL? {
+    func client(_ client: APIClient, makeURLFor url: String, query: [(String, String?)]?) throws -> URL? {
         nil // Use default handlings
     }
 

@@ -10,9 +10,9 @@ import FoundationNetworking
 /// Performs network requests constructed using ``Request``.
 public actor APIClient {
     /// The configuration with which the client was initialized with.
-    public let configuration: Configuration
+    public nonisolated let configuration: Configuration
     /// The underlying `URLSession` instance.
-    public let session: URLSession
+    public nonisolated let session: URLSession
 
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
@@ -20,7 +20,7 @@ public actor APIClient {
     private let dataLoader = DataLoader()
 
     /// The configuration for ``APIClient``.
-    public struct Configuration {
+    public struct Configuration: @unchecked Sendable {
         /// A base URL. For example, `"https://api.github.com"`.
         public var baseURL: URL?
         /// The client delegate. The client holds a strong reference to it.
@@ -286,7 +286,7 @@ public actor APIClient {
     }
 
     private func makeURL(url: String, query: [(String, String?)]?) throws -> URL {
-        if let url = try delegate.client(self, makeURLForPath: url, query: query) {
+        if let url = try delegate.client(self, makeURLFor: url, query: query) {
             return url
         }
         func makeURLComponents() -> URLComponents? {

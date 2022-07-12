@@ -4,7 +4,7 @@
 
 ### Managing URLs and URLRequests
 
-- ``client(_:makeURLForPath:query:)-2geir``
+- ``client(_:makeURLFor:query:)-9bylj``
 - ``client(_:willSendRequest:)-2d1ke``
 
 ### Error Handling and Retries

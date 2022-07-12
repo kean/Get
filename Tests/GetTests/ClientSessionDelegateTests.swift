@@ -76,7 +76,7 @@ final class APIClientSessionDelegateTests: XCTestCase {
             expectation.fulfill()
         }
 
-        await client.session.invalidateAndCancel()
+        client.session.invalidateAndCancel()
 
         wait(for: [expectation], timeout: 2)
     }
