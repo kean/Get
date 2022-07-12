@@ -387,7 +387,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         var mock = Mock(url: url, dataType: .json, statusCode: 200, data: [
             .post: json(named: "user")
         ])
-        mock.onRequest = { request, i in
+        mock.onRequest = { request, _ in
             guard let body = request.httpBody ?? request.httpBodyStream?.data,
                   let json = try? JSONSerialization.jsonObject(with: body, options: []),
                   let user = json as? [String: Any] else {
@@ -404,6 +404,31 @@ final class ClientSendingRequestsTests: XCTestCase {
             let user = User(id: 1, login: "kean")
             $0.httpBody = try JSONEncoder().encode(user)
         }
+    }
+
+    func testPassingDataAsEncodableBody() async throws {
+#if os(watchOS)
+        throw XCTSkip("Mocker URLProtocol isn't being called for POST requests on watchOS")
+#endif
+
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        var mock = Mock(url: url, dataType: .json, statusCode: 200, data: [
+            .post: json(named: "user")
+        ])
+        mock.onRequest = { request, _ in
+            guard let body = request.httpBody ?? request.httpBodyStream?.data,
+                  let string = String(data: body, encoding: .utf8) else {
+                return XCTFail()
+            }
+            // THEN
+            XCTAssertEqual(string, "hello")
+        }
+        mock.register()
+
+        // WHEN/THEN
+        let body = "hello".data(using: .utf8)!
+        try await client.send(.post("/user", body: body))
     }
 
     // MARK: - Configuring Request

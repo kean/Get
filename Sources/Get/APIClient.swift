@@ -7,6 +7,8 @@ import Foundation
 import FoundationNetworking
 #endif
 
+import SwiftUI
+
 /// Performs network requests constructed using ``Request``.
 public actor APIClient {
     /// The configuration with which the client was initialized with.
@@ -267,9 +269,13 @@ public actor APIClient {
         urlRequest.allHTTPHeaderFields = request.headers
         urlRequest.httpMethod = request.method
         if let body = request.body {
-            urlRequest.httpBody = try await Task.detached { [encoder] in
-                try encoder.encode(AnyEncodable(value: body))
-            }.value
+            if let data = body as? Data {
+                urlRequest.httpBody = data
+            } else {
+                urlRequest.httpBody = try await Task.detached { [encoder] in
+                    try encoder.encode(AnyEncodable(value: body))
+                }.value
+            }
             if urlRequest.value(forHTTPHeaderField: "Content-Type") == nil &&
                 session.configuration.httpAdditionalHeaders?["Content-Type"] == nil {
                 urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
