@@ -93,7 +93,7 @@ public actor APIClient {
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<T> {
         let response = try await data(for: request, delegate: delegate, configure: configure)
-        let value: T = try await decode(response.data)
+        let value: T = try await decode(response.data, using: decoder)
         return response.map { _ in value }
     }
 
@@ -210,7 +210,7 @@ public actor APIClient {
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<T> {
         let response = try await _upload(for: request, fromFile: fileURL, delegate: delegate, configure: configure)
-        let value: T = try await decode(response.data)
+        let value: T = try await decode(response.data, using: decoder)
         return response.map { _ in value }
     }
 
@@ -269,13 +269,7 @@ public actor APIClient {
         urlRequest.allHTTPHeaderFields = request.headers
         urlRequest.httpMethod = request.method
         if let body = request.body {
-            if let data = body as? Data {
-                urlRequest.httpBody = data
-            } else {
-                urlRequest.httpBody = try await Task.detached { [encoder] in
-                    try encoder.encode(AnyEncodable(value: body))
-                }.value
-            }
+            urlRequest.httpBody = try await encode(body, using: encoder)
             if urlRequest.value(forHTTPHeaderField: "Content-Type") == nil &&
                 session.configuration.httpAdditionalHeaders?["Content-Type"] == nil {
                 urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -333,21 +327,6 @@ public actor APIClient {
                 throw error.error
             }
             return try await performWithRetries(attempts: attempts + 1, send: send)
-        }
-    }
-
-    private func decode<T: Decodable>(_ data: Data) async throws -> T {
-        if T.self == Data.self {
-            return data as! T
-        } else if T.self == String.self {
-            guard let string = String(data: data, encoding: .utf8) else {
-                throw URLError(.badServerResponse)
-            }
-            return string as! T
-        } else {
-            return try await Task.detached { [decoder] in
-                try decoder.decode(T.self, from: data)
-            }.value
         }
     }
 

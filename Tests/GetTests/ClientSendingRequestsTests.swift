@@ -431,6 +431,30 @@ final class ClientSendingRequestsTests: XCTestCase {
         try await client.send(.post("/user", body: body))
     }
 
+    func testPassingStringAsEncodableBody() async throws {
+#if os(watchOS)
+        throw XCTSkip("Mocker URLProtocol isn't being called for POST requests on watchOS")
+#endif
+
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        var mock = Mock(url: url, dataType: .json, statusCode: 200, data: [
+            .post: json(named: "user")
+        ])
+        mock.onRequest = { request, _ in
+            guard let body = request.httpBody ?? request.httpBodyStream?.data,
+                  let string = String(data: body, encoding: .utf8) else {
+                return XCTFail()
+            }
+            // THEN
+            XCTAssertEqual(string, "hello")
+        }
+        mock.register()
+
+        // WHEN/THEN
+        try await client.send(.post("/user", body: "hello"))
+    }
+
     // MARK: - Configuring Request
 
     func testConfigureRequest() async throws {
