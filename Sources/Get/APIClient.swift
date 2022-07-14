@@ -288,14 +288,13 @@ public actor APIClient {
             return url
         }
         func makeURLComponents() -> URLComponents? {
-            let url = url.isEmpty ? "/" : url
-            let isRelative = url.starts(with: "/") || URL(string: url)?.scheme == nil
-            if isRelative {
-                let url = URL(string: url, relativeTo: configuration.baseURL)
-                return url.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: true) }
-            } else {
-                return URLComponents(string: url)
+            guard var fullURL = URL(string: url.isEmpty ? "/" : url) else {
+                return nil
             }
+            if fullURL.scheme == nil, let baseURL = configuration.baseURL {
+                fullURL = baseURL.appendingPathComponent(url)
+            }
+            return URLComponents(url: fullURL, resolvingAgainstBaseURL: false)
         }
         guard var components = makeURLComponents() else {
             throw URLError(.badURL)
