@@ -287,17 +287,16 @@ public actor APIClient {
         if let url = try delegate.client(self, makeURLFor: url, query: query) {
             return url
         }
-        func makeURLComponents() -> URLComponents? {
-            let url = url.isEmpty ? "/" : url
-            let isRelative = url.starts(with: "/") || URL(string: url)?.scheme == nil
-            if isRelative {
-                let url = URL(string: url, relativeTo: configuration.baseURL)
-                return url.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: true) }
-            } else {
-                return URLComponents(string: url)
+        func makeURL(path: String) -> URL? {
+            guard !path.isEmpty else {
+                return configuration.baseURL?.appendingPathComponent("/")
             }
+            guard let url = URL(string: path) else {
+                return nil
+            }
+            return url.scheme == nil ? configuration.baseURL?.appendingPathComponent(path) : url
         }
-        guard var components = makeURLComponents() else {
+        guard let url = makeURL(path: url), var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             throw URLError(.badURL)
         }
         if let query = query, !query.isEmpty {

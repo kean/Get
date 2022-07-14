@@ -65,6 +65,18 @@ final class ClientMakeRequestsTests: XCTestCase {
         XCTAssertEqual(urlRequest.url?.absoluteString, "https://api.github.com/")
     }
 
+    func testBaseURLWithPathComponent() async throws {
+        // GIVEN
+        let client = APIClient(baseURL: URL(string: "https://gitlab.com/api/v4"))
+        let request = Request.get("/test")
+
+        // WHEN
+        let urlRequest = try await client.makeURLRequest(for: request)
+
+        // THEN
+        XCTAssertEqual(urlRequest.url, URL(string: "https://gitlab.com/api/v4/test"))
+    }
+
     // MARK: - Absolute Paths
 
     func testAbsolutePaths() async throws {
