@@ -85,7 +85,7 @@ public actor APIClient {
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
     ///
     /// - returns: A response with a decoded body.
-    public func send<T: Decodable>(
+    @discardableResult public func send<T: Decodable>(
         _ request: Request<T>,
         delegate: URLSessionDataDelegate? = nil,
         configure: ((inout URLRequest) throws -> Void)? = nil
@@ -103,8 +103,7 @@ public actor APIClient {
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
     ///
     /// - returns: A response with an empty value.
-    @discardableResult
-    public func send(
+    @discardableResult public func send(
         _ request: Request<Void>,
         delegate: URLSessionDataDelegate? = nil,
         configure: ((inout URLRequest) throws -> Void)? = nil
@@ -201,7 +200,7 @@ public actor APIClient {
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
     ///
     /// Returns decoded response.
-    public func upload<T: Decodable>(
+    @discardableResult public func upload<T: Decodable>(
         for request: Request<T>,
         fromFile fileURL: URL,
         delegate: URLSessionTaskDelegate? = nil,
@@ -221,7 +220,7 @@ public actor APIClient {
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
     ///
     /// Returns decoded response.
-    public func upload(
+    @discardableResult public func upload(
         for request: Request<Void>,
         fromFile fileURL: URL,
         delegate: URLSessionTaskDelegate? = nil,

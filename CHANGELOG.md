@@ -1,5 +1,9 @@
 # Get 1.x
 
+## Upcoming
+
+- Add `@discardableResult` to all `upload()` and `send()` methods
+
 ## Get 1.0.0
 
 *Jul 26, 2022*
