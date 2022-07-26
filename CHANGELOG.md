@@ -1,3 +1,71 @@
+# Get 1.x
+
+## Get 1.0.0
+
+*Jul 26, 2022*
+
+Get 1.0 is a big release that brings it on par with Moya+Alamofire while still keeping its API surface small and focused. This release also includes new reworked [documentation](https://kean-docs.github.io/get/documentation/get/) generated using DocC, and many other improvements.
+
+The first major change is the addition of two new parameters the existing `send` method: `delegate` and `configure`:
+
+```swift
+public func send<T: Decodable>(
+    _ request: Request<T>,
+    delegate: URLSessionDataDelegate? = nil,
+    configure: ((inout URLRequest) -> Void)? = nil
+) async throws -> Response<T>
+```
+
+With `delegate`, you can modify the behavior of the underlying task, monitor the progress, etc. And with the new `configure` closure, you get access to the entire `URLRequest` API:
+
+```swift
+let user = try await client.send(.get("/user")) {
+    $0.cachePolicy = .reloadIgnoringLocalCacheData
+}
+```
+
+The second major change is the addition of new methods: `upload(...)` for uploading data from a file and `download(...)` for downloading data to a file.
+
+```swift
+let response = try await client.download(for: .get("/user"))
+let fileURL = response.location
+
+try await client.upload(for: .post("/avatar"), fromFile: fileURL)
+```
+
+## Changes
+
+- Add a `delegate` parameter to `send()` method that sets task-specific `URLSessionDataDelegate` - [#38](https://github.com/kean/Get/pull/38)
+- Add `configure` parameter to `send()` method that allows configuring `URLRequest` before it is sent
+- Add support for downloading to a file with a new `download(for:delegate:configure:)` method - [#40](https://github.com/kean/Get/pull/40)
+- Add support for uploading data from a file with a new `upload(for:withFile:delegate:configure:)` method
+- Add an option to do more than one retry attempt using the reworked `client(_:shouldRetryRequest:attempts:error:)` delegate method (the method with an old signature is deprecated)
+- Add `client(_:validateResponse:data:request:)` to `APIClientDelegate` that allows to customize validation logic
+- Add `client(_:makeURLForRequest:)` method to `APIClientDelegate` to address [#35](https://github.com/kean/Get/issues/35)
+- Add `task`, `originalRequest`, `currentRequest` to `Response`
+- Add `APIClient/makeURLRequest(for:)` method to the client in case you need to create `URLRequest` without initiating the download
+- Add a way to override `Content-Type` and `Accept` headers using session `httpAdditionalHeaders` and `Request` headers
+- Add new `Request` factory methods that default to `Void` as a response type and streamline the existing methods
+- Add `withResponse(_:)` to allow changing request's response type
+- Add `sessionDelegateQueue` parameter to `APIClient.Configuration`
+- Add support for `sessionDelegate` from `APIClient.Configuration`  on Linux
+- Add public `configuration` and `session` properties to `APIClient`
+- Rename `Request/path` to `Request/url` making it clear that absolute URLs are also supported
+- Improve decoding/encoding performance by using `Task.detached` instead of using a separate actor for serialization
+- Remove send() -> Response<T?> variant
+- Remove APIs deprecated in previous versions
+
+## Fixes
+
+- Fix an issue with paths that don't start with `"/"` not being appended to the `baseURL`
+- Fix an issue with empty path not working. It is now treated the same way as "/"
+
+## Non-Code Changes
+
+- Hide dependencies used only in test targets
+- Documentation is now generated using DocC and is [hosted](https://kean-docs.github.io/get/documentation/get/) on GitHub Pages 
+- Perform grammar check on CI
+
 # Get 0.x
 
 ## Get 0.8.0
