@@ -1,6 +1,8 @@
 # Get 1.x
 
-## Upcoming
+## Get 1.0.1
+
+*Jul 26, 2022*
 
 - Add `@discardableResult` to all `upload()` and `send()` methods
 
@@ -37,6 +39,7 @@ let fileURL = response.location
 try await client.upload(for: .post("/avatar"), fromFile: fileURL)
 ```
 
+pulse-2.0
 ## Changes
 
 - Add a `delegate` parameter to `send()` method that sets task-specific `URLSessionDataDelegate` - [#38](https://github.com/kean/Get/pull/38)
