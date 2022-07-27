@@ -87,7 +87,7 @@ Get is a lean framework with a lot of flexibility and customization points. It m
 
 | Get  | Date         | Swift | Xcode | Platforms                                            |
 |------|--------------|-------|-------|------------------------------------------------------|
-| 1.0 | [RC3](https://github.com/kean/get/releases/tag/1.0.0-rc.3) | 5.6   | 13.3 | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
+| 1.0  | Jul 26, 2022 | 5.6   | 13.3 | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
 
 ## License
 
