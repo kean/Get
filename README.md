@@ -16,7 +16,7 @@ let client = APIClient(baseURL: URL(string: "https://api.github.com"))
 
 // Start sending requests
 let user: User = try await client.send(.get("/user")).value
-try await client.send(.post("/user/emails", body: ["kean@example.com"]))
+try await client.send(.post("/user/emails", body: ["alex@me.com"]))
 ```
 
 The client uses `URLSession` for networking and provides complete access to all its APIs. It is designed with the "less is more" idea in mind and doesn't introduce any unnecessary abstractions on top of native APIs.
@@ -36,7 +36,7 @@ let response = try await client.send(Paths.user.get, delegate: delegate) {
 }
 ```
 
-In addition to sending quick requests, it also supports downloading data to a file, uploading from a file, authentication, auto-retries, logging, and more.
+In addition to sending quick requests, it also supports downloading data to a file, uploading from a file, authentication, auto-retries, logging, and more. It's a kind of code that you would typically write on top of `URLSession` if you were using it directly.
 
 ## Documentation
 
