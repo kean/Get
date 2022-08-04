@@ -10,18 +10,34 @@ on:
 
 jobs:
   macos-run-tests:
-    name: Unit Tests (iOS 15.4, Xcode 13.3.1)
-    runs-on: macOS-12
+    name: Unit Tests (Xcode ${{ matrix.xcode }})
+    strategy:
+      fail-fast: false
+      matrix:
+        xcode: ["13.4.1", "13.3.1", "13.2.1"]
+        include:
+          - xcode: "13.4.1"
+            macos: macOS-12
+          - xcode: "13.3.1"
+            macos: macOS-12
+          - xcode: "13.2.1"
+            macos: macOS-11
+    runs-on: ${{ matrix.macos }}
     env:
-      DEVELOPER_DIR: /Applications/Xcode_13.3.1.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
     steps:
       - uses: actions/checkout@v2
       - name: Run Tests
         run: swift test
 
   linux-run-tests:
-    name: Unit Tests (Linux)
+    name: Unit Tests (Linux, Swift ${{ matrix.swift }})
+    strategy:
+      fail-fast: false
+      matrix:
+        swift: ["5.5", "5.6"]
     runs-on: ubuntu-latest
+    container: swift:${{ matrix.swift }}
     steps:
       - uses: actions/checkout@v2
       - name: Run Tests
