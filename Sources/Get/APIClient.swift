@@ -8,7 +8,7 @@ import FoundationNetworking
 #endif
 
 /// Performs network requests constructed using ``Request``.
-public actor APIClient {
+public actor APIClient: APIInterface {
     /// The configuration with which the client was initialized with.
     public nonisolated let configuration: Configuration
     /// The underlying `URLSession` instance.
