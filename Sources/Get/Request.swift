@@ -11,13 +11,13 @@ import FoundationNetworking
 /// An HTTP network request.
 public struct Request<Response>: @unchecked Sendable {
     /// HTTP method, e.g. "GET".
-    public var method: String
+    public var method: HTTPMethod
     /// Resource URL. Can be either absolute or relative.
     public var url: String
     /// Request query items.
     public var query: [(String, String?)]?
     /// Request body.
-    public let body: Encodable?
+    public var body: Encodable?
     /// Request headers to be added to the request.
     public var headers: [String: String]?
     /// ID provided by the user. Not used by the API client.
@@ -25,12 +25,13 @@ public struct Request<Response>: @unchecked Sendable {
 
     /// Initialiazes the request with the given parameters and the request body.
     public init(
-        method: String = "GET",
         url: String,
+        method: HTTPMethod = .get,
         query: [(String, String?)]? = nil,
         body: Encodable? = nil,
         headers: [String: String]? = nil,
-        id: String? = nil
+        id: String? = nil,
+        _ configure: (inout Request) -> Void = { _ in }
     ) {
         self.method = method
         self.url = url
@@ -38,81 +39,52 @@ public struct Request<Response>: @unchecked Sendable {
         self.headers = headers
         self.body = body
         self.id = id
+        configure(&self)
     }
 
     /// Changes the respones type keeping the rest of the request parameters.
     public func withResponse<T>(_ type: T.Type) -> Request<T> {
-        Request<T>(method: method, url: url, query: query, body: body, headers: headers, id: id)
-    }
-}
-
-// These methods are defined separately to prevent constructing invalid requests
-// at compile-time. For example, "GET" requests can't have an HTTP body, and it is
-// reflected in the API.
-extension Request {
-    public static func get(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "GET", url: url, query: query, headers: headers)
-    }
-
-    public static func post(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "POST", url: url, query: query, body: body, headers: headers)
-    }
-
-    public static func put(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "PUT", url: url, query: query, body: body, headers: headers)
-    }
-
-    public static func patch(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "PATCH", url: url, query: query, body: body, headers: headers)
-    }
-
-    public static func delete(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "DELETE", url: url, query: query, body: body, headers: headers)
-    }
-
-    public static func options(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "OPTIONS", url: url, query: query, headers: headers)
-    }
-
-    public static func head(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "HEAD", url: url, query: query, headers: headers)
-    }
-
-    public static func trace(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "TRACE", url: url, query: query, headers: headers)
+        Request<T>(url: url, method: method, query: query, body: body, headers: headers, id: id)
     }
 }
 
 extension Request where Response == Void {
-    public static func get(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "GET", url: url, query: query, headers: headers)
+    public init(
+        url: String,
+        method: HTTPMethod = .get,
+        query: [(String, String?)]? = nil,
+        body: Encodable? = nil,
+        headers: [String: String]? = nil,
+        id: String? = nil,
+        _ configure: (inout Request) -> Void = { _ in }
+    ) {
+        self.method = method
+        self.url = url
+        self.query = query
+        self.headers = headers
+        self.body = body
+        self.id = id
+        configure(&self)
+    }
+}
+
+public struct HTTPMethod: ExpressibleByStringLiteral {
+    public let rawValue: String
+
+    public init(rawValue: String) {
+        self.rawValue = rawValue
     }
 
-    public static func post(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "POST", url: url, query: query, body: body, headers: headers)
+    public init(stringLiteral value: String) {
+        self.rawValue = value
     }
 
-    public static func put(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "PUT", url: url, query: query, body: body, headers: headers)
-    }
-
-    public static func patch(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "PATCH", url: url, query: query, body: body, headers: headers)
-    }
-
-    public static func delete(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "DELETE", url: url, query: query, body: body, headers: headers)
-    }
-
-    public static func options(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "OPTIONS", url: url, query: query, headers: headers)
-    }
-
-    public static func head(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "HEAD", url: url, query: query, headers: headers)
-    }
-
-    public static func trace(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(method: "TRACE", url: url, query: query, headers: headers)
-    }
+    public static let get: HTTPMethod = "GET"
+    public static let post: HTTPMethod = "POST"
+    public static let patch: HTTPMethod = "PATCH"
+    public static let put: HTTPMethod = "PUT"
+    public static let delete: HTTPMethod = "DELETE"
+    public static let options: HTTPMethod = "OPTIONS"
+    public static let head: HTTPMethod = "HEAD"
+    public static let trace: HTTPMethod = "TRACE"
 }

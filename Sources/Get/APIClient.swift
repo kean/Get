@@ -77,6 +77,40 @@ public actor APIClient {
 
     // MARK: Sending Requests
 
+    /// Sends the request with the given URL and returns a decoded response.
+    ///
+    /// - parameters:
+    ///   - url: The URL to be requested.
+    ///   - delegate: A task-specific delegate.
+    ///   - configure: Modifies the underlying `URLRequest` before sending it.
+    ///
+    /// - returns: A response with a decoded body.
+    @discardableResult public func send<T: Decodable>(
+        url: String,
+        method: HTTPMethod = .get,
+        delegate: URLSessionDataDelegate? = nil,
+        configure: ((inout URLRequest) throws -> Void)? = nil
+    ) async throws -> Response<T> {
+        try await send(.init(url: url, method: method), delegate: delegate, configure: configure)
+    }
+
+    /// Sends the request with the given URL and returns a decoded response.
+    ///
+    /// - parameters:
+    ///   - url: The URL to be requested.
+    ///   - delegate: A task-specific delegate.
+    ///   - configure: Modifies the underlying `URLRequest` before sending it.
+    ///
+    /// - returns: A response with a decoded body.
+    @discardableResult public func send(
+        url: String,
+        method: HTTPMethod = .get,
+        delegate: URLSessionDataDelegate? = nil,
+        configure: ((inout URLRequest) throws -> Void)? = nil
+    ) async throws -> Response<Void> {
+        try await send(.init(url: url, method: method), delegate: delegate, configure: configure)
+    }
+
     /// Sends the given request and returns a decoded response.
     ///
     /// - parameters:
@@ -325,7 +359,7 @@ public actor APIClient {
         let url = try makeURL(url: request.url, query: request.query)
         var urlRequest = URLRequest(url: url)
         urlRequest.allHTTPHeaderFields = request.headers
-        urlRequest.httpMethod = request.method
+        urlRequest.httpMethod = request.method.rawValue
         if let body = request.body {
             urlRequest.httpBody = try await encode(body, using: encoder)
             if urlRequest.value(forHTTPHeaderField: "Content-Type") == nil &&

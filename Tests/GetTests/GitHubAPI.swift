@@ -20,7 +20,7 @@ extension Paths {
     public struct UserResource {
         public let path: String = "/user"
 
-        public var get: Request<User> { .get(path) }
+        public var get: Request<User> { .init(url: path) }
     }
 }
 
@@ -32,14 +32,14 @@ extension Paths.UserResource {
     public struct EmailsResource {
         public let path: String = "/user/emails"
 
-        public var get: Request<[UserEmail]> { .get(path) }
+        public var get: Request<[UserEmail]> { .init(url: path) }
 
         public func post(_ emails: [String]) -> Request<Void> {
-            .post(path, body: emails)
+            .init(url: path, method: .post, body: emails)
         }
 
         public func delete() -> Request<Void> {
-            .delete(path)
+            .init(url: path, method: .delete)
         }
     }
 }
@@ -54,7 +54,7 @@ extension Paths {
     public struct UsersResource {
         public let path: String
 
-        public var get: Request<User> { .get(path) }
+        public var get: Request<User> { .init(url: path) }
     }
 }
 
@@ -66,7 +66,7 @@ extension Paths.UsersResource {
     public struct FollowersResource {
         public let path: String
 
-        public var get: Request<[User]> { .get(path) }
+        public var get: Request<[User]> { .init(url: path) }
     }
 }
 
@@ -132,5 +132,5 @@ func usage() async throws {
 
     _ = try await client.send(Paths.users("kean").followers.get)
 
-    let _: User = try await client.send(.get("/user")).value
+    let _: User = try await client.send(url: "/user").value
 }

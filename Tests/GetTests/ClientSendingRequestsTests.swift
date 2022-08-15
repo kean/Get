@@ -29,7 +29,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         Mock.get(url: url, json: "user").register()
 
         // WHEN
-        let user: User = try await client.send(.get("/user")).value
+        let user: User = try await client.send(url: "/user").value
 
         // THEN
         XCTAssertEqual(user.login, "kean")
@@ -65,7 +65,7 @@ final class ClientSendingRequestsTests: XCTestCase {
 
         // WHEN
         do {
-            try await client.send(.get("/user"))
+            try await client.send(url: "/user")
         } catch {
             // THEN
             let error = try XCTUnwrap(error as? APIError)
@@ -99,7 +99,7 @@ final class ClientSendingRequestsTests: XCTestCase {
 
         // When
         let task = Task {
-            try await client.send(.get("/users/kean"))
+            try await client.send(url: "/users/kean")
         }
 
         DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(100)) {
@@ -124,7 +124,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         Mock.get(url: url, json: "user").register()
 
         // WHEN
-        let user: User = try await client.send(.get("/user")).value
+        let user: User = try await client.send(url: "/user").value
 
         // THEN returns decoded JSON
         XCTAssertEqual(user.login, "kean")
@@ -136,7 +136,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         Mock.get(url: url, json: "user").register()
 
         // WHEN
-        let user: User? = try await client.send(.get("/user")).value
+        let user: User? = try await client.send(url: "/user").value
 
         // THEN returns decoded JSON
         XCTAssertEqual(user?.login, "kean")
@@ -151,7 +151,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         ]).register()
 
         // WHEN
-        try await client.send(.get("/user")).value
+        try await client.send(url: "/user")).value
     }
 
     // func value(for:) -> Data
@@ -163,7 +163,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         ]).register()
 
         // WHEN
-        let data: Data = try await client.send(.get("/user")).value
+        let data: Data = try await client.send(url: "/user")).value
 
         // THEN return unprocessed data (NOT what Data: Decodable does by default)
         XCTAssertEqual(String(data: data, encoding: .utf8), "<h>Hello</h>")
@@ -178,7 +178,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         ]).register()
 
         // WHEN
-        let text: String = try await client.send(.get("/user")).value
+        let text: String = try await client.send(url: "/user")).value
 
         // THEN
         XCTAssertEqual(text, "hello")
@@ -240,7 +240,7 @@ final class ClientSendingRequestsTests: XCTestCase {
 
         // WHEN
         do {
-            try await client.send(.get("/user"))
+            try await client.send(url: "/user"))
             XCTFail("Expected request to fail")
         } catch {
             XCTAssertEqual(attemptsCount, 3)
@@ -268,7 +268,7 @@ final class ClientSendingRequestsTests: XCTestCase {
 
         // WHEN
         do {
-            let _: User = try await client.send(.get("/user")).value
+            let _: User = try await client.send(url: "/user")).value
             XCTFail()
         } catch {
             XCTAssertTrue(error is DecodingError)
@@ -428,7 +428,7 @@ final class ClientSendingRequestsTests: XCTestCase {
 
         // WHEN/THEN
         let body = "hello".data(using: .utf8)!
-        try await client.send(.post("/user", body: body))
+        try await client.send(("/user", body: body))
     }
 
     func testPassingStringAsEncodableBody() async throws {
@@ -452,7 +452,8 @@ final class ClientSendingRequestsTests: XCTestCase {
         mock.register()
 
         // WHEN/THEN
-        try await client.send(.post("/user", body: "hello"))
+        let request = Request(url: "/user", method: .post, body: "hello")
+        try await client.send(request)
     }
 
     // MARK: - Configuring Request
@@ -468,7 +469,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         mock.register()
 
         // WHEN
-        let response: Response<User> = try await client.send(.get("/user")) {
+        let response: Response<User> = try await client.send(url: "/user") {
             $0.cachePolicy = .reloadIgnoringLocalCacheData
         }
 
@@ -491,7 +492,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         Mock.get(url: url, json: "user").register()
 
         // WHEN
-        let response = try await client.send(.get("/user"))
+        let response = try await client.send(url: "/user")
 
         // THEN
         XCTAssertNil(response.originalRequest?.value(forHTTPHeaderField: "x-custom-field"))

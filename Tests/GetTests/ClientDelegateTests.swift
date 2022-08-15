@@ -52,7 +52,7 @@ final class ClientDelegateTests: XCTestCase {
             $0.delegate = ClientDelegate()
         }
 
-        let request = Request.get("/domain.tld", query: [("query", "value1+value2")])
+        let request = Request(url: "/domain.tld", query: [("query", "value1+value2")])
 
         // WHEN
         let urlRequest = try await client.makeURLRequest(for: request)
