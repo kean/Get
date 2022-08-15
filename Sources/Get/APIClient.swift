@@ -127,7 +127,7 @@ public actor APIClient {
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<Data> {
         let request = try await makeURLRequest(for: request, configure)
-        return try await performWithRetries {
+        return try await performRequest {
             var request = request
             try await self.delegate.client(self, willSendRequest: &request)
             let task = session.dataTask(with: request)
@@ -236,7 +236,7 @@ public actor APIClient {
         configure: ((inout URLRequest) throws -> Void)?
     ) async throws -> Response<Data> {
         let request = try await makeURLRequest(for: request, configure)
-        return try await performWithRetries {
+        return try await performRequest {
             var request = request
             try await self.delegate.client(self, willSendRequest: &request)
             let task = session.uploadTask(with: request, fromFile: fileURL)
@@ -297,7 +297,7 @@ public actor APIClient {
 		configure: ((inout URLRequest) throws -> Void)?
 	) async throws -> Response<Data> {
 		let request = try await makeURLRequest(for: request, configure)
-		return try await performWithRetries {
+		return try await performRequest {
 			var request = request
 			try await self.delegate.client(self, willSendRequest: &request)
 			let task = session.uploadTask(with: request, from: data)
@@ -370,10 +370,7 @@ public actor APIClient {
 
     // MARK: Helpers
 
-    private func performWithRetries<T>(
-        attempts: Int = 1,
-        send: () async throws -> T
-    ) async throws -> T {
+    private func performRequest<T>(attempts: Int = 1, send: () async throws -> T) async throws -> T {
         do {
             return try await send()
         } catch {
@@ -383,7 +380,7 @@ public actor APIClient {
             guard try await delegate.client(self, shouldRetry: error.task, error: error.error, attempts: attempts) else {
                 throw error.error
             }
-            return try await performWithRetries(attempts: attempts + 1, send: send)
+            return try await performRequest(attempts: attempts + 1, send: send)
         }
     }
 
