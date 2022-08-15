@@ -249,6 +249,67 @@ public actor APIClient {
             }
         }
     }
+	
+	// MARK: Upload Data
+	
+	/// Convenience method to upload data from a file.
+	///
+	/// - parameters:
+	///   - request: The URLRequest for which to upload data.
+	///   - data: Data to upload.
+	///   - delegate: A task-specific delegate.
+	///   - configure: Modifies the underlying `URLRequest` before sending it.
+	///
+	/// Returns decoded response.
+	@discardableResult public func upload<T: Decodable>(
+		for request: Request<T>,
+		from data: Data,
+		delegate: URLSessionTaskDelegate? = nil,
+		configure: ((inout URLRequest) throws -> Void)? = nil
+	) async throws -> Response<T> {
+		let response = try await _upload(for: request, from: data, delegate: delegate, configure: configure)
+		let value: T = try await decode(response.data, using: decoder)
+		return response.map { _ in value }
+	}
+	
+	/// Convenience method to upload data from a file.
+	///
+	/// - parameters:
+	///   - request: The URLRequest for which to upload data.
+	///   - data: Data to upload.
+	///   - delegate: A task-specific delegate.
+	///   - configure: Modifies the underlying `URLRequest` before sending it.
+	///
+	/// Returns decoded response.
+	@discardableResult public func upload(
+		for request: Request<Void>,
+		from data: Data,
+		delegate: URLSessionTaskDelegate? = nil,
+		configure: ((inout URLRequest) throws -> Void)? = nil
+	) async throws -> Response<Void> {
+		try await _upload(for: request, from: data, delegate: delegate, configure: configure).map { _ in () }
+	}
+	
+	private func _upload<T>(
+		for request: Request<T>,
+		from data: Data,
+		delegate: URLSessionTaskDelegate?,
+		configure: ((inout URLRequest) throws -> Void)?
+	) async throws -> Response<Data> {
+		let request = try await makeURLRequest(for: request, configure)
+		return try await performWithRetries {
+			var request = request
+			try await self.delegate.client(self, willSendRequest: &request)
+			let task = session.uploadTask(with: request, from: data)
+			do {
+				let response = try await dataLoader.startUploadTask(task, session: session, delegate: delegate)
+				try validate(response)
+				return response
+			} catch {
+				throw DataLoaderError(task: task, error: error)
+			}
+		}
+	}
 
     // MARK: Making Requests
 
