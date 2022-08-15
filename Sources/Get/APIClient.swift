@@ -58,7 +58,7 @@ public actor APIClient {
     ///
     /// - parameter baseURL: A base URL. For example, `"https://api.github.com"`.
     /// - parameter configure: Updates the client configuration.
-    public init(baseURL: URL?, _ configure: (inout APIClient.Configuration) -> Void = { _ in }) {
+    public convenience init(baseURL: URL?, _ configure: (inout APIClient.Configuration) -> Void = { _ in }) {
         var configuration = Configuration(baseURL: baseURL)
         configure(&configuration)
         self.init(configuration: configuration)
@@ -88,10 +88,11 @@ public actor APIClient {
     @discardableResult public func send<T: Decodable>(
         url: String,
         method: HTTPMethod = .get,
+        body: Encodable? = nil,
         delegate: URLSessionDataDelegate? = nil,
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<T> {
-        try await send(.init(url: url, method: method), delegate: delegate, configure: configure)
+        try await send(Request(url: url, method: method, body: body), delegate: delegate, configure: configure)
     }
 
     /// Sends the request with the given URL and returns a decoded response.
@@ -105,10 +106,11 @@ public actor APIClient {
     @discardableResult public func send(
         url: String,
         method: HTTPMethod = .get,
+        body: Encodable? = nil,
         delegate: URLSessionDataDelegate? = nil,
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<Void> {
-        try await send(.init(url: url, method: method), delegate: delegate, configure: configure)
+        try await send(Request(url: url, method: method, body: body), delegate: delegate, configure: configure)
     }
 
     /// Sends the given request and returns a decoded response.
@@ -147,6 +149,14 @@ public actor APIClient {
 
     // MARK: Fetching Data
 
+    public func data(
+        for url: String,
+        delegate: URLSessionDataDelegate? = nil,
+        configure: ((inout URLRequest) throws -> Void)? = nil
+    ) async throws -> Response<Data> {
+        try await data(for: Request(url: url), delegate: delegate, configure: configure)
+    }
+
     /// Fetches data for the given request.
     ///
     /// - parameters:
@@ -178,6 +188,24 @@ public actor APIClient {
 #if !os(Linux)
 
     // MARK: Downloads
+
+    /// Downloads the requested data to a file.
+    ///
+    /// - parameters:
+    ///   - url: The download URL.
+    ///   - delegate: A task-specific delegate.
+    ///   - configure: Modifies the underlying `URLRequest` before sending it.
+    ///
+    /// - returns: A response with the location of the downloaded file. The file
+    /// will not be removed automatically until the app restarts. Make sure to
+    /// move the file to a known location in your app.
+    public func download(
+        for url: String,
+        delegate: URLSessionDownloadDelegate? = nil,
+        configure: ((inout URLRequest) throws -> Void)? = nil
+    ) async throws -> Response<URL> {
+        try await download(for: Request(url: url), delegate: delegate, configure: configure)
+    }
 
     /// Downloads the requested data to a file.
     ///

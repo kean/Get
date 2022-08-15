@@ -106,9 +106,8 @@ final class ClientMakeRequestsTests: XCTestCase {
 
     func testContentTypeHeadersAreSetByDefault() async throws {
         // GIVEN
-        let request = Request(url: "https://example.com/user", method: .post) {
-            $0.body = User(id: 123, login: "kean")
-        }
+        var request = Request(url: "https://example.com/user", method: .post)
+        request.body = User(id: 123, login: "kean")
 
         // WHEN
         let urlRequest = try await client.makeURLRequest(for: request)
@@ -120,13 +119,12 @@ final class ClientMakeRequestsTests: XCTestCase {
 
     func testOverrideAcceptAndContentTypeHeaders() async throws {
         // GIVEN
-        let request = Request(url: "https://example.com/user", method: .put) {
-            $0.body = User(id: 123, login: "kean")
-            $0.headers = [
-                "Content-Type": "application/xml",
-                "Accept": "application/xml"
-            ]
-        }
+        var request = Request(url: "https://example.com/user", method: .put)
+        request.body = User(id: 123, login: "kean")
+        request.headers = [
+            "Content-Type": "application/xml",
+            "Accept": "application/xml"
+        ]
 
         // WHEN
         let urlRequest = try await client.makeURLRequest(for: request)
@@ -144,9 +142,8 @@ final class ClientMakeRequestsTests: XCTestCase {
                 "Accept": "application/xml"
             ]
         }
-        let request = Request(url: "https://example.com/user", method: .put) {
-            $0.body = User(id: 123, login: "kean")
-        }
+        var request = Request(url: "https://example.com/user", method: .put)
+        request.body = User(id: 123, login: "kean")
 
         // WHEN
         let urlRequest = try await client.makeURLRequest(for: request)

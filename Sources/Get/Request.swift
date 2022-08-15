@@ -23,15 +23,14 @@ public struct Request<Response>: @unchecked Sendable {
     /// ID provided by the user. Not used by the API client.
     public var id: String?
 
-    /// Initialiazes the request with the given parameters and the request body.
+    /// Initialiazes the request with the given parameters.
     public init(
         url: String,
         method: HTTPMethod = .get,
         query: [(String, String?)]? = nil,
         body: Encodable? = nil,
         headers: [String: String]? = nil,
-        id: String? = nil,
-        _ configure: (inout Request) -> Void = { _ in }
+        id: String? = nil
     ) {
         self.method = method
         self.url = url
@@ -39,7 +38,6 @@ public struct Request<Response>: @unchecked Sendable {
         self.headers = headers
         self.body = body
         self.id = id
-        configure(&self)
     }
 
     /// Changes the respones type keeping the rest of the request parameters.
@@ -55,8 +53,7 @@ extension Request where Response == Void {
         query: [(String, String?)]? = nil,
         body: Encodable? = nil,
         headers: [String: String]? = nil,
-        id: String? = nil,
-        _ configure: (inout Request) -> Void = { _ in }
+        id: String? = nil
     ) {
         self.method = method
         self.url = url
@@ -64,7 +61,6 @@ extension Request where Response == Void {
         self.headers = headers
         self.body = body
         self.id = id
-        configure(&self)
     }
 }
 
@@ -87,4 +83,77 @@ public struct HTTPMethod: ExpressibleByStringLiteral {
     public static let options: HTTPMethod = "OPTIONS"
     public static let head: HTTPMethod = "HEAD"
     public static let trace: HTTPMethod = "TRACE"
+}
+
+
+// Deprecated in Get 1.0
+@available(*, deprecated, message: "Please use Request initializer instead")
+extension Request {
+    public static func get(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .get, query: query, headers: headers)
+    }
+
+    public static func post(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .post, query: query, body: body, headers: headers)
+    }
+
+    public static func put(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .put, query: query, body: body, headers: headers)
+    }
+
+    public static func patch(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .patch, query: query, body: body, headers: headers)
+    }
+
+    public static func delete(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .delete, query: query, body: body, headers: headers)
+    }
+
+    public static func options(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .options, query: query, headers: headers)
+    }
+
+    public static func head(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .head, query: query, headers: headers)
+    }
+
+    public static func trace(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .trace, query: query, headers: headers)
+    }
+}
+
+// Deprecated in Get 1.0
+@available(*, deprecated, message: "Please use Request initializer instead")
+extension Request where Response == Void {
+    public static func get(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .get, query: query, headers: headers)
+    }
+
+    public static func post(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .post, query: query, body: body, headers: headers)
+    }
+
+    public static func put(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .put, query: query, body: body, headers: headers)
+    }
+
+    public static func patch(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .patch, query: query, body: body, headers: headers)
+    }
+
+    public static func delete(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .delete, query: query, body: body, headers: headers)
+    }
+
+    public static func options(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .options, query: query, headers: headers)
+    }
+
+    public static func head(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .head, query: query, headers: headers)
+    }
+
+    public static func trace(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(url: url, method: .trace, query: query, headers: headers)
+    }
 }
