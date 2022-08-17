@@ -16,21 +16,9 @@ final class ClientDelegateTests: XCTestCase {
     func testOverridingQueryItemsEncoding() async throws {
         // GIVEN
         class ClientDelegate: APIClientDelegate {
-            func client(_ client: APIClient, makeURLFor url: String, query: [(String, String?)]?) throws -> URL? {
-                func makeURLComponents() -> URLComponents? {
-                    let url = url.isEmpty ? "/" : url
-                    let isRelative = url.starts(with: "/") || URL(string: url)?.scheme == nil
-                    if isRelative {
-                        let url = URL(string: url, relativeTo: client.configuration.baseURL)
-                        return url.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: true) }
-                    } else {
-                        return URLComponents(string: url)
-                    }
-                }
-                guard var components = makeURLComponents() else {
-                    throw URLError(.badURL)
-                }
-                if let query = query, !query.isEmpty {
+            func client<T>(_ client: APIClient, makeURLForRequest request: Request<T>) throws -> URL? {
+                var components = URLComponents(url: client.configuration.baseURL!.appendingPathComponent(request.url!.absoluteString), resolvingAgainstBaseURL: false)!
+                if let query = request.query, !query.isEmpty {
                     func encode(_ string: String) -> String {
                         string.addingPercentEncoding(withAllowedCharacters: .nonReservedURLQueryAllowed) ?? string
                     }
