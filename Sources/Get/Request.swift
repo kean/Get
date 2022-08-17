@@ -62,7 +62,7 @@ public struct Request<Response>: @unchecked Sendable {
         self.method = .get
     }
 
-    /// Changes the respones type keeping the rest of the request parameters.
+    /// Changes the response type keeping the rest of the request parameters.
     public func withResponse<T>(_ type: T.Type) -> Request<T> {
         var copy = Request<T>(optionalUrl: url, method: method)
         copy.query = query

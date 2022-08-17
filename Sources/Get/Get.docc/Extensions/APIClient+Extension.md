@@ -37,7 +37,7 @@ let data = try await client.data(for: .get("/user")).value
 let string: String = try await client.send(.get("/user")).value
 ```
 
-You can also provide a task-specific delegate and modify the underlyng `URLRequest`.
+You can also provide a task-specific delegate and modify the underlying `URLRequest`.
 
 ```swift
 let delegate: URLSessionDataDelegate = ...
