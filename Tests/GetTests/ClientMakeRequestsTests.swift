@@ -23,7 +23,7 @@ final class ClientMakeRequestsTests: XCTestCase {
 
     func testRelativePathStartingWithSlash() async throws {
         // GIVEN
-        let request = Request(url: "/user")
+        let request = Request(path: "/user")
 
         // WHEN
         let urlRequest = try await client.makeURLRequest(for: request)
@@ -34,7 +34,7 @@ final class ClientMakeRequestsTests: XCTestCase {
 
     func testRelativePath() async throws {
         // GIVEN
-        let request = Request(url: "user")
+        let request = Request(path: "user")
 
         // WHEN
         let urlRequest = try await client.makeURLRequest(for: request)
@@ -45,7 +45,7 @@ final class ClientMakeRequestsTests: XCTestCase {
 
     func testRelativePathEmpty() async throws {
         // GIVEN
-        let request = Request(url: "")
+        let request = Request(path: "")
 
         // WHEN
         let urlRequest = try await client.makeURLRequest(for: request)
@@ -56,7 +56,7 @@ final class ClientMakeRequestsTests: XCTestCase {
 
     func testRelativePathRoot() async throws {
         // GIVEN
-        let request = Request(url: "/")
+        let request = Request(path: "/")
 
         // WHEN
         let urlRequest = try await client.makeURLRequest(for: request)
@@ -68,7 +68,7 @@ final class ClientMakeRequestsTests: XCTestCase {
     func testBaseURLWithPathComponent() async throws {
         // GIVEN
         let client = APIClient(baseURL: URL(string: "https://gitlab.com/api/v4"))
-        let request = Request(url: "/test")
+        let request = Request(path: "/test")
 
         // WHEN
         let urlRequest = try await client.makeURLRequest(for: request)
@@ -81,7 +81,7 @@ final class ClientMakeRequestsTests: XCTestCase {
 
     func testAbsolutePaths() async throws {
         // GIVEN
-        let request = Request(url: "https://example.com/user")
+        let request = Request(path: "https://example.com/user")
 
         // WHEN
         let urlRequest = try await client.makeURLRequest(for: request)
@@ -94,7 +94,7 @@ final class ClientMakeRequestsTests: XCTestCase {
 
     func testAcceptHeadersAreSetByDefault() async throws {
         // GIVEN
-        let request = Request(url: "https://example.com/user")
+        let request = Request(path: "https://example.com/user")
 
         // WHEN
         let urlRequest = try await client.makeURLRequest(for: request)
@@ -106,7 +106,7 @@ final class ClientMakeRequestsTests: XCTestCase {
 
     func testContentTypeHeadersAreSetByDefault() async throws {
         // GIVEN
-        var request = Request(url: "https://example.com/user", method: .post)
+        var request = Request(path: "https://example.com/user", method: .post)
         request.body = User(id: 123, login: "kean")
 
         // WHEN
@@ -119,7 +119,7 @@ final class ClientMakeRequestsTests: XCTestCase {
 
     func testOverrideAcceptAndContentTypeHeaders() async throws {
         // GIVEN
-        var request = Request(url: "https://example.com/user", method: .put)
+        var request = Request(path: "https://example.com/user", method: .put)
         request.body = User(id: 123, login: "kean")
         request.headers = [
             "Content-Type": "application/xml",
@@ -142,7 +142,7 @@ final class ClientMakeRequestsTests: XCTestCase {
                 "Accept": "application/xml"
             ]
         }
-        var request = Request(url: "https://example.com/user", method: .put)
+        var request = Request(path: "https://example.com/user", method: .put)
         request.body = User(id: 123, login: "kean")
 
         // WHEN

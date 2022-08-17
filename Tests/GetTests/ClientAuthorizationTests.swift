@@ -31,7 +31,7 @@ final class APIClientAuthorizationTests: XCTestCase {
         mock.register()
 
         // WHEN
-        try await client.send(url: "/user")
+        try await client.send(url: URL(string: "/user")!)
     }
 
     func testAuthorizationHeaderWithExpiredToken() async throws {
@@ -45,7 +45,7 @@ final class APIClientAuthorizationTests: XCTestCase {
         mock.register()
 
         // WHEN
-        try await client.send(url: "/user")
+        try await client.send(url: URL(string: "/user")!)
     }
 
     func testAuthorizationHeaderWithInvalidToken() async throws {
@@ -67,7 +67,7 @@ final class APIClientAuthorizationTests: XCTestCase {
         mock.register()
 
         // WHEN
-        try await client.send(url: "/user")
+        try await client.send(url: URL(string: "/user")!)
     }
 
     func testFailingWillSendRequestDoesntTriggerRetry() async throws {
@@ -92,7 +92,7 @@ final class APIClientAuthorizationTests: XCTestCase {
 
         // WHEN
         do {
-            try await client.send(url: "/user")
+            try await client.send(url: URL(string: "/user")!)
         } catch {
             print(error)
         }

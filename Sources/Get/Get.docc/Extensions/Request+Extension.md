@@ -23,7 +23,7 @@ Request.post("/repos", body: Repo(name: "CreateAPI"))
 You can also use an initializer to create requests:
 
 ```swift
-Request(url: "/repos/octokit", query: [("password", "123456")])
+Request(path: "/repos/octokit", query: [("password", "123456")])
 ```
 
 There is also a way to change the response type of the existing request. Let's say you want to decode the response using a different `Decodable` model or maybe you want to get the raw response `String`.

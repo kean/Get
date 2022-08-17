@@ -86,7 +86,7 @@ public actor APIClient {
     ///
     /// - returns: A response with a decoded body.
     @discardableResult public func send<T: Decodable>(
-        url: String,
+        url: URL,
         method: HTTPMethod = .get,
         body: Encodable? = nil,
         delegate: URLSessionDataDelegate? = nil,
@@ -104,7 +104,7 @@ public actor APIClient {
     ///
     /// - returns: A response with a decoded body.
     @discardableResult public func send(
-        url: String,
+        url: URL,
         method: HTTPMethod = .get,
         body: Encodable? = nil,
         delegate: URLSessionDataDelegate? = nil,
@@ -150,7 +150,7 @@ public actor APIClient {
     // MARK: Fetching Data
 
     public func data(
-        for url: String,
+        for url: URL,
         delegate: URLSessionDataDelegate? = nil,
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<Data> {
@@ -200,7 +200,7 @@ public actor APIClient {
     /// will not be removed automatically until the app restarts. Make sure to
     /// move the file to a known location in your app.
     public func download(
-        for url: String,
+        for url: URL,
         delegate: URLSessionDownloadDelegate? = nil,
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<URL> {
@@ -313,8 +313,26 @@ public actor APIClient {
     }
 	
 	// MARK: Upload Data
+
+    /// Convenience method to upload data.
+    ///
+    /// - parameters:
+    ///   - request: The URLRequest for which to upload data.
+    ///   - data: Data to upload.
+    ///   - delegate: A task-specific delegate.
+    ///   - configure: Modifies the underlying `URLRequest` before sending it.
+    ///
+    /// Returns decoded response.
+    @discardableResult public func upload<T: Decodable>(
+        for url: URL,
+        from data: Data,
+        delegate: URLSessionTaskDelegate? = nil,
+        configure: ((inout URLRequest) throws -> Void)? = nil
+    ) async throws -> Response<T> {
+        try await upload(for: Request(url: url), from: data, delegate: delegate, configure: configure)
+    }
 	
-	/// Convenience method to upload data from a file.
+	/// Convenience method to upload data.
 	///
 	/// - parameters:
 	///   - request: The URLRequest for which to upload data.
@@ -384,7 +402,7 @@ public actor APIClient {
         for request: Request<T>,
         _ configure: ((inout URLRequest) throws -> Void)?
     ) async throws -> URLRequest {
-        let url = try makeURL(url: request.url, query: request.query)
+        let url = try makeURL(for: request)
         var urlRequest = URLRequest(url: url)
         urlRequest.allHTTPHeaderFields = request.headers
         urlRequest.httpMethod = request.method.rawValue
@@ -405,23 +423,21 @@ public actor APIClient {
         return urlRequest
     }
 
-    private func makeURL(url: String, query: [(String, String?)]?) throws -> URL {
-        if let url = try delegate.client(self, makeURLFor: url, query: query) {
+    private func makeURL<T>(for request: Request<T>) throws -> URL {
+        if let url = try delegate.client(self, makeURLForRequest: request) {
             return url
         }
-        func makeURL(path: String) -> URL? {
-            guard !path.isEmpty else {
-                return configuration.baseURL?.appendingPathComponent("/")
-            }
-            guard let url = URL(string: path) else {
+        func makeURL() -> URL? {
+#warning("TODO: is this needed?")
+            guard let url = request.url else {
                 return nil
             }
-            return url.scheme == nil ? configuration.baseURL?.appendingPathComponent(path) : url
+            return url.scheme == nil ? configuration.baseURL?.appendingPathComponent(url.absoluteString) : url
         }
-        guard let url = makeURL(path: url), var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+        guard let url = makeURL(), var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             throw URLError(.badURL)
         }
-        if let query = query, !query.isEmpty {
+        if let query = request.query, !query.isEmpty {
             components.queryItems = query.map(URLQueryItem.init)
         }
         guard let url = components.url else {

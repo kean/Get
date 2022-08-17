@@ -56,7 +56,7 @@ public protocol APIClientDelegate {
     ///
     /// - returns: The URL for the request. Return `nil` to use the default
     /// logic used by client.
-    func client(_ client: APIClient, makeURLFor url: String, query: [(String, String?)]?) throws -> URL?
+    func client<T>(_ client: APIClient, makeURLForRequest request: Request<T>) throws -> URL?
 
     // Deprecated in Get 1.0
     @available(*, deprecated, message: "Please implement client(_:validateResponse:data:request:) instead. The current method is no longer used.")
@@ -86,7 +86,7 @@ public extension APIClientDelegate {
         APIError.unacceptableStatusCode(response.statusCode)
     }
 
-    func client(_ client: APIClient, makeURLFor url: String, query: [(String, String?)]?) throws -> URL? {
+    func client<T>(_ client: APIClient, makeURLForRequest request: Request<T>) throws -> URL? {
         nil // Use default handlings
     }
 

@@ -13,7 +13,7 @@ public struct Request<Response>: @unchecked Sendable {
     /// HTTP method, e.g. "GET".
     public var method: HTTPMethod
     /// Resource URL. Can be either absolute or relative.
-    public var url: String
+    public var url: URL?
     /// Request query items.
     public var query: [(String, String?)]?
     /// Request body.
@@ -25,7 +25,7 @@ public struct Request<Response>: @unchecked Sendable {
 
     /// Initialiazes the request with the given parameters.
     public init(
-        url: String,
+        url: URL,
         method: HTTPMethod = .get,
         query: [(String, String?)]? = nil,
         body: Encodable? = nil,
@@ -40,15 +40,43 @@ public struct Request<Response>: @unchecked Sendable {
         self.id = id
     }
 
+    /// Initialiazes the request with the given parameters.
+    public init(
+        path: String,
+        method: HTTPMethod = .get,
+        query: [(String, String?)]? = nil,
+        body: Encodable? = nil,
+        headers: [String: String]? = nil,
+        id: String? = nil
+    ) {
+        self.method = method
+        self.url = URL(string: path.isEmpty ? "/" : path)
+        self.query = query
+        self.headers = headers
+        self.body = body
+        self.id = id
+    }
+
+    private init(optionalUrl: URL?, method: HTTPMethod) {
+        self.url = optionalUrl
+        self.method = .get
+    }
+
     /// Changes the respones type keeping the rest of the request parameters.
     public func withResponse<T>(_ type: T.Type) -> Request<T> {
-        Request<T>(url: url, method: method, query: query, body: body, headers: headers, id: id)
+        var copy = Request<T>(optionalUrl: url, method: method)
+        copy.query = query
+        copy.body = body
+        copy.headers = headers
+        copy.id = id
+        return copy
     }
 }
 
 extension Request where Response == Void {
+    /// Initialiazes the request with the given parameters.
     public init(
-        url: String,
+        url: URL,
         method: HTTPMethod = .get,
         query: [(String, String?)]? = nil,
         body: Encodable? = nil,
@@ -57,6 +85,23 @@ extension Request where Response == Void {
     ) {
         self.method = method
         self.url = url
+        self.query = query
+        self.headers = headers
+        self.body = body
+        self.id = id
+    }
+
+    /// Initialiazes the request with the given parameters.
+    public init(
+        path: String,
+        method: HTTPMethod = .get,
+        query: [(String, String?)]? = nil,
+        body: Encodable? = nil,
+        headers: [String: String]? = nil,
+        id: String? = nil
+    ) {
+        self.method = method
+        self.url = URL(string: path.isEmpty ? "/" : path)
         self.query = query
         self.headers = headers
         self.body = body
@@ -89,71 +134,71 @@ public struct HTTPMethod: ExpressibleByStringLiteral {
 // Deprecated in Get 1.0
 @available(*, deprecated, message: "Please use Request initializer instead")
 extension Request {
-    public static func get(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .get, query: query, headers: headers)
+    public static func get(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .get, query: query, headers: headers)
     }
 
-    public static func post(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .post, query: query, body: body, headers: headers)
+    public static func post(_ path: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .post, query: query, body: body, headers: headers)
     }
 
-    public static func put(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .put, query: query, body: body, headers: headers)
+    public static func put(_ path: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .put, query: query, body: body, headers: headers)
     }
 
-    public static func patch(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .patch, query: query, body: body, headers: headers)
+    public static func patch(_ path: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .patch, query: query, body: body, headers: headers)
     }
 
-    public static func delete(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .delete, query: query, body: body, headers: headers)
+    public static func delete(_ path: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .delete, query: query, body: body, headers: headers)
     }
 
-    public static func options(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .options, query: query, headers: headers)
+    public static func options(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .options, query: query, headers: headers)
     }
 
-    public static func head(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .head, query: query, headers: headers)
+    public static func head(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .head, query: query, headers: headers)
     }
 
-    public static func trace(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .trace, query: query, headers: headers)
+    public static func trace(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .trace, query: query, headers: headers)
     }
 }
 
 // Deprecated in Get 1.0
 @available(*, deprecated, message: "Please use Request initializer instead")
 extension Request where Response == Void {
-    public static func get(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .get, query: query, headers: headers)
+    public static func get(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .get, query: query, headers: headers)
     }
 
-    public static func post(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .post, query: query, body: body, headers: headers)
+    public static func post(_ path: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .post, query: query, body: body, headers: headers)
     }
 
-    public static func put(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .put, query: query, body: body, headers: headers)
+    public static func put(_ path: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .put, query: query, body: body, headers: headers)
     }
 
-    public static func patch(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .patch, query: query, body: body, headers: headers)
+    public static func patch(_ path: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .patch, query: query, body: body, headers: headers)
     }
 
-    public static func delete(_ url: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .delete, query: query, body: body, headers: headers)
+    public static func delete(_ path: String, query: [(String, String?)]? = nil, body: Encodable? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .delete, query: query, body: body, headers: headers)
     }
 
-    public static func options(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .options, query: query, headers: headers)
+    public static func options(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .options, query: query, headers: headers)
     }
 
-    public static func head(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .head, query: query, headers: headers)
+    public static func head(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .head, query: query, headers: headers)
     }
 
-    public static func trace(_ url: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
-        Request(url: url, method: .trace, query: query, headers: headers)
+    public static func trace(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
+        Request(path: path, method: .trace, query: query, headers: headers)
     }
 }
