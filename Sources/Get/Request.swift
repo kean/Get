@@ -131,7 +131,7 @@ public struct HTTPMethod: ExpressibleByStringLiteral {
 }
 
 
-// Deprecated in Get 1.0
+// Deprecated in Get 2.0
 @available(*, deprecated, message: "Please use Request initializer instead")
 extension Request {
     public static func get(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {
@@ -167,7 +167,7 @@ extension Request {
     }
 }
 
-// Deprecated in Get 1.0
+// Deprecated in Get 2.0
 @available(*, deprecated, message: "Please use Request initializer instead")
 extension Request where Response == Void {
     public static func get(_ path: String, query: [(String, String?)]? = nil, headers: [String: String]? = nil) -> Request {

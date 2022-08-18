@@ -57,14 +57,6 @@ public protocol APIClientDelegate {
     /// - returns: The URL for the request. Return `nil` to use the default
     /// logic used by client.
     func client<T>(_ client: APIClient, makeURLForRequest request: Request<T>) throws -> URL?
-
-    // Deprecated in Get 1.0
-    @available(*, deprecated, message: "Please implement client(_:validateResponse:data:request:) instead. The current method is no longer used.")
-    func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error
-
-    // Deprecated in Get 1.0
-    @available(*, deprecated, message: "Please use client(_:shouldRetryRequest:attempts:error:). The current method is no longer used.")
-    func shouldClientRetry(_ client: APIClient, for request: URLRequest, withError error: Error) async throws -> Bool
 }
 
 public extension APIClientDelegate {
@@ -82,15 +74,9 @@ public extension APIClientDelegate {
         }
     }
 
-    func client(_ client: APIClient, didReceiveInvalidResponse response: HTTPURLResponse, data: Data) -> Error {
-        APIError.unacceptableStatusCode(response.statusCode)
-    }
-
     func client<T>(_ client: APIClient, makeURLForRequest request: Request<T>) throws -> URL? {
         nil // Use default handlings
     }
-
-    func shouldClientRetry(_ client: APIClient, for request: URLRequest, withError error: Error) async throws -> Bool { false }
 }
 
 struct DefaultAPIClientDelegate: APIClientDelegate {}
