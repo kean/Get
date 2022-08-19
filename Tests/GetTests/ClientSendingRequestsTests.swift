@@ -299,7 +299,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         Mock.get(url: url, json: "user").register()
 
         // WHEN
-        let response = try await client.download(for: URL(string: "/user")!)
+        let response = try await client.download(for: Request(path: "/user"))
 
         // THEN
         let data = try Data(contentsOf: response.location)
@@ -320,7 +320,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         // WHEN
 
         let fileURL = try XCTUnwrap(Bundle.module.url(forResource: "user", withExtension: "json"))
-        let user: User = try await client.upload(for: .post("/user"), fromFile: fileURL).value
+        let user: User = try await client.upload(for: Request(path: "/user"), fromFile: fileURL).value
 
         // THEN
         XCTAssertEqual(user.login, "kean")
@@ -372,7 +372,7 @@ final class ClientSendingRequestsTests: XCTestCase {
 
         // WHEN
         let body: User? = nil
-        let request = Request<Void>.post("/user", body: body)
+        let request = Request(path: "/user", method: .post, body: body)
         try await client.send(request)
     }
 
@@ -399,7 +399,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         mock.register()
 
         // WHEN/THEN
-        try await client.send(.post("/user")) {
+        try await client.send(url: URL(string: "/user")!, method: .post) {
             let user = User(id: 1, login: "kean")
             $0.httpBody = try JSONEncoder().encode(user)
         }

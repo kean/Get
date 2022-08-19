@@ -192,24 +192,6 @@ public actor APIClient {
     /// Downloads the requested data to a file.
     ///
     /// - parameters:
-    ///   - url: The download URL.
-    ///   - delegate: A task-specific delegate.
-    ///   - configure: Modifies the underlying `URLRequest` before sending it.
-    ///
-    /// - returns: A response with the location of the downloaded file. The file
-    /// will not be removed automatically until the app restarts. Make sure to
-    /// move the file to a known location in your app.
-    public func download(
-        for url: URL,
-        delegate: URLSessionDownloadDelegate? = nil,
-        configure: ((inout URLRequest) throws -> Void)? = nil
-    ) async throws -> Response<URL> {
-        try await download(for: Request(url: url), delegate: delegate, configure: configure)
-    }
-
-    /// Downloads the requested data to a file.
-    ///
-    /// - parameters:
     ///   - request: A request object that provides the URL and other parameters.
     ///   - delegate: A task-specific delegate.
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
@@ -314,24 +296,6 @@ public actor APIClient {
 	
 	// MARK: Upload Data
 
-    /// Convenience method to upload data.
-    ///
-    /// - parameters:
-    ///   - request: The URLRequest for which to upload data.
-    ///   - data: Data to upload.
-    ///   - delegate: A task-specific delegate.
-    ///   - configure: Modifies the underlying `URLRequest` before sending it.
-    ///
-    /// Returns decoded response.
-    @discardableResult public func upload<T: Decodable>(
-        for url: URL,
-        from data: Data,
-        delegate: URLSessionTaskDelegate? = nil,
-        configure: ((inout URLRequest) throws -> Void)? = nil
-    ) async throws -> Response<T> {
-        try await upload(for: Request(url: url), from: data, delegate: delegate, configure: configure)
-    }
-	
 	/// Convenience method to upload data.
 	///
 	/// - parameters:
@@ -428,7 +392,6 @@ public actor APIClient {
             return url
         }
         func makeURL() -> URL? {
-#warning("TODO: is this needed?")
             guard let url = request.url else {
                 return nil
             }
