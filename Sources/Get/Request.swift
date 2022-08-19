@@ -109,7 +109,7 @@ extension Request where Response == Void {
     }
 }
 
-public struct HTTPMethod: ExpressibleByStringLiteral {
+public struct HTTPMethod: RawRepresentable, Hashable, ExpressibleByStringLiteral {
     public let rawValue: String
 
     public init(rawValue: String) {
