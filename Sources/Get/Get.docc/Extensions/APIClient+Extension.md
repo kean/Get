@@ -22,7 +22,7 @@ let client = APIClient(baseURL: URL(string: "https://api.github.com")) {
 To send a request, use ``send(_:delegate:configure:)-2mbhr`` that accepts ``Request`` as its primary parameter. The request can be configured ``Request/query``, ``Request/headers``, ``Request/body``. 
 
 ```swift
-let user: User = try await client.send(.get("/user")).value
+let user: User = try await client.send(Request(path: "/user")).value
 ```
 
 In the previous sample, ``Response/value`` is used to access the decoded response value. The ``Response`` struct also contains metadata associated with the response, including ``Response/response``, ``Response/statusCode``, ``Response/currentRequest``, ``Response/metrics``, and more.
@@ -31,17 +31,17 @@ The client uses `JSONDecoder` to decode the response. If the response type is `V
 
 ```swift
 // Returns the response body as a raw `Data`
-let data = try await client.data(for: .get("/user")).value
+let data = try await client.data(for: Request(path: "/user")).value
 
 // Returns the response body as a raw `String`
-let string: String = try await client.send(.get("/user")).value
+let string: String = try await client.send(Request(path: "/user")).value
 ```
 
-You can also provide a task-specific delegate and modify the underlyng `URLRequest`.
+You can also provide a task-specific delegate and modify the underlying `URLRequest`.
 
 ```swift
 let delegate: URLSessionDataDelegate = ...
-_ = try await client.send(.get("/user"), delegate: delegate) {
+_ = try await client.send(Request(path: "/user"), delegate: delegate) {
     $0.cachePolicy = .reloadIgnoringLocalCacheData
 }
 ```
@@ -49,7 +49,9 @@ _ = try await client.send(.get("/user"), delegate: delegate) {
 To pass data to the server, simply set it as the request ``Request/body`` which is then encoded as JSON. But if you pass `Data`, it's sent as is, and if you pass `String`, it's encoded using UTF8.
 
 ```swift
-try await client.send(.post("/user/emails", body: ["kean@example.com"]))
+var request = Requsest(path: "/user/emails", method: .post)
+request.body = ["kean@example.com"]
+try await client.send(request)
 ```
 
 ### Uploading Data
@@ -57,7 +59,8 @@ try await client.send(.post("/user/emails", body: ["kean@example.com"]))
 While you can use ``send(_:delegate:configure:)-2mbhr`` to send data to the server, ``APIClient`` also provides a convenience ``upload(for:fromFile:delegate:configure:)-y3l9`` method for uploading data from a file.
 
 ```swift
-try await client.upload(for: .post("/avatar"), fromFile: fileURL)
+let request = Request(path: "/avatar", method: .post)
+try await client.upload(for: request, fromFile: fileURL)
 ```
 
 ### Downloading Data
@@ -65,7 +68,8 @@ try await client.upload(for: .post("/avatar"), fromFile: fileURL)
 If you expect the payload to be large, consider using ``download(for:delegate:configure:)`` to download it to a file.
 
 ```swift
-let response = try await client.download(for: .get("/image-archive"))
+let request = Request(path: "/image-archive")
+let response = try await client.download(for: request)
 let fileURL = response.location
 
 // Or resume download using resume data

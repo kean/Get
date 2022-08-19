@@ -15,8 +15,10 @@ Get provides a clear and convenient API for modeling network requests using `Req
 let client = APIClient(baseURL: URL(string: "https://api.github.com"))
 
 // Start sending requests
-let user: User = try await client.send(.get("/user")).value
-try await client.send(.post("/user/emails", body: ["alex@me.com"]))
+let user: User = try await client.send(Request(path: "/user")).value
+
+var request = Request(path: "/user/emails", method: .post, body: ["alex@me.com"]
+try await client.send(request)
 ```
 
 The client uses `URLSession` for networking and provides complete access to all its APIs. It is designed with the "less is more" idea in mind and doesn't introduce any unnecessary abstractions on top of native APIs.

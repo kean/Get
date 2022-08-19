@@ -7,7 +7,8 @@ Learn how to define an API using ``Request`` type.
 For smaller apps or one-off requests, using ``APIClient`` directly without creating an API definition can be acceptable. For example:
 
 ```swift
-try await client.send(.post("/user/emails", body: ["kean@example.com"]))
+let request = Request(path: "/user/emails", method: .post, body: ["kean@example.com"])
+try await client.send(request)
 ```
 
 But it is generally a good idea to define all the available APIs in one place to reduce the clutter in the rest of the codebase and eliminate duplication. The ``Request`` struct is perfectly suited for this. It defines the relative or the absolute URL, the request parameters, and, importantly, the expected response type.
@@ -31,7 +32,7 @@ extension API {
         let path: String
 
         /// Get the profile of the selected user.
-        var get: Request<User> { .get(path) }
+        var get: Request<User> { .init(path: path) }
     
         /// Access the repos belonging to the user.
         var repos: ReposResource { ReposResource(path: path + "/repos") }
@@ -44,7 +45,7 @@ extension API.UsersResource {
         let path: String
 
         /// Get the list of the repos belonging to the user.
-        var get: Request<[Repo]> { .get(path) }
+        var get: Request<[Repo]> { .init(path: path) }
     }
 }
 
@@ -66,7 +67,7 @@ For APIs that don't follow REST API design, there are other ways to define APIs.
 ```swift
 enum API {
     static func getReposForUser(named name: String) -> Request<User> {
-        .get("/users/\(name)/repos")
+        .init(path: "/users/\(name)/repos")
     }
 }
 

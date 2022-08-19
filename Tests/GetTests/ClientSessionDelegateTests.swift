@@ -43,7 +43,7 @@ final class APIClientSessionDelegateTests: XCTestCase {
         Mock.get(url: url, json: "user").register()
 
         // WHEN
-        try await client.send(.get("/user"))
+        try await client.send(Request(path: "/user"))
 
         // THEN
         XCTAssertNil(self.delegate.onMetrics)
@@ -61,13 +61,13 @@ final class APIClientSessionDelegateTests: XCTestCase {
         Mock.get(url: url, json: "user").register()
 
         // WHEN
-        try await client.send(.get("/user"))
+        try await client.send(Request(path: "/user"))
 
         // THEN
         XCTAssertEqual(delegate.metrics.count, 1)
         let metrics = try XCTUnwrap(delegate.metrics.first?.value)
         let transaction = try XCTUnwrap(metrics.transactionMetrics.first)
-        XCTAssertEqual(transaction.request.url, URL(string: "https://api.github.com/user")!)
+        XCTAssertEqual(transaction.request.url, URL(string: "https://api.github.com/user"))
     }
 
     func testInvalidateSession() async throws {
@@ -101,7 +101,7 @@ final class APIClientSessionDelegateTests: XCTestCase {
 
         // WHEN
         let delegate = MockDelegate()
-        let request = Request<Void>.get("/user")
+        let request = Request(url: URL(string: "/user")!)
         do {
             try await client.send(request, delegate: delegate)
             XCTFail("Request was supposed to be cancelled")
@@ -130,7 +130,7 @@ final class APIClientSessionDelegateTests: XCTestCase {
 
         // WHEN
         let delegate = MockDelegate()
-        let request = Request<Void>.get("/user")
+        let request = Request(url: URL(string: "/user")!)
         do {
             try await client.send(request, delegate: delegate)
             XCTFail("Request was supposed to be cancelled")
@@ -157,7 +157,7 @@ final class APIClientSessionDelegateTests: XCTestCase {
 
         // WHEN
         let delegate = MockDelegate()
-        let request = Request<Void>.get("/user")
+        let request = Request(url: URL(string: "/user")!)
         do {
             try await client.send(request, delegate: delegate)
             XCTFail("Request was supposed to be cancelled")

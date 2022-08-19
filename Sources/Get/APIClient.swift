@@ -251,8 +251,8 @@ public actor APIClient {
     }
 	
 	// MARK: Upload Data
-	
-	/// Convenience method to upload data from a file.
+
+	/// Convenience method to upload data.
 	///
 	/// - parameters:
 	///   - request: The URLRequest for which to upload data.
@@ -322,10 +322,10 @@ public actor APIClient {
         for request: Request<T>,
         _ configure: ((inout URLRequest) throws -> Void)?
     ) async throws -> URLRequest {
-        let url = try makeURL(url: request.url, query: request.query)
+        let url = try makeURL(for: request)
         var urlRequest = URLRequest(url: url)
         urlRequest.allHTTPHeaderFields = request.headers
-        urlRequest.httpMethod = request.method
+        urlRequest.httpMethod = request.method.rawValue
         if let body = request.body {
             urlRequest.httpBody = try await encode(body, using: encoder)
             if urlRequest.value(forHTTPHeaderField: "Content-Type") == nil &&
@@ -343,23 +343,20 @@ public actor APIClient {
         return urlRequest
     }
 
-    private func makeURL(url: String, query: [(String, String?)]?) throws -> URL {
-        if let url = try delegate.client(self, makeURLFor: url, query: query) {
+    private func makeURL<T>(for request: Request<T>) throws -> URL {
+        if let url = try delegate.client(self, makeURLForRequest: request) {
             return url
         }
-        func makeURL(path: String) -> URL? {
-            guard !path.isEmpty else {
-                return configuration.baseURL?.appendingPathComponent("/")
-            }
-            guard let url = URL(string: path) else {
+        func makeURL() -> URL? {
+            guard let url = request.url else {
                 return nil
             }
-            return url.scheme == nil ? configuration.baseURL?.appendingPathComponent(path) : url
+            return url.scheme == nil ? configuration.baseURL?.appendingPathComponent(url.absoluteString) : url
         }
-        guard let url = makeURL(path: url), var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+        guard let url = makeURL(), var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             throw URLError(.badURL)
         }
-        if let query = query, !query.isEmpty {
+        if let query = request.query, !query.isEmpty {
             components.queryItems = query.map(URLQueryItem.init)
         }
         guard let url = components.url else {
