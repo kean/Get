@@ -320,7 +320,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         // WHEN
 
         let fileURL = try XCTUnwrap(Bundle.module.url(forResource: "user", withExtension: "json"))
-        let user: User = try await client.upload(for: Request(path: "/user"), fromFile: fileURL).value
+        let user: User = try await client.upload(for: Request(path: "/user", method: .post), fromFile: fileURL).value
 
         // THEN
         XCTAssertEqual(user.login, "kean")
