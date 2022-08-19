@@ -43,7 +43,7 @@ final class APIClientSessionDelegateTests: XCTestCase {
         Mock.get(url: url, json: "user").register()
 
         // WHEN
-        try await client.send(url: URL(string: "/user")!)
+        try await client.send(Request(path: "/user"))
 
         // THEN
         XCTAssertNil(self.delegate.onMetrics)
@@ -61,13 +61,13 @@ final class APIClientSessionDelegateTests: XCTestCase {
         Mock.get(url: url, json: "user").register()
 
         // WHEN
-        try await client.send(url: URL(string: "/user")!)
+        try await client.send(Request(path: "/user"))
 
         // THEN
         XCTAssertEqual(delegate.metrics.count, 1)
         let metrics = try XCTUnwrap(delegate.metrics.first?.value)
         let transaction = try XCTUnwrap(metrics.transactionMetrics.first)
-        XCTAssertEqual(transaction.request.url, URL(string: "https://api.github.com/user")!)
+        XCTAssertEqual(transaction.request.url, URL(string: "https://api.github.com/user"))
     }
 
     func testInvalidateSession() async throws {

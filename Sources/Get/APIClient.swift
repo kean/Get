@@ -77,42 +77,6 @@ public actor APIClient {
 
     // MARK: Sending Requests
 
-    /// Sends the request with the given URL and returns a decoded response.
-    ///
-    /// - parameters:
-    ///   - url: The URL to be requested.
-    ///   - delegate: A task-specific delegate.
-    ///   - configure: Modifies the underlying `URLRequest` before sending it.
-    ///
-    /// - returns: A response with a decoded body.
-    @discardableResult public func send<T: Decodable>(
-        url: URL,
-        method: HTTPMethod = .get,
-        body: Encodable? = nil,
-        delegate: URLSessionDataDelegate? = nil,
-        configure: ((inout URLRequest) throws -> Void)? = nil
-    ) async throws -> Response<T> {
-        try await send(Request(url: url, method: method, body: body), delegate: delegate, configure: configure)
-    }
-
-    /// Sends the request with the given URL and returns a decoded response.
-    ///
-    /// - parameters:
-    ///   - url: The URL to be requested.
-    ///   - delegate: A task-specific delegate.
-    ///   - configure: Modifies the underlying `URLRequest` before sending it.
-    ///
-    /// - returns: A response with a decoded body.
-    @discardableResult public func send(
-        url: URL,
-        method: HTTPMethod = .get,
-        body: Encodable? = nil,
-        delegate: URLSessionDataDelegate? = nil,
-        configure: ((inout URLRequest) throws -> Void)? = nil
-    ) async throws -> Response<Void> {
-        try await send(Request(url: url, method: method, body: body), delegate: delegate, configure: configure)
-    }
-
     /// Sends the given request and returns a decoded response.
     ///
     /// - parameters:
@@ -148,14 +112,6 @@ public actor APIClient {
     }
 
     // MARK: Fetching Data
-
-    public func data(
-        for url: URL,
-        delegate: URLSessionDataDelegate? = nil,
-        configure: ((inout URLRequest) throws -> Void)? = nil
-    ) async throws -> Response<Data> {
-        try await data(for: Request(url: url), delegate: delegate, configure: configure)
-    }
 
     /// Fetches data for the given request.
     ///

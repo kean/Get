@@ -55,13 +55,14 @@ Get is available under the MIT license. See the LICENSE file for more info.
 ### Essentials
 
 - ``APIClient``
-- ``APIClientDelegate``
-- ``APIError``
-
-### Requests and Responses
-
 - ``Request``
 - ``Response``
+
+### Misc
+
+- ``APIError``
+- ``APIClientDelegate``
+- ``HTTPMethod``
 
 ### Articles
 

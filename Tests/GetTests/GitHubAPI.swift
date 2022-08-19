@@ -131,6 +131,4 @@ func usage() async throws {
 //    try await client.send(Resources.user.emails.delete(["octocat@gmail.com"]))
 
     _ = try await client.send(Paths.users("kean").followers.get)
-
-    let _: User = try await client.send(url: URL(string: "/user")!).value
 }
