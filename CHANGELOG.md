@@ -1,3 +1,23 @@
+# Get 2.x
+
+## Get 2.0.0
+
+*Aug 26, 2022*
+
+This release is a quick follow-up to Get 1.0 that fixes some of the shortcomings of the original design of the `Request` type.
+
+- `Request` can now be initialized with either a string (`path: String`) or a URL (`url: URL`)
+- Replace separate `.get(...)`, `.post(...)`, and other factory methods with a single `HTTPMethod` type. Example: `Request(path: "/user", method: .patch)`
+- The first parameter in the `Request` initializer is now `path` or `url`, not `method` that has a default value
+- Add a new `Request` initializer that defaults to the `Void` response type unless you specify it explicitly
+- Make `body` property of `Request` writable
+- Add `upload(for:data:)` method - [#50](https://github.com/kean/Get/pull/50), thanks to @soemarko 
+- Replace `APIDelegate` `client(_:makeURLFor:query:)` method with `client(_:makeURLForRequest:)` so that you have complete access to the `Request`
+- Remove APIs deprecated in Get 1.0
+
+> See [#51](https://github.com/kean/Get/pull/51) for the reasoning behind the `Request` changes
+
+
 # Get 1.x
 
 ## Get 1.0.1
