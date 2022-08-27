@@ -54,6 +54,17 @@ public actor APIClient {
 
     // MARK: Initializers
 
+#if swift(>=5.7)
+    /// Initializes the client with the given parameters.
+    ///
+    /// - parameter baseURL: A base URL. For example, `"https://api.github.com"`.
+    /// - parameter configure: Updates the client configuration.
+    public init(baseURL: URL?, _ configure: (inout APIClient.Configuration) -> Void = { _ in }) {
+        var configuration = Configuration(baseURL: baseURL)
+        configure(&configuration)
+        self.init(configuration: configuration)
+    }
+#else
     /// Initializes the client with the given parameters.
     ///
     /// - parameter baseURL: A base URL. For example, `"https://api.github.com"`.
@@ -63,6 +74,7 @@ public actor APIClient {
         configure(&configuration)
         self.init(configuration: configuration)
     }
+#endif
 
     /// Initializes the client with the given configuration.
     public init(configuration: Configuration) {
