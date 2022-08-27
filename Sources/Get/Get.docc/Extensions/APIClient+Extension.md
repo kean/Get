@@ -152,5 +152,7 @@ final class SessionDelegate: URLSessionTaskDelegate {
 
 ### Uploads
 
+- ``upload(for:from:delegate:configure:)-1u2op``
+- ``upload(for:from:delegate:configure:)-1b363``
 - ``upload(for:fromFile:delegate:configure:)-y3l9``
 - ``upload(for:fromFile:delegate:configure:)-2q1yx``

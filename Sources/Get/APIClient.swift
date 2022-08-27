@@ -264,7 +264,7 @@ public actor APIClient {
 	
 	// MARK: Upload Data
 
-	/// Convenience method to upload data.
+	/// Convenience method for uploading data.
 	///
 	/// - parameters:
 	///   - request: The URLRequest for which to upload data.
@@ -284,7 +284,7 @@ public actor APIClient {
 		return response.map { _ in value }
 	}
 	
-	/// Convenience method to upload data from a file.
+	/// Convenience method for uploading data.
 	///
 	/// - parameters:
 	///   - request: The URLRequest for which to upload data.
