@@ -42,7 +42,8 @@ In addition to sending quick requests, Get also supports downloads, uploads from
 
 | Get | Date       | Swift | Xcode | Platforms                                            |
 |-----|------------|-------|-------|------------------------------------------------------|
-| 1.0 | 07/26/2022 | 5.6   | 13.3 | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
+| 2.0 | 08/26/2022 | 5.5   | 13.3  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
+| 1.0 | 07/26/2022 | 5.6   | 13.3  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
 | 0.6 | 04/03/2022 | 5.5   | 13.2  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
 | 0.1 | 12/22/2021 | 5.5   | 13.2  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0        |
 
