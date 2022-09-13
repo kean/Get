@@ -1,5 +1,11 @@
 # Get 2.x
 
+## Get 2.0.1
+
+*Sep 13, 2022*
+
+- Add support for Xcode 14 (fix build issue on macOS)
+
 ## Get 2.0.0
 
 *Aug 26, 2022*
