@@ -312,6 +312,8 @@ private final class DownloadTaskHandler: TaskHandler {
 
 // MARK: - Helpers
 
+protocol OptionalDecoding {}
+
 struct DataLoaderError: Error {
     let task: URLSessionTask
     let error: Error
@@ -333,6 +335,8 @@ extension OperationQueue {
     }
 }
 
+extension Optional: OptionalDecoding {}
+
 func encode(_ value: Encodable, using encoder: JSONEncoder) async throws -> Data? {
     if let data = value as? Data {
         return data
@@ -346,7 +350,9 @@ func encode(_ value: Encodable, using encoder: JSONEncoder) async throws -> Data
 }
 
 func decode<T: Decodable>(_ data: Data, using decoder: JSONDecoder) async throws -> T {
-    if T.self == Data.self {
+    if data.isEmpty, T.self is OptionalDecoding.Type {
+        return Optional<Decodable>.none as! T
+    } else if T.self == Data.self {
         return data as! T
     } else if T.self == String.self {
         guard let string = String(data: data, encoding: .utf8) else {
@@ -359,3 +365,7 @@ func decode<T: Decodable>(_ data: Data, using decoder: JSONDecoder) async throws
         }.value
     }
 }
+
+
+
+
