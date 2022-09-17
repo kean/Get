@@ -1,5 +1,11 @@
 # Get 2.x
 
+## Get 2.1.0
+
+*Sep 17, 2022*
+
+- Add support for optional responses. If the response is optional and the response body is empty, the request will now succeed and return `nil` - [#58](https://github.com/kean/Get/pull/58), thanks to [@Pomanks](https://github.com/Pomanks)
+
 ## Get 2.0.1
 
 *Sep 13, 2022*
