@@ -141,7 +141,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         // THEN returns decoded JSON
         XCTAssertEqual(user?.login, "kean")
     }
-
+    
     // func value(for:) -> Decodable
     func testResponseEmpty() async throws {
         // GIVEN
@@ -152,6 +152,20 @@ final class ClientSendingRequestsTests: XCTestCase {
 
         // WHEN
         try await client.send(Request(path: "/user")).value
+    }
+    
+    func testResponseEmptyWithDecodableOptional() async throws {
+        // GIVEN
+        let url = URL(string: "https://api.github.com/user")!
+        Mock(url: url, dataType: .json, statusCode: 204, data: [
+            .get: Data()
+        ]).register()
+        
+        // WHEN
+        let user: User? = try await client.send(Request(path: "/user")).value
+        
+        // THEN returns nil response
+        XCTAssertNil(user)
     }
 
     // func value(for:) -> Data
@@ -170,7 +184,7 @@ final class ClientSendingRequestsTests: XCTestCase {
     }
 
     // func value(for:) -> String
-    func testResponeString() async throws {
+    func testResponseString() async throws {
         // GIVEN
         let url = URL(string: "https://api.github.com/user")!
         Mock(url: url, dataType: .json, statusCode: 200, data: [
