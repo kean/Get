@@ -96,7 +96,8 @@ public actor APIClient {
     ///   - delegate: A task-specific delegate.
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
     ///
-    /// - returns: A response with a decoded body.
+    /// - returns: A response with a decoded body. If the response type is
+    /// optional and the response body is empty, returns `nil`.
     @discardableResult public func send<T: Decodable>(
         _ request: Request<T>,
         delegate: URLSessionDataDelegate? = nil,
@@ -211,7 +212,8 @@ public actor APIClient {
     ///   - delegate: A task-specific delegate.
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
     ///
-    /// Returns decoded response.
+    /// - returns: A response with a decoded body. If the response type is
+    /// optional and the response body is empty, returns `nil`.
     @discardableResult public func upload<T: Decodable>(
         for request: Request<T>,
         fromFile fileURL: URL,
@@ -231,7 +233,7 @@ public actor APIClient {
     ///   - delegate: A task-specific delegate.
     ///   - configure: Modifies the underlying `URLRequest` before sending it.
     ///
-    /// Returns decoded response.
+    /// - returns: Empry response.
     @discardableResult public func upload(
         for request: Request<Void>,
         fromFile fileURL: URL,
@@ -272,7 +274,8 @@ public actor APIClient {
 	///   - delegate: A task-specific delegate.
 	///   - configure: Modifies the underlying `URLRequest` before sending it.
 	///
-	/// Returns decoded response.
+    /// - returns: A response with a decoded body. If the response type is
+    /// optional and the response body is empty, returns `nil`.
 	@discardableResult public func upload<T: Decodable>(
 		for request: Request<T>,
 		from data: Data,
