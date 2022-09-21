@@ -38,6 +38,24 @@ This release is a quick follow-up to Get 1.0 that fixes some of the shortcomings
 
 # Get 1.x
 
+## Get 1.0.4
+
+*Sep 20, 2022*
+
+- Fix concurrency issue in `DataLoader` with the new iOS 16 `didCreateTask` delegate method
+
+## Get 1.0.3
+
+*Sep 13, 2022*
+
+- Add Xcode 14 support
+
+## Get 1.0.2
+
+*Aug 3, 2022* 
+
+- Revert back to supporting Swift 5.5 by @liamnichols in #47
+
 ## Get 1.0.1
 
 *Jul 26, 2022*
