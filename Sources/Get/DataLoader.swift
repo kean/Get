@@ -9,7 +9,7 @@ import FoundationNetworking
 
 // A simple URLSession wrapper adding async/await APIs compatible with older platforms.
 final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDelegate, @unchecked Sendable {
-    private var handlers = [URLSessionTask: TaskHandler]()
+    private let handlers = TaskHandlersDictionary()
 
     var userSessionDelegate: URLSessionDelegate? {
         didSet {
@@ -31,11 +31,10 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     func startDataTask(_ task: URLSessionDataTask, session: URLSession, delegate: URLSessionDataDelegate?) async throws -> Response<Data> {
         try await withTaskCancellationHandler(handler: { task.cancel() }) {
             try await withUnsafeThrowingContinuation { continuation in
-                session.delegateQueue.addOperation {
-                    let handler = DataTaskHandler(delegate: delegate)
-                    handler.completion = continuation.resume(with:)
-                    self.handlers[task] = handler
-                }
+                let handler = DataTaskHandler(delegate: delegate)
+                handler.completion = continuation.resume(with:)
+                self.handlers[task] = handler
+
                 task.resume()
             }
         }
@@ -44,11 +43,10 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     func startDownloadTask(_ task: URLSessionDownloadTask, session: URLSession, delegate: URLSessionDownloadDelegate?) async throws -> Response<URL> {
         try await withTaskCancellationHandler(handler: { task.cancel() }) {
             try await withUnsafeThrowingContinuation { continuation in
-                session.delegateQueue.addOperation {
-                    let handler = DownloadTaskHandler(delegate: delegate)
-                    handler.completion = continuation.resume(with:)
-                    self.handlers[task] = handler
-                }
+                let handler = DownloadTaskHandler(delegate: delegate)
+                handler.completion = continuation.resume(with:)
+                self.handlers[task] = handler
+
                 task.resume()
             }
         }
@@ -57,11 +55,10 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     func startUploadTask(_ task: URLSessionUploadTask, session: URLSession, delegate: URLSessionTaskDelegate?) async throws -> Response<Data> {
         try await withTaskCancellationHandler(handler: { task.cancel() }) {
             try await withUnsafeThrowingContinuation { continuation in
-                session.delegateQueue.addOperation {
-                    let handler = DataTaskHandler(delegate: delegate)
-                    handler.completion = continuation.resume(with:)
-                    self.handlers[task] = handler
-                }
+                let handler = DataTaskHandler(delegate: delegate)
+                handler.completion = continuation.resume(with:)
+                self.handlers[task] = handler
+
                 task.resume()
             }
         }
@@ -366,6 +363,23 @@ func decode<T: Decodable>(_ data: Data, using decoder: JSONDecoder) async throws
     }
 }
 
+/// With iOS 16, there is now a delegate method (`didCreateTask`) that gets
+/// called outside of the session's delegate queue, which means that the access
+/// needs to be synchronized.
+private final class TaskHandlersDictionary {
+    private let lock = NSLock()
+    private var handlers = [URLSessionTask: TaskHandler]()
 
-
-
+    subscript(task: URLSessionTask) -> TaskHandler? {
+        get {
+            lock.lock()
+            defer { lock.unlock() }
+            return handlers[task]
+        }
+        set {
+            lock.lock()
+            defer { lock.unlock() }
+            handlers[task] = newValue
+        }
+    }
+}
