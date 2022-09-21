@@ -1,5 +1,11 @@
 # Get 2.x
 
+## Get 2.1.2
+
+*Sep 21, 2022*
+
+- Fix an issue with `withResponse` always setting method to `.get` - [#62](https://github.com/kean/Get/pull/62), thanks to @briancordanyoung
+
 ## Get 2.1.1
 
 *Sep 20, 2022*
