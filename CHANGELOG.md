@@ -1,5 +1,11 @@
 # Get 2.x
 
+## Get 2.1.1
+
+*Sep 20, 2022*
+
+- Fix concurrency issue in `DataLoader` with the new iOS 16 `didCreateTask` delegate method
+
 ## Get 2.1.0
 
 *Sep 17, 2022*
