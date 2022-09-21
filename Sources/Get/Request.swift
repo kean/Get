@@ -40,7 +40,7 @@ public struct Request<Response>: @unchecked Sendable {
         self.id = id
     }
 
-    /// Initialiazes the request with the given parameters.
+    /// Initializes the request with the given parameters.
     public init(
         path: String,
         method: HTTPMethod = .get,
@@ -59,7 +59,7 @@ public struct Request<Response>: @unchecked Sendable {
 
     private init(optionalUrl: URL?, method: HTTPMethod) {
         self.url = optionalUrl
-        self.method = .get
+        self.method = method
     }
 
     /// Changes the response type keeping the rest of the request parameters.
