@@ -1,5 +1,11 @@
 # Get 2.x
 
+## Get 2.1.3
+
+*Oct 8, 2022*
+
+- Fix [#53](https://github.com/kean/Get/issues/53), a concurrency warning with strict concurrency checking  
+
 ## Get 2.1.2
 
 *Sep 21, 2022*
