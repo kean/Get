@@ -59,7 +59,7 @@ public actor APIClient {
     ///
     /// - parameter baseURL: A base URL. For example, `"https://api.github.com"`.
     /// - parameter configure: Updates the client configuration.
-    public init(baseURL: URL?, _ configure: (inout APIClient.Configuration) -> Void = { _ in }) {
+    public init(baseURL: URL?, _ configure: @Sendable (inout APIClient.Configuration) -> Void = { _ in }) {
         var configuration = Configuration(baseURL: baseURL)
         configure(&configuration)
         self.init(configuration: configuration)
