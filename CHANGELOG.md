@@ -1,5 +1,11 @@
 # Get 2.x
 
+## Get 2.1.4
+
+*Oct 22, 2022*
+
+- Fix xcodebuild & docc issue in Xcode 14.0
+
 ## Get 2.1.3
 
 *Oct 8, 2022*
