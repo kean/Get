@@ -54,4 +54,4 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install codespell
-          codespell --ignore-words-list="inout,theis" --skip="./.build/*,./Tests/GetTests/Mocker/*"
+          codespell --ignore-words-list="inout,theis" --skip="./.git,./.build/*,./Tests/GetTests/Mocker/*"
