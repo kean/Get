@@ -14,7 +14,7 @@ func checkSample01() {
         private var accessToken: String = ""
 
         func client(_ client: APIClient, willSendRequest request: inout URLRequest) async throws {
-            request.setValue("Bearer: \(accessToken)", forHTTPHeaderField: "Authorization")
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         }
 
         func client(_ client: APIClient, shouldRetry task: URLSessionTask, error: Error, attempts: Int) async throws -> Bool {
