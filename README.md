@@ -40,7 +40,7 @@ let response = try await client.send(Paths.user.get, delegate: delegate) {
 
 In addition to sending quick requests, it also supports downloading data to a file, uploading from a file, authentication, auto-retries, logging, and more. It's a kind of code that you would typically write on top of `URLSession` if you were using it directly.
 
-## Sponsors 💖
+## Sponsor 💖
 
 [Support](https://github.com/sponsors/kean) Get on GitHub Sponsors.
 
