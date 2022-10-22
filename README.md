@@ -40,15 +40,15 @@ let response = try await client.send(Paths.user.get, delegate: delegate) {
 
 In addition to sending quick requests, it also supports downloading data to a file, uploading from a file, authentication, auto-retries, logging, and more. It's a kind of code that you would typically write on top of `URLSession` if you were using it directly.
 
+## Sponsors 💖
+
+[Support](https://github.com/sponsors/kean) Get on GitHub Sponsors.
+
 ## Documentation
 
 Learn how to use Get by going through the [documentation](https://kean-docs.github.io/get/documentation/get/) created using DocC.
 
 To learn more about `URLSession`, see [URL Loading System](https://developer.apple.com/documentation/foundation/url_loading_system).
-
-## Sponsors 💖
-
-[Support](https://github.com/sponsors/kean) Get on GitHub Sponsors.
 
 ## Integrations
 
