@@ -57,6 +57,27 @@ public protocol APIClientDelegate {
     /// - returns: The URL for the request. Return `nil` to use the default
     /// logic used by client.
     func client<T>(_ client: APIClient, makeURLForRequest request: Request<T>) throws -> URL?
+
+    /// Allows you to override the client's encoder for a specific request.
+    ///
+    /// If not implemented, the request uses the client's encoder.
+    ///
+    /// - Parameters:
+    ///   - client: The client that sends the request.
+    ///   - request: The request about to be sent.
+    /// - Returns: The JSONEncoder for the request.
+    func client<T>(_ client: APIClient, encoderForRequest request: Request<T>) -> JSONEncoder
+
+
+    /// Allows you to override the client's decoder for a specific request.
+    ///
+    /// If not implemented, the request uses the client's decoder.
+    ///
+    /// - Parameters:
+    ///   - client: The client that sends the request.
+    ///   - request: The request that was performed.
+    /// - Returns: The JSONDecoder for the request.
+    func client<T>(_ client: APIClient, decoderForRequest request: Request<T>) -> JSONDecoder
 }
 
 public extension APIClientDelegate {
@@ -76,6 +97,14 @@ public extension APIClientDelegate {
 
     func client<T>(_ client: APIClient, makeURLForRequest request: Request<T>) throws -> URL? {
         nil // Use default handlings
+    }
+
+    func client<T>(_ client: APIClient, encoderForRequest request: Request<T>) -> JSONEncoder {
+        return client.configuration.encoder
+    }
+
+    func client<T>(_ client: APIClient, decoderForRequest request: Request<T>) -> JSONDecoder {
+        return client.configuration.decoder
     }
 }
 
