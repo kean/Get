@@ -14,6 +14,8 @@ public actor APIClient {
     /// The underlying `URLSession` instance.
     public nonisolated let session: URLSession
 
+    private let decoder: JSONDecoder
+    private let encoder: JSONEncoder
     private let delegate: APIClientDelegate
     private let dataLoader = DataLoader()
 
@@ -81,6 +83,8 @@ public actor APIClient {
         self.session = URLSession(configuration: configuration.sessionConfiguration, delegate: dataLoader, delegateQueue: delegateQueue)
         self.dataLoader.userSessionDelegate = configuration.sessionDelegate
         self.delegate = configuration.delegate ?? DefaultAPIClientDelegate()
+        self.decoder = configuration.decoder
+        self.encoder = configuration.encoder
     }
 
     // MARK: Sending Requests
@@ -100,7 +104,7 @@ public actor APIClient {
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<T> {
         let response = try await data(for: request, delegate: delegate, configure: configure)
-        let decoder = self.delegate.client(self, decoderForRequest: request)
+        let decoder = self.delegate.client(self, decoderForRequest: request) ?? self.decoder
         let value: T = try await decode(response.data, using: decoder)
         return response.map { _ in value }
     }
@@ -218,7 +222,7 @@ public actor APIClient {
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<T> {
         let response = try await _upload(for: request, fromFile: fileURL, delegate: delegate, configure: configure)
-        let decoder = self.delegate.client(self, decoderForRequest: request)
+        let decoder = self.delegate.client(self, decoderForRequest: request) ?? self.decoder
         let value: T = try await decode(response.data, using: decoder)
         return response.map { _ in value }
     }
@@ -281,7 +285,7 @@ public actor APIClient {
         configure: ((inout URLRequest) throws -> Void)? = nil
     ) async throws -> Response<T> {
         let response = try await _upload(for: request, from: data, delegate: delegate, configure: configure)
-        let decoder = self.delegate.client(self, decoderForRequest: request)
+        let decoder = self.delegate.client(self, decoderForRequest: request) ?? self.decoder
         let value: T = try await decode(response.data, using: decoder)
         return response.map { _ in value }
     }
@@ -341,7 +345,7 @@ public actor APIClient {
         urlRequest.allHTTPHeaderFields = request.headers
         urlRequest.httpMethod = request.method.rawValue
         if let body = request.body {
-            let encoder = delegate.client(self, encoderForRequest: request)
+            let encoder = delegate.client(self, encoderForRequest: request) ?? self.encoder
             urlRequest.httpBody = try await encode(body, using: encoder)
             if urlRequest.value(forHTTPHeaderField: "Content-Type") == nil &&
                 session.configuration.httpAdditionalHeaders?["Content-Type"] == nil {

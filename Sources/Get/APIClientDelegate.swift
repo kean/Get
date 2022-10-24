@@ -60,24 +60,21 @@ public protocol APIClientDelegate {
 
     /// Allows you to override the client's encoder for a specific request.
     ///
-    /// If not implemented, the request uses the client's encoder.
-    ///
     /// - Parameters:
     ///   - client: The client that sends the request.
     ///   - request: The request about to be sent.
-    /// - Returns: The JSONEncoder for the request.
-    func client<T>(_ client: APIClient, encoderForRequest request: Request<T>) -> JSONEncoder
-
+    /// - Returns: The JSONEncoder for the request. Return `nil` to use the default
+    /// encoder set in the client.
+    func client<T>(_ client: APIClient, encoderForRequest request: Request<T>) -> JSONEncoder?
 
     /// Allows you to override the client's decoder for a specific request.
-    ///
-    /// If not implemented, the request uses the client's decoder.
     ///
     /// - Parameters:
     ///   - client: The client that sends the request.
     ///   - request: The request that was performed.
-    /// - Returns: The JSONDecoder for the request.
-    func client<T>(_ client: APIClient, decoderForRequest request: Request<T>) -> JSONDecoder
+    /// - Returns: The JSONDecoder for the request. Return `nil` to use the default
+    /// decoder set in the client.
+    func client<T>(_ client: APIClient, decoderForRequest request: Request<T>) -> JSONDecoder?
 }
 
 public extension APIClientDelegate {
@@ -99,12 +96,12 @@ public extension APIClientDelegate {
         nil // Use default handlings
     }
 
-    func client<T>(_ client: APIClient, encoderForRequest request: Request<T>) -> JSONEncoder {
-        return client.configuration.encoder
+    func client<T>(_ client: APIClient, encoderForRequest request: Request<T>) -> JSONEncoder? {
+        nil
     }
 
-    func client<T>(_ client: APIClient, decoderForRequest request: Request<T>) -> JSONDecoder {
-        return client.configuration.decoder
+    func client<T>(_ client: APIClient, decoderForRequest request: Request<T>) -> JSONDecoder? {
+        nil
     }
 }
 
