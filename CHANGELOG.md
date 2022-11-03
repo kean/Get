@@ -1,5 +1,12 @@
 # Get 2.x
 
+## Get 2.1.5
+
+*Nov 2, 2022*
+
+- Fix warnings in Xcode 14.1
+- Move docc files back to the Sources/ 
+
 ## Get 2.1.4
 
 *Oct 22, 2022*
