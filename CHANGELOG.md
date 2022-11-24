@@ -258,7 +258,7 @@ let client = APIClient(host: "api.github.com") {
 
 *Dec 10, 2021*
 
-- Make `Configuration` init public - [#10](https://github.com/kean/APIClient/pull/10), thanks to [Theis Egeberg](https://github.com/theisegeberg)
+- Make `Configuration` init public - [#10](https://github.com/kean/APIClient/pull/10), thanks to [@theisegeberg](https://github.com/theisegeberg)
 - All `send` methods now return a new `Response<T>` struct containing not just the response value, but also data, request, response, and status code.
 - Add `value(for:)` method that returns `T` – a replacement for the old `send` method
 - Add `data(for:)` method returning `Response<Data>`

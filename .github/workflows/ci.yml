@@ -55,4 +55,4 @@ jobs:
           export PATH="$PATH:/Library/Frameworks/Python.framework/Versions/3.11/bin"
           python3 -m pip install --upgrade pip
           python3 -m pip install codespell
-          codespell --ignore-words-list="hart,inout,msdos,sur" --skip="./.build/*"
+          codespell --ignore-words-list="hart,inout,msdos,sur" --skip="./.build/*,./Tests/GetTests/Mocker/*"
