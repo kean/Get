@@ -248,7 +248,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
         let handler = (handlers[downloadTask] as? DownloadTaskHandler)
         let downloadsURL = DataLoader.downloadDirectoryURL
         try? FileManager.default.createDirectory(at: downloadsURL, withIntermediateDirectories: true, attributes: nil)
-        let newLocation = downloadsURL.appendingPathExtension(location.lastPathComponent)
+        let newLocation = downloadsURL.appendingPathComponent(location.lastPathComponent)
         try? FileManager.default.moveItem(at: location, to: newLocation)
         handler?.location = newLocation
         handler?.downloadDelegate?.urlSession(session, downloadTask: downloadTask, didFinishDownloadingTo: newLocation)
