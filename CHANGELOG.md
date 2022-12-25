@@ -1,5 +1,11 @@
 # Get 2.x
 
+## Get 2.1.6
+
+*Dec 25, 2022*
+
+- Fix downloads folder, by [@LePips](https://github.com/LePips) – [#72](https://github.com/kean/Get/pull/72) 
+
 ## Get 2.1.5
 
 *Nov 2, 2022*
