@@ -89,6 +89,10 @@ public actor APIClient {
 
     // MARK: Sending Requests
 
+    public func dataTask<T>(with request: Request<T>) -> AsyncDataTask<T> {
+        fatalError()
+    }
+
     /// Sends the given request and returns a decoded response.
     ///
     /// - parameters:
