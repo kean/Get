@@ -17,7 +17,7 @@ let client = APIClient(baseURL: URL(string: "https://api.github.com"))
 // Start sending requests
 let user: User = try await client.send(Request(path: "/user")).value
 
-var request = Request(path: "/user/emails", method: .post, body: ["alex@me.com"]
+var request = Request(path: "/user/emails", method: .post, body: ["alex@me.com"])
 try await client.send(request)
 ```
 
