@@ -1,12 +1,33 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
+// Copyright (c) 2021-2023 Alexander Grebenyuk (github.com/kean).
 
 import Foundation
 
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
+
+#warning("adding error to reponse it not a good idea because its inconvenient")
+
+public protocol TaskDesponse: Sendable {
+    /// Original response.
+    var response: URLResponse { get }
+    /// Completed task.
+    var task: URLSessionTask { get }
+    /// Task metrics collected for the request.
+    var metrics: URLSessionTaskMetrics? { get }
+}
+
+extension TaskDesponse {
+    /// Response HTTP status code.
+    public var statusCode: Int? { (response as? HTTPURLResponse)?.statusCode }
+    /// Original request.
+    public var originalRequest: URLRequest? { task.originalRequest }
+    /// The URL request object currently being handled by the task. May be
+    /// different from the original request.
+    public var currentRequest: URLRequest? { task.currentRequest }
+}
 
 /// A response with an associated value and metadata.
 public struct Response<T> {

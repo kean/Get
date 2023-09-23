@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
+// Copyright (c) 2021-2023 Alexander Grebenyuk (github.com/kean).
 
 import Foundation
 
@@ -8,6 +8,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
+#warning("does it need to be generic at all?")
 /// An HTTP network request.
 public struct Request<Response>: @unchecked Sendable {
     /// HTTP method, e.g. "GET".
@@ -62,6 +63,7 @@ public struct Request<Response>: @unchecked Sendable {
         self.method = method
     }
 
+#warning("we no longer need to change the reponse type?")
     /// Changes the response type keeping the rest of the request parameters.
     public func withResponse<T>(_ type: T.Type) -> Request<T> {
         var copy = Request<T>(optionalUrl: url, method: method)

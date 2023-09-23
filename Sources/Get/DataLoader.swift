@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
+// Copyright (c) 2021-2023 Alexander Grebenyuk (github.com/kean).
 
 import Foundation
 #if canImport(FoundationNetworking)
@@ -28,10 +28,10 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
         return url
     }()
 
-    func startDataTask(_ task: URLSessionDataTask, session: URLSession, delegate: URLSessionDataDelegate?) async throws -> Response<Data> {
+    func startDataTask(_ task: URLSessionDataTask, session: URLSession, delegate: Box<URLSessionDataDelegate?>) async throws -> Response<Data> {
         try await withTaskCancellationHandler(operation: {
             try await withUnsafeThrowingContinuation { continuation in
-                let handler = DataTaskHandler(delegate: delegate)
+                let handler = DataTaskHandler(delegate: delegate.value)
                 handler.completion = continuation.resume(with:)
                 self.handlers[task] = handler
 

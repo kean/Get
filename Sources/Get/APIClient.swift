@@ -1,11 +1,13 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2021-2022 Alexander Grebenyuk (github.com/kean).
+// Copyright (c) 2021-2023 Alexander Grebenyuk (github.com/kean).
 
 import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
+
+#warning("add Response to Error.responseValidationFailed")
 
 /// Performs network requests constructed using ``Request``.
 public actor APIClient {
@@ -89,6 +91,31 @@ public actor APIClient {
 
     // MARK: Sending Requests
 
+#warning("should we keep basic send?")
+#warning("more way to create DataTask?, e.g. with URL/URLRequest?")
+
+    public func dataTask<T>(with request: Request<T>) -> DataTask<T> {
+        let task = DataTask<T>()
+        task.task = Task<DataTask<T>.Response, Error> {
+            defer { task.task = nil }
+            let request = try await makeURLRequest(for: request, task.configure)
+            return try await performRequest {
+                var request = request
+                try await self.delegate.client(self, willSendRequest: &request)
+                let dataTask = session.dataTask(with: request)
+                do {
+                    let response = try await dataLoader.startDataTask(dataTask, session: session, delegate: Box(task.delegate))
+                    try validate(response)
+#warning("remove this")
+                    return DataTask<T>.Response(data: response.data, response: response.response, task: dataTask, metrics: response.metrics)
+                } catch {
+                    throw DataLoaderError(task: dataTask, error: error)
+                }
+            }
+        }
+        return task
+    }
+
     /// Sends the given request and returns a decoded response.
     ///
     /// - parameters:
@@ -146,7 +173,7 @@ public actor APIClient {
             try await self.delegate.client(self, willSendRequest: &request)
             let task = session.dataTask(with: request)
             do {
-                let response = try await dataLoader.startDataTask(task, session: session, delegate: delegate)
+                let response = try await dataLoader.startDataTask(task, session: session, delegate: Box(delegate))
                 try validate(response)
                 return response
             } catch {
