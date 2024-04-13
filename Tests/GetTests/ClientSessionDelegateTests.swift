@@ -78,7 +78,7 @@ final class APIClientSessionDelegateTests: XCTestCase {
 
         client.session.invalidateAndCancel()
 
-        wait(for: [expectation], timeout: 2)
+        await fulfillment(of: [expectation], timeout: 2)
     }
 
     // MARK: - Per-Task Delegate
