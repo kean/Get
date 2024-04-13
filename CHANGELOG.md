@@ -1,10 +1,11 @@
 # Get 2.x
 
-## Get 2.1.7
+## Get 2.2.0
 
 *Apr 13, 2024*
 
-- Fix warnings in unit tests 
+- Increase the minimum supported Xcode version to 15.0 
+- Fix warnings in unit tests
 
 ## Get 2.1.6
 
