@@ -1,5 +1,11 @@
 # Get 2.x
 
+## Get 2.1.7
+
+*Apr 13, 2024*
+
+- Fix warnings in unit tests 
+
 ## Get 2.1.6
 
 *Dec 25, 2022*
