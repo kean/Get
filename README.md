@@ -89,7 +89,7 @@ Get is a lean framework with a lot of flexibility and customization points. It m
 
 | Get  | Date         | Swift | Xcode | Platforms                                            |
 |------|--------------|-------|-------|------------------------------------------------------|
-| 2.2  | Apr 13, 2022 | 5.9   | 15.0  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
+| 2.2  | Apr 13, 2024 | 5.8   | 14.3  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
 | 2.0  | Jul 26, 2022 | 5.5   | 13.3  | iOS 13.0, watchOS 6.0, macOS 10.15, tvOS 13.0, Linux |
 
 ## License
