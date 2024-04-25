@@ -357,7 +357,7 @@ func encode(_ value: Encodable, using encoder: JSONEncoder) async throws -> Data
         return string.data(using: .utf8)
     } else {
         return try await Task.detached {
-            try encoder.encode(AnyEncodable(value: value))
+            try encoder.encode(value)
         }.value
     }
 }
