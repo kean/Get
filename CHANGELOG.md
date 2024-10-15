@@ -1,5 +1,11 @@
 # Get 2.x
 
+## Get 2.2.1
+
+*Oct 15, 2024*
+
+- Fix Swift 6 warnings
+
 ## Get 2.2
 
 *Apr 13, 2024*

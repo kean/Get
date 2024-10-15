@@ -32,7 +32,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
         try await withTaskCancellationHandler(operation: {
             try await withUnsafeThrowingContinuation { continuation in
                 let handler = DataTaskHandler(delegate: delegate)
-                handler.completion = continuation.resume(with:)
+                handler.completion = { continuation.resume(with: $0) }
                 self.handlers[task] = handler
 
                 task.resume()
@@ -46,7 +46,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
         try await withTaskCancellationHandler(operation: {
             try await withUnsafeThrowingContinuation { continuation in
                 let handler = DownloadTaskHandler(delegate: delegate)
-                handler.completion = continuation.resume(with:)
+                handler.completion = { continuation.resume(with: $0) }
                 self.handlers[task] = handler
 
                 task.resume()
@@ -60,7 +60,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
         try await withTaskCancellationHandler(operation: {
             try await withUnsafeThrowingContinuation { continuation in
                 let handler = DataTaskHandler(delegate: delegate)
-                handler.completion = continuation.resume(with:)
+                handler.completion = { continuation.resume(with: $0) }
                 self.handlers[task] = handler
 
                 task.resume()
